@@ -11,3 +11,4 @@
 9. [git](main/git.md)
 10. [设计模式](main/design.md)
 11. [typeScript](main/typeScript.md)
+12. [算法](main/algorithm.md)
