@@ -57,7 +57,6 @@
 
 3.  使用CSS的`overflow`属性 当给**父元素**设置了overflow样式，不管是overflow:hidden或overflow:auto都可以清除浮动只要它的值不为visible就可以了，它的本质就是建构了一个BFC，这样使得达到撑起父元素高度的效果
 
-+   参考：[css清除浮动](https://www.html.cn/qa/css3/13783.html "https://www.html.cn/qa/css3/13783.html")
 
 ### 5\. （外）边距重叠
 
