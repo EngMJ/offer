@@ -15,7 +15,21 @@
 
 相同class样式，css中后写的优先级高，和html中的class名字前后无关
 
-### 2\. 水平垂直居中
+### 2\. 盒模型介绍
+
+CSS3 中的盒模型有以下两种：**标准盒模型**、**IE（替代）盒模型**。
+
+两种盒子模型都是由 `content + padding + border + margin` 构成，其大小都是由 `content + padding + border` 决定的，但是盒子内容宽/高度（即 `width/height`）的计算范围根据盒模型的不同会有所不同：
+
++   标准盒模型：只包含 `content` 。
++   IE（替代）盒模型：`content + padding + border` 。
+
+可以通过 `box-sizing` 来改变元素的盒模型：
+
++   `box-sizing: content-box` ：标准盒模型（默认值）。
++   `box-sizing: border-box` ：IE（替代）盒模型。
+
+### 3\. 水平垂直居中
 
 +   文本水平居中：`text-algin: center`
 +   文本垂直居中：`line-height`等于容器`height`；`display: flex; algin-items: center;`
@@ -29,7 +43,7 @@
     2.  未知父元素高度：position: absolute: top: 50%; transform: tranlateY(-50%)
     3.  display: flex; algin-items: center;
 
-### 3\. 移除inline-block间隙
+### 4\. 移除inline-block间隙
 
 +   移除空格
 +   使用margin负值
@@ -37,7 +51,7 @@
 +   letter-spacing
 +   word-spacing
 
-### 4\. 清除浮动
+### 5\. 清除浮动
 
 **浮动的影响**： （1）由于浮动元素脱离了文档流，所以父元素的高度无法被撑开，影响了与父元素同级的元素 （2）与浮动元素同级的非浮动元素会跟随其后，因为浮动元素脱离文档流不占据原来的位置 （3）如果该浮动元素不是第一个浮动元素，则该元素之前的元素也需要浮动，否则容易影响页面的结构显示 **清除浮动的3个方法**：
 
@@ -58,7 +72,7 @@
 3.  使用CSS的`overflow`属性 当给**父元素**设置了overflow样式，不管是overflow:hidden或overflow:auto都可以清除浮动只要它的值不为visible就可以了，它的本质就是建构了一个BFC，这样使得达到撑起父元素高度的效果
 
 
-### 5\. （外）边距重叠
+### 6\. （外）边距重叠
 
 布局垂直方向上两个元素的间距不等于margin的和，而是取较大的一个
 
@@ -67,7 +81,9 @@
 2.  父子元素 **现象**：父元素设`置margin-top: 20px`，下方元素设置`margin-top: 10px`，实际的间隔是`20px` **避免办法**：父元素有padding-top，或者border-top。或者触发`BFC`
 
 
-### 6\. 三栏布局
+### 7\. 三栏/双飞翼/圣杯布局
+
+**本质类似**,区别: 双飞翼布局的实现简单,兼容性更好，但要处理浮动清除. 圣杯布局结构清晰,实现相对复杂,更适合现代浏览器.
 
 **要求**：左边右边固定宽度，中间自适应
 
