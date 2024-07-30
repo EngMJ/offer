@@ -411,8 +411,6 @@ function App() {
 
 ## 五、React 事件机制
 
-参考: [toutiao.io/posts/28of1…](https://toutiao.io/posts/28of14w/preview "https://toutiao.io/posts/28of14w/preview")
-
 ### 5.1 原生事件和 React 事件监听方法:
 
 +   `React` 事件通过 `JSX` 方式绑定的事件, 比如 `onClick={() => this.handle()}`
@@ -946,24 +944,19 @@ class ErrorBoundary extends React.Component {
 5.  `dispatch`: 执行 `reducer(state, action)`、遍历执行所有监听器(触发组件状态更新、从而引起页面重新渲染)
 6.  `reducer`: 纯函数 `(state, action)` ==> 根据 `action.type` 处理计算 ==> 返回新状态
 
-### 1.2 react-redux
+### 1.2 redux
+1. `dispatch`  派发action(一个有type与参数的对象)使用对应reducer函数生成新state,触发subscript
+2. `getState`  获取store的state数据
+3. `subscript` 订阅store变化
 
-1.  `Provider`: 创建 `context`, 添加全局 `store`
-2.  `connect`: 高阶组件
-
-+   通过 `context` 获取 `redux store`
-+   添加监听器, 当通过 `dispatch` 更新状态时执行该监听器, 监听器将执行第一参数(回调函数 `state => ({})`) 将返回值作为高阶组件的 `state`
-+   将第二参数使用 `dispathc` 进行包裹返回新函数: `(... arg) => dispatch(fun(... arg))`
-+   最后将 `state` 和封装后的方法挂载到组件上
-
-### 1.3 中间件
+### 1.3 redux-thunk 中间件
 
 理解: 中间件其实就是要对 `redux` 的 `store.dispatch` 方法做一些改造, 来定制一些功能
 
 `Redux-thunk`: 实现原理
 
 1.  本来 `dispatch` 参数只能是 `action` 对象, `redux-thunk` 中间件对 `dispatch` 进行了封装, 允许 `action` 是一个函数
-2.  在 `dispatch` 中如果发现 `action` 是函数则执行 `action(dispatch, getState);`(延迟 `dispatch`), 否则执行 `dispatch(action)`
+2.  在 `dispatch` 中如果发现 `action` 是函数则执行 `action(dispatch, getState);`(延迟 `dispatch`), 否则执行 `dispatch(action)`.中间件,能够使dispatch的action为函数参数,当为函数参数时,会执行  action(dispatch,getState) , 主要就是为了异步调用或执行单次操作执行多次dispatch
 
 ```js
 // 下面方式使用了 mapDispatchToProps
@@ -975,6 +968,7 @@ export const openModalAction = ({ code, data, ...rest }) => {
   };
 };
 ```
+3. 可被RTK的 createAsyncThunk 替代
 
 ### 1.4 redux 优缺点
 
@@ -984,7 +978,7 @@ export const openModalAction = ({ code, data, ...rest }) => {
 2.  `State` 是只读的: 如果要修改状态只能通过触发 `action` 来修改, `action` 是一个普通对象, 可以很方便被日志打印、序列化、储存…… 因此状态的修改过程就会变得有迹可寻, 比较方便得跟踪数据的变化
 3.  `redux` 使用纯函数(`reducer`)来修改状态, 同一个 `action` 返回的 `state` 相同, 这样的话让状态的修改过程变得可控, 测试起来也方便
 
-**缺点:** 啰嗦, 存在 `Action` 和 `Reducer`, 如果要添加一个新的状态需要写一堆模版代码, 但是现在市面上已经有很多成熟的方案(工具)可以帮我们简化这一步, 比如 `Redux Toolkit`
+**缺点:** 冗余,要写很多模板代码,可用redux Toolkit代替
 
 ```js
 export default createSlice({
@@ -996,21 +990,24 @@ export default createSlice({
 });
 ```
 
-### 1.5 和 mobx 的区别
+### 1.5 react-redux
 
-1.  单一数据、数据分散
-2.  响应式编程、函数式编程
-3.  状态修改和页面响应被抽象化封装到内部, 不易监测、调试
-4.  `mobx` 更适合业务不是很复杂、快速开发的项目
+1.  `Provider组件`: 用来包裹应用,注入store
+2.  `connect`: 高阶组件,用来包裹需要注入store的组件,有mapStateToProps/mapDispatchToProps/megerToProps/options, 可以用来给被注入组件以props的方式传入返回的对象
+    使用方法: connect(mapStateToProps?,mapDispatchToProps?,megerToProps?,options?)(组件)
 
-### 1.6 redux-thunk 和 redux-sage 区别
++   通过 `context` 获取 `redux store`
++   添加监听器, 当通过 `dispatch` 更新状态时执行该监听器, 监听器将执行第一参数(回调函数 `state => ({})`) 将返回值作为高阶组件的 `state`
++   将第二参数使用 `dispathc` 进行包裹返回新函数: `(... arg) => dispatch(fun(... arg))`
++   最后将 `state` 和封装后的方法挂载到组件上
 
-1.  `redux-thunk` 允许 `action` 是一个函数, 当 `aciton` 是一个函数时会进行执行并传入 `dispatch`, 对于 `redux-thunk` 的整个流程来说, 它是等异步任务执行完成之后, 我们再去调用 `dispatch` , 然后去 `store` 去调用 `reduces`
+3. `useSelector` 获取state的值
+4. `useDispatch` 获取dispatch
 
-2.  `redux-saga` 则是 `redux` 的 `action` 基础上, 重新开辟了一个 `async action` 的分支, 单独处理异步任务, 当我们 `dispatch` 的 `action` 类型不在 `reducer` 中时, `redux-saga` 的监听函数 `takeEvery` 就会监听到, 等异步任务有结果就执行 `put` 方法, 相当于 `dispatch` 再一次触发 `dispatch`
-
-3.  `saga` 自己基本上完全弄了一套 `asyc` 的事件监听机制, 代码量大大增加, 从我自己的使用体验来看 `redux-thunk` 更简单, 和 `redux` 本身联系地更紧密, 尤其是整个生态都向函数式编程靠拢的今天, `redux-thunk` 的高阶函数看上去更加契合这个闭环
-
+### 1.6 reduxToolkit(RTK)
+1. `configStore` 创建store
+2. `createSlice`  创建片段reducer,就是一个模块store
+3. `createAsyncThunk` 就是创建一个extrReducer可以使用的异步函数
 
 ## 十二、组件之间传参方法
 
@@ -1344,7 +1341,7 @@ const message = {
 <p>{message}</p>
 ```
 
-3.  由于服务器存储 `JSON` 不支持 `Symbol` 类型数据, 所以只要在 `React` 元素中添加 `Symbol` 类型数据 `$$typeof`, `React` 在处理元素时只需通过 `$$typeof` 就能够识别出 `非法元素(伪造元素)`
+3.  `由于服务器存储的 JSON 不支持 Symbol 类型数据`, 所以只要在 React 元素中添加 Symbol 类型数据 $$typeof, React 在处理元素时只需`判断 $$typeof 是否非法`就能够识别出 `非法元素`(伪造元素)
 
 4.  如果浏览器不支持 `Symbols` 怎么办？
 
@@ -1715,9 +1712,6 @@ function useReducer(reducer, initialState){
 +   状态下放, 缩小状态影响范围: 如果一个状态只在某部分子树中使用, 那么可以将这部分子树提取为组件, 并将该状态移动到该组件内部
 +   列表项使用 `key` 属性:
 +   `useMemo` 返回虚拟 `DOM`: 利用 `useMemo` 可以缓存计算结果的特点, 如果 `useMemo` 返回的是组件的虚拟 `DOM`, 则将在 `useMemo` 依赖不变时, 跳过组件的 `Render` 阶段
-+   对于 `props` 可以跳过 `回调函数改变` 触发的 `Render`: 对于一些回调函数(事件)的变更, 其实并不需要触发 `render`, 实现方式参考: [跳过回调函数改变触发的 Render 过程](https://juejin.cn/post/6935584878071119885#heading-13 "https://juejin.cn/post/6935584878071119885#heading-13")
-+   自定义 `Hooks` 按需更新: 假设我们自定义的 `Hook` 暴露的状态, 有多个属性值, 但是调用则只使用了若干个, 那么其他属性的变更, 不应该引起 `render`, 实现方案参考: [demo](https://codesandbox.io/s/hooks-an-xu-geng-xin-forked-663wx9?file=/src/hooks.js "https://codesandbox.io/s/hooks-an-xu-geng-xin-forked-663wx9?file=/src/hooks.js")
-+   动画库直接修改 `DOM` 属性: 当一个动画启动后, 每次动画属性改变不会引起组件重新 `Render` 而是直接修改了 `dom` 上相关属性值, 比如拖拽动作可以通过操作原生 `DOM` 而不是通过状态来记录位置, 从而触发组件的 `render`
 
 2.  组件按需挂载:
 
@@ -1730,7 +1724,7 @@ function useReducer(reducer, initialState){
 +   类组件, `setState` 自带批量更新操作
 +   函数组件, 尽量将相关的状态进行合并, 然后进行批量更新
 
-4.  按优先级更新, 及时响应用户: 举个例子当页面弹出一个 `Modal`, 当用户点击 `确定` 按钮后, 代码将执行两个操作, 1、关闭 Modal; 2、 处理 `Modal` 传回的数据并展示给用户; 同时假设第二个操作需要执行 `500ms` 时, 那么用户会明显感觉到从点击按钮到 `Modal` 被关闭之间的延迟, [如下代码](https://codesandbox.io/s/you-xian-ji-geng-xin-li-ji-xiang-ying-yong-hu-cao-zuo-forked-h5hl4s "https://codesandbox.io/s/you-xian-ji-geng-xin-li-ji-xiang-ying-yong-hu-cao-zuo-forked-h5hl4s") 如果 `setNumbers` 这一步处理时间耗时, 那么就会出现明显的卡顿
+4.  按优先级更新, 及时响应用户: 举个例子当页面弹出一个 `Modal`, 当用户点击 `确定` 按钮后, 代码将执行两个操作, 1、关闭 Modal; 2、 处理 `Modal` 传回的数据并展示给用户; 同时假设第二个操作需要执行 `500ms` 时, 那么用户会明显感觉到从点击按钮到 `Modal` 被关闭之间的延迟, 如下代码如果 `setNumbers` 这一步处理时间耗时, 那么就会出现明显的卡顿
 
 ```js
 const slowHandle = () => {
