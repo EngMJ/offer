@@ -3,7 +3,7 @@
 1. [web基础内容](main/web.md)
 2. [HTML](main/html.md)
 3. [CSS](main/css.md)
-4. [javascript](main/js.md)
+4. [javascript](main/javascript.md)
 5. [vue](main/vue.md)
 6. [react](main/react.md)
 7. [webpack](main/webpack.md)
