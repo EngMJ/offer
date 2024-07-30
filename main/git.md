@@ -2,17 +2,18 @@
 
 +   参考：[Git常用操作指南](https://www.cnblogs.com/guoyaohua/p/Git-tutorial.html "https://www.cnblogs.com/guoyaohua/p/Git-tutorial.html")
 
-| 命令 | 作用 |
-| --- | --- |
-| git status |  |
-| git diff |  |
-| git add |  |
-| git commit |  |
-| git push |  |
-| git branch |  |
-| git checkout |  |
+| 命令             | 作用                               |
+|----------------|----------------------------------|
+| git status     |                                  |
+| git diff       |                                  |
+| git add        |                                  |
+| git commit     |                                  |
+| git push       |                                  |
+| git branch     |                                  |
+| git checkout   |                                  |
 | git pull/fetch | git pull = git fetch + git merge |
-| git merge |  |
+| git merge      |                                  |
+| git stash      | 本地数据缓存,但不提交                      |
 
 **§ git rebase** **作用**：将一个分支的更改合并入另一个分支。
 

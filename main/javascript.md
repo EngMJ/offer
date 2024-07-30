@@ -502,6 +502,7 @@ function ajaxPost(url, params, success, fail) {
 ```
 
 ## 正则表达式
++ 参考: [正则表达式](https://www.runoob.com/regexp/regexp-syntax.html)
 
 ## jQuery如何扩展自定义方法
 
