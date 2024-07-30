@@ -1,3 +1,194 @@
+## 数据类型
+
+以下是比较重要的几个 js 变量要掌握的点。
+
+#### 1.1 基本的数据类型介绍，及值类型和引用类型的理解
+
+在 JS 中共有 `8`  种基础的数据类型，分别为： `Undefined` 、 `Null` 、 `Boolean` 、 `Number` 、 `String` 、 `Object` 、 `Symbol` 、 `BigInt` 。
+
+其中 `Symbol`  和 `BigInt`  是 ES6 新增的数据类型，可能会被单独问：
+
++   Symbol 代表独一无二的值，最大的用法是用来定义对象的唯一属性名。
++   BigInt 可以表示任意大小的整数。
+
+**值类型的赋值变动过程如下：**
+
+```javascript
+let a = 100;
+let b = a;
+a = 200;
+console.log(b); // 100
+```
+
+![图片 1.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/55df6cb63d3346be9ec1f572a1514853~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp) 值类型是直接存储在\*\*栈（stack）\*\*中的简单数据段，占据空间小、大小固定，属于被频繁使用数据，所以放入栈中存储；
+
+**引用类型的赋值变动过程如下：**
+
+```javascript
+let a = { age: 20 };
+let b = a;
+b.age = 30;
+console.log(a.age); // 30
+```
+
+![图片 2.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/56c5c43d1c584ed4b8e4cce8855bab52~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp) 引用类型存储在\*\*堆（heap）\*\*中的对象，占据空间大、大小不固定。如果存储在栈中，将会影响程序运行的性能；
+
+#### 1.2 数据类型的判断
+
++   **typeof**：能判断所有**值类型，函数**。不可对 **null、对象、数组**进行精确判断，因为都返回 `object` 。
+
+```javascript
+console.log(typeof undefined); // undefined
+console.log(typeof 2); // number
+console.log(typeof true); // boolean
+console.log(typeof "str"); // string
+console.log(typeof Symbol("foo")); // symbol
+console.log(typeof 2172141653n); // bigint
+console.log(typeof function () {}); // function
+// 不能判别
+console.log(typeof []); // object
+console.log(typeof {}); // object
+console.log(typeof null); // object
+```
+
++   **instanceof**：能判断**对象**类型，不能判断基本数据类型，**其内部运行机制是判断在其原型链中能否找到该类型的原型**。比如考虑以下代码：
+
+```javascript
+class People {}
+class Student extends People {}
+
+const vortesnail = new Student();
+
+console.log(vortesnail instanceof People); // true
+console.log(vortesnail instanceof Student); // true
+```
+
+其实现就是顺着**原型链**去找，如果能找到对应的 `Xxxxx.prototype`  即为 `true` 。比如这里的 `vortesnail`  作为实例，顺着原型链能找到 `Student.prototype`  及 `People.prototype` ，所以都为 `true` 。
+
++   **Object.prototype.toString.call()**：所有原始数据类型都是能判断的，还有 **Error 对象，Date 对象**等。
+
+```javascript
+Object.prototype.toString.call(2); // "[object Number]"
+Object.prototype.toString.call(""); // "[object String]"
+Object.prototype.toString.call(true); // "[object Boolean]"
+Object.prototype.toString.call(undefined); // "[object Undefined]"
+Object.prototype.toString.call(null); // "[object Null]"
+Object.prototype.toString.call(Math); // "[object Math]"
+Object.prototype.toString.call({}); // "[object Object]"
+Object.prototype.toString.call([]); // "[object Array]"
+Object.prototype.toString.call(function () {}); // "[object Function]"
+```
+
+在面试中有一个经常被问的问题就是：如何判断变量是否为数组？
+
+```javascript
+Array.isArray(arr); // true
+arr.__proto__ === Array.prototype; // true
+arr instanceof Array; // true
+Object.prototype.toString.call(arr); // "[object Array]"
+```
+
+#### 1.3 根据 0.1+0.2 ! == 0.3，讲讲 IEEE 754 ，如何让其相等？
+
+建议先阅读这篇文章了解 IEEE 754 ：[硬核基础二进制篇（一）0.1 + 0.2 != 0.3 和 IEEE-754 标准](https://juejin.cn/post/6940405970954616839 "https://juejin.cn/post/6940405970954616839")。 再阅读这篇文章了解如何运算：[0.1 + 0.2 不等于 0.3？为什么 JavaScript 有这种“骚”操作？](https://juejin.cn/post/6844903680362151950 "https://juejin.cn/post/6844903680362151950")。 ​
+
+原因总结：
+
++   `进制转换` ：js 在做数字计算的时候，0.1 和 0.2 都会被转成二进制后无限循环 ，但是 js 采用的 IEEE 754 二进制浮点运算，最大可以存储 53 位有效数字，于是大于 53 位后面的会全部截掉，将导致精度丢失。
++   `对阶运算` ：由于指数位数不相同，运算时需要对阶运算，阶小的尾数要根据阶差来右移（`0舍1入`），尾数位移时可能会发生数丢失的情况，影响精度。
+
+解决办法：
+
+1.  转为整数（大数）运算。
+
+```javascript
+function add(a, b) {
+  const maxLen = Math.max(
+    a.toString().split(".")[1].length,
+    b.toString().split(".")[1].length
+  );
+  const base = 10 ** maxLen;
+  const bigA = BigInt(base * a);
+  const bigB = BigInt(base * b);
+  const bigRes = (bigA + bigB) / BigInt(base); // 如果是 (1n + 2n) / 10n 是等于 0n的。。。
+  return Number(bigRes);
+}
+```
+
+这里代码是有问题的，因为最后计算 `bigRes` 的大数相除（即 `/`）是会把小数部分截掉的，所以我很疑惑为什么网络上很多文章都说可以通过**先转为整数运算再除回去，为了防止转为的整数超出 js 表示范围，还可以运用到 ES6 新增的大数类型，我真的很疑惑，希望有好心人能解答下。**
+
+2.  使用 `Number.EPSILON` 误差范围。
+
+```javascript
+function isEqual(a, b) {
+  return Math.abs(a - b) < Number.EPSILON;
+}
+
+console.log(isEqual(0.1 + 0.2, 0.3)); // true
+```
+
+`Number.EPSILON` 的实质是一个可以接受的最小误差范围，一般来说为 `Math.pow(2, -52)` 。 ​
+
+3.  转成字符串，对字符串做加法运算。
+
+```javascript
+// 字符串数字相加
+var addStrings = function (num1, num2) {
+  let i = num1.length - 1;
+  let j = num2.length - 1;
+  const res = [];
+  let carry = 0;
+  while (i >= 0 || j >= 0) {
+    const n1 = i >= 0 ? Number(num1[i]) : 0;
+    const n2 = j >= 0 ? Number(num2[j]) : 0;
+    const sum = n1 + n2 + carry;
+    res.unshift(sum % 10);
+    carry = Math.floor(sum / 10);
+    i--;
+    j--;
+  }
+  if (carry) {
+    res.unshift(carry);
+  }
+  return res.join("");
+};
+
+function isEqual(a, b, sum) {
+  const [intStr1, deciStr1] = a.toString().split(".");
+  const [intStr2, deciStr2] = b.toString().split(".");
+  const inteSum = addStrings(intStr1, intStr2); // 获取整数相加部分
+  const deciSum = addStrings(deciStr1, deciStr2); // 获取小数相加部分
+  return inteSum + "." + deciSum === String(sum);
+}
+
+console.log(isEqual(0.1, 0.2, 0.3)); // true
+```
+
+这是 leetcode 上一道原题：[415\. 字符串相加](https://leetcode-cn.com/problems/add-strings/ "https://leetcode-cn.com/problems/add-strings/")。区别在于原题没有考虑小数，但是也是很简单的，我们分为两个部分计算就行。
+
+
+##  原型和原型链
+
+可以说这部分每家面试官都会问了。。首先理解的话，其实一张图即可，一段代码即可。
+
+```javascript
+function Foo() {}
+
+let f1 = new Foo();
+let f2 = new Foo();
+```
+
+千万别畏惧下面这张图，特别有用，一定要搞懂，熟到提笔就能默画出来。 ![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4a61ca07672a45d3aecf382100cc9719~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+总结：
+
++   原型：每一个 JavaScript 对象（null 除外）在创建的时候就会与之关联另一个对象，这个对象就是我们所说的原型，每一个对象都会从原型"继承"属性，其实就是 `prototype` 对象。
++   原型链：由相互关联的原型组成的**链状结构**就是原型链。
+
+先说出总结的话，再举例子说明如何顺着原型链找到某个属性。
+
+推荐的阅读：[JavaScript 深入之从原型到原型链](https://github.com/mqyqingfeng/blog/issues/2 "https://github.com/mqyqingfeng/blog/issues/2") 掌握基本概念，再阅读这篇文章[轻松理解 JS 原型原型链](https://juejin.cn/post/6844903989088092174 "https://juejin.cn/post/6844903989088092174")加深上图的印象。
+
 
 ## JavaScript 面向对象&继承
 
@@ -36,12 +227,21 @@
 +   简单的说，作用域就是变量与函数的可访问范围，即作用域控制着变量与函数的可见性和生命周期。作用域是一套规则，在当前作用域以及嵌套的子作用域中根据标识符名称进行变量查找。
 +   作用域链的作用是保证执行环境里有权访问的变量和函数是有序的，作用域链的变量只能向上访问，变量访问到window对象即被终止，作用域链向下访问变量是不被允许的。
 
-## new操作符具体干了什么
+## new操作符作用
 
-+   创建一个空对象
-+   继承了该函数的原型
-+   属性和方法被加入到 this 引用的对象中
-+   新创建的对象由 this 所引用，并且最后隐式的返回 this
+1.  首先创一个新的空对象。
+2.  根据原型链，设置空对象的 `__proto__` 为构造函数的 `prototype` 。
+3.  构造函数的 this 指向这个对象，执行构造函数的代码（为这个新对象添加属性）。
+4.  判断函数的返回值类型，如果是引用类型，就返回这个引用类型的对象。
+
+```javascript
+function myNew(context) {
+  const obj = new Object();
+  obj.__proto__ = context.prototype;
+  const res = context.apply(obj, [...arguments].slice(1));
+  return typeof res === "object" ? res : obj;
+}
+```
 
 ## 严格模式的限制
 
@@ -125,7 +325,7 @@
 **微任务**
 
 +   process.nextTick (Node)
-+   promise
++   promise(构造函数为同步任务, then等方法为微任务)
 +   Object.observe
 +   MutationObserver (浏览器)
 
@@ -139,7 +339,7 @@
 +   UI rendering
 +   回调函数（事件、ajax等）
 
-在一次事件循环中，会先执行js线程的主任务，然后会去查找是否有微任务microtask（promise），如果有那就优先执行微任务，如果没有，在去查找宏任务macrotask（setTimeout、setInterval）进行执行。
+在一次事件循环中，会先执行加载js脚本产生宏任务列表,执行第一个宏任务，在这个宏任务中产生微任务microtask（promise），执行完这个宏任务的同步内容后,执行所有微任务，如果微任务中依然产生了微任务,则继续执行所有的微任务，微任务执行完毕后,继续顺序执行列表中下一个宏任务macrotask（setTimeout、setInterval）。
 
 一个事件循环的执行步骤：
 
@@ -165,18 +365,25 @@ new Promise((resolve) => resolve(''), () => {})
 
 ## Javascript垃圾回收
 
-1.  标记清除（mark and sweep）
++   **标记清除**：标记阶段即为所有活动对象做上标记，清除阶段则把没有标记（也就是非活动对象）销毁。
++   **引用计数**：它把**对象是否不再需要**简化定义为**对象有没有其他对象引用到它**。如果没有引用指向该对象（引用计数为 0），对象将被垃圾回收机制回收。
 
-+   这是JavaScript最常见的垃圾回收方式，当变量进入执行环境的时候，比如函数中声明一个变量，垃圾回收器将其标记为“进入环境”，当变量离开环境的时候（函数执行结束）将其标记为“离开环境”
-+   垃圾回收器会在运行的时候给存储在内存中的所有变量加上标记，然后去掉环境中的变量以及被环境中变量所引用的变量（闭包），在这些完成之后仍存在标记的就是要删除的变量了
+标记清除的缺点：
 
-2.  引用计数(reference counting)
++   **内存碎片化**，空闲内存块是不连续的，容易出现很多空闲内存块，还可能会出现分配所需内存过大的对象时找不到合适的块。
++   **分配速度慢**，因为即便是使用 First-fit 策略，其操作仍是一个 O(n) 的操作，最坏情况是每次都要遍历到最后，同时因为碎片化，大对象的分配效率会更慢。
 
-+   在低版本IE中经常会出现内存泄露，很多时候就是因为其采用引用计数方式进行垃圾回收。
-+   引用计数的策略是跟踪记录每个值被使用的次数。
-+   当声明了一个 变量并将一个引用类型赋值给该变量的时候这个值的引用次数就加1
-+   如果该变量的值变成了另外一个，则这个值得引用次数减1，
-+   当这个值的引用次数变为0的时 候，说明没有变量在使用，这个值没法被访问了，因此可以将其占用的空间回收，这样垃圾回收器会在运行的时候清理掉引用次数为0的值占用的空间
+解决以上的缺点可以使用 \*\*标记整理（Mark-Compact）算法 \*\*，标记结束后，标记整理算法会将活着的对象（即不需要清理的对象）向内存的一端移动，最后清理掉边界的内存（如下图） ![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/eb543f2fdc634e29add495b8f2ff048f~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+引用计数的缺点：
+
++   需要一个计数器，所占内存空间大，因为我们也不知道被引用数量的上限。
++   解决不了循环引用导致的无法回收问题。
+
+V8 的垃圾回收机制也是基于标记清除算法，不过对其做了一些优化。
+
++   针对新生区采用并行回收。
++   针对老生区采用增量标记与惰性回收。
 
 ## 深浅拷贝
 
@@ -185,12 +392,54 @@ new Promise((resolve) => resolve(''), () => {})
 +   `Object.assign`，
 +   展开运算符 `...`
 
-**深拷贝**： `JSON.parse(JSON.stringify(object))` **缺陷**：
+**深拷贝**：内部引用数据类型也进行重新创建复制,不会造成数据引用冲突
+
+简易版本 :`JSON.parse(JSON.stringify(object))` **缺陷**：
 
 +   会忽略 undefined
 +   会忽略 symbol
 +   不能序列化函数
 +   不能解决循环引用的对象
+
+完整版本:
+```js
+/**
+ * 深拷贝
+ * @param {Object} obj 要拷贝的对象
+ * @param {Map} map 用于存储循环引用对象的地址
+ */
+
+function deepClone(obj = {}, map = new Map()) {
+  if (typeof obj !== "object") {
+    return obj;
+  }
+  if (map.get(obj)) {
+    return map.get(obj);
+  }
+
+  let result = {};
+  // 初始化返回结果
+  if (
+    obj instanceof Array ||
+    // 加 || 的原因是为了防止 Array 的 prototype 被重写，Array.isArray 也是如此
+    Object.prototype.toString(obj) === "[object Array]"
+  ) {
+    result = [];
+  }
+  // 防止循环引用
+  map.set(obj, result);
+  for (const key in obj) {
+    // 保证 key 不是原型属性
+    if (obj.hasOwnProperty(key)) {
+      // 递归调用
+      result[key] = deepClone(obj[key], map);
+    }
+  }
+
+  // 返回结果
+  return result;
+}
+```
 
 ## 进程与线程
 
