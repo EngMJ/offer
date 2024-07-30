@@ -22,7 +22,7 @@ js
 
 +   节流、防抖
 +   长列表滚动到可视区域动态加载（大数据渲染）参考: [虚拟列表](virtual_list.md)
-+   图片懒加载（data-src）参考: [vue/原生懒加载](vue_img_lazy.md) [react懒加载](react_img_lazy.md)
++   图片懒加载（data-src）参考: [1. vue/原生懒加载](vue_img_lazy.md) [2.react懒加载](react_img_lazy.md)
 +   使用闭包时，在函数结尾手动删除不需要的局部变量，尤其在缓存dom节点的情况下
 +   DOM 操作优化
     +   批量添加dom可先`createElement`创建并添加节点，最后一次性加入dom
