@@ -187,40 +187,255 @@ let f2 = new Foo();
 
 先说出总结的话，再举例子说明如何顺着原型链找到某个属性。
 
-推荐的阅读：[JavaScript 深入之从原型到原型链](https://github.com/mqyqingfeng/blog/issues/2 "https://github.com/mqyqingfeng/blog/issues/2") 掌握基本概念，再阅读这篇文章[轻松理解 JS 原型原型链](https://juejin.cn/post/6844903989088092174 "https://juejin.cn/post/6844903989088092174")加深上图的印象。
+参考：[JavaScript 深入之从原型到原型链](https://github.com/mqyqingfeng/blog/issues/2 "https://github.com/mqyqingfeng/blog/issues/2") 掌握基本概念，再阅读这篇文章[轻松理解 JS 原型原型链](https://juejin.cn/post/6844903989088092174 "https://juejin.cn/post/6844903989088092174")加深上图的印象。
+参考：[原型链](proto.md)
 
 
 ## JavaScript 面向对象&继承
 
-+   参考：[JavaScript面向对象&继承](https://juejin.cn/post/6915190212016472077 "https://juejin.cn/post/6915190212016472077")
-
-## 原型和原型链
-
-+   参考：[通俗易懂的理解Javacsript原型和原型链](https://juejin.cn/post/6914827188025950216 "https://juejin.cn/post/6914827188025950216")
++   参考：[JavaScript面向对象&继承](inherit.md)
 
 ## 闭包及练习题
 
-+   参考：[Javascript闭包详解](https://juejin.cn/post/6911473286627098638 "https://juejin.cn/post/6911473286627098638")
++   参考：[Javascript闭包详解](closure.md)
 
 ## 函数节流和防抖
 
-+   参考：[函数节流和防抖](https://juejin.cn/post/6911118171600584718 "https://juejin.cn/post/6911118171600584718")
++   参考：[函数节流和防抖](throttle_debounce.md)
 
 ## Javascript 中的this
 
-+   参考：[Javascript 中的this（包含apply、call、bind）](https://juejin.cn/post/6910015962058063885 "https://juejin.cn/post/6910015962058063885")
++   参考：[Javascript 中的this（包含apply、call、bind）](this.md)
 
 ## 动手实现apply、call、bind
 
-+   参考：[动手实现apply、call、bind](https://juejin.cn/post/6910015962058063885#heading-5 "https://juejin.cn/post/6910015962058063885#heading-5")
++   参考：[动手实现apply、call、bind](apply.md)
 
 ## Javascript 小技巧帮你提升代码质量
 
-+   参考：[12个 Javascript 小技巧帮你提升代码质量](https://juejin.cn/post/6909638377247604750 "https://juejin.cn/post/6909638377247604750")
+1.  提炼函数
+2.  合并重复的条件片段
+3.  把条件分支语句提炼成函数
+4.  合理使用循环
+5.  提前让函数退出代替嵌套条件分支
+6.  传递对象参数代替过长的参数列表
+7.  少用三目运算符
+8.  合理使用链式调用
+9.  分解大型类
+10.  活用位操作符
+11.  纯函数
 
 ## 自己动手实现Promise
 
-+   参考：[自己动手实现Promise](https://juejin.cn/post/6885295302933217294 "https://juejin.cn/post/6885295302933217294")
+```js
+const stateObj = {
+    pending: 'pending',
+    fulfilled: 'fulfilled',
+    rejected: 'rejected'
+}
+class promise{
+    constructor(callback) {
+        this.state = stateObj.pending
+        this.value = ''
+        this.resolveFun = []
+        this.rejectFun = []
+        const resolve = (value) => {
+            if (this.state !== stateObj.pending) return
+            setTimeout(() => {
+                this.state = stateObj.fulfilled
+                this.value = value
+                for(let fn of this.resolveFun) {
+                    fn(value)
+                }
+            },0)
+        }
+        const reject = (value) => {
+            if(this.state !== stateObj.pending) return
+            setTimeout((value) => {
+                this.state = stateObj.rejected
+                this.value = value
+                for(let fn of this.rejectFun) {
+                    fn(value)
+                }
+            },0)
+        }
+        try{
+            callback(resolve,reject)
+        }catch (err){
+            reject(err)
+        }
+    }
+    then(onResolve, onReject) {
+        // resolve 结果处理
+        function resolveHandle(pro,value,resolve, reject) {
+            if(pro === value) {
+                reject('循环引用')
+                return
+            } else if (value instanceof promise) {
+                value.then((val) => {
+                    resolveHandle(pro,val,resolve,reject)
+                },(res) => {
+                    reject(res)
+                })
+            } else {
+                resolve(value)
+            }
+        }
+        // 值穿透
+        onResolve = onResolve instanceof Function ? onResolve : value => value
+        onReject = onReject instanceof Function ? onReject : res => { throw res }
+
+        if(this.state === stateObj.pending) {
+            // 装载函数,并为新promise延续
+            let resolveFun = this.resolveFun
+            let rejectFun = this.rejectFun
+            let currentPromise = new promise((resolve,reject) => {
+                resolveFun.push(function (val) {
+                    try{
+                        let res = onResolve(val)
+                        // resolve(res)
+                        resolveHandle(currentPromise,res,resolve,reject)
+                    } catch(err) {
+                        reject(err)
+                    }
+                })
+                rejectFun.push(function(val) {
+                    try{
+                        let res = onReject(val)
+                        // resolve(res)
+                        resolveHandle(currentPromise,res,resolve,reject)
+                    }catch(err) {
+                        reject(err)
+                    }
+                })
+            })
+            return currentPromise
+        } else {
+            // 直接输出
+            let value = this.value
+            let state = this.state
+            let res = null
+            let currentPromise = new promise((resolve,reject) => {
+                try{
+                    if (state === stateObj.fulfilled) {
+                        res = onResolve(value)
+                    } else {
+                        res = onReject(value)
+                    }
+                    resolveHandle(currentPromise,res,resolve,reject)
+                } catch(err) {
+                    reject(err)
+                }
+            })
+            return currentPromise
+        }
+    }
+    // 处理错误信息
+    catch(rejected) {
+        return this.then(null,rejected)
+    }
+    // 成功失败全部执行
+    finally(callback){
+        return this.then(callback,callback)
+    }
+    // all静态方法,等待所有都执行完毕，任何一个失败则失败
+    static all(promiseList) {
+        const length = promiseList.length
+        let num = 0
+        let valList = []
+        return new promise((resolve,reject) => {
+            promiseList.forEach((promise, index) => {
+                try {
+                  promise.then((val) => {
+                      valList[index] = val
+                      num++
+                      if(num === length) {
+                        resolve(valList)
+                      }
+                  })
+                }catch (err){
+                    reject(err)
+                }
+            }).catch((err) => {
+              reject(err)
+            })
+        })
+    }
+    // allSettled静态方法，无论成功或失败都返回成功
+    static allSettled(promiseList) {
+        const length = promiseList.length
+        let valList = []
+        let num = 0
+        return new promise((resolve,reject) => {
+          promiseList.forEach((promise,index) => {
+            promise.then((val) => {
+                valList[index] = val
+                num++
+                if (num === length) {
+                    resolve(valList)
+                }
+            }).catch((err) => {
+                valList[index] = err
+                num++
+                if(num === length) {
+                   resolve(valList)
+                }
+            })
+          })
+        })
+    }
+    // race静态方法，返回最先成功的一个，任何一个失败则失败
+    static race(promiseList) {
+        return new promise((resolve,reject) => {
+            promiseList.forEach((promise,index) => {
+              promise.then((res) => {
+                resolve(res)
+              }).catch((err) => {
+                reject(err)
+              })
+            })
+        })
+    }
+    // any静态方法，任何一个成功则返回，否则失败
+    static any(promiseList) {
+        const length = promiseList.length
+        let valList = []
+        let num = 0
+        return new promise((resolve,reject) => {
+          promiseList.forEach((promise,index) => {
+            promise.then((val) => {
+              resolve(val)
+            }).catch((err) => {
+                valList[index] = err
+                num++
+                if(num === length) {
+                    reject(valList)
+                }
+            })
+          })
+        })
+    }
+    // resolve静态方法
+    static resolve(val) {
+        return new promise((resolve, reject) => {
+          resolve(val)
+        })
+    }
+    // try静态方法,执行同步或异步函数
+    static try(func) {
+        return new promise((resolve,reject) => {
+            const res = func()
+            resolve(res)
+        })
+    }
+    // reject静态方法
+    static reject(val) {
+        return new promise((resolve,reject) => {
+            reject(val)
+        })
+    }
+}
+```
 
 ## 作用域&作用域链
 
