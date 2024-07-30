@@ -187,8 +187,10 @@ let f2 = new Foo();
 
 先说出总结的话，再举例子说明如何顺着原型链找到某个属性。
 
+参考：[原型链知识](proto.md)
+
 参考：[JavaScript 深入之从原型到原型链](https://github.com/mqyqingfeng/blog/issues/2 "https://github.com/mqyqingfeng/blog/issues/2") 掌握基本概念，再阅读这篇文章[轻松理解 JS 原型原型链](https://juejin.cn/post/6844903989088092174 "https://juejin.cn/post/6844903989088092174")加深上图的印象。
-参考：[原型链](proto.md)
+
 
 
 ## JavaScript 面向对象&继承
