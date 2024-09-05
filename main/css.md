@@ -172,7 +172,7 @@ CSS3 中的盒模型有以下两种：**标准盒模型**、**IE（替代）盒�
 </body>
 ```
 
-### 7\. BFC
+### 8\. BFC
 
 > `BFC`是`Block Formatting Context`，也就是`块级格式化上下文`，是用于布局块级盒子的一块渲染区域。
 
@@ -204,7 +204,7 @@ CSS3 中的盒模型有以下两种：**标准盒模型**、**IE（替代）盒�
 
 +   　参考：[CSS 中你应该了解的 BFC](https://juejin.cn/post/6904568682555375624 "https://juejin.cn/post/6904568682555375624")
 
-### 8\. flex布局
+### 9\. flex布局
 
 弹性布局，Flex 布局将成为未来布局的首选方案。 **兼容性：**
 
@@ -243,7 +243,7 @@ CSS3 中的盒模型有以下两种：**标准盒模型**、**IE（替代）盒�
 +   参考：[Flex 布局教程：语法篇 - 阮一峰](http://www.ruanyifeng.com/blog/2015/07/flex-grammar.html "http://www.ruanyifeng.com/blog/2015/07/flex-grammar.html")
 
 
-### 9\. CSS动画
+### 10\. CSS动画
 
 **1\. transition过渡** 将变化按照设置的时间长度缓慢执行完毕，而不是立即执行。
 
@@ -318,15 +318,3 @@ CSS Animation就是为了解决这些问题而提出的。
 
 +   参考：[CSS动画简介](http://www.ruanyifeng.com/blog/2014/02/css_transition_and_animation.html "http://www.ruanyifeng.com/blog/2014/02/css_transition_and_animation.html")
 
-### 10\. CSS优化、提高性能的方法有哪些
-
-+   多个css合并，尽量减少HTTP请求
-+   将css文件放在页面最上面
-+   移除空的css规则
-+   避免使用CSS表达式
-+   选择器优化嵌套，尽量避免层级过深
-+   充分利用css继承属性，减少代码量
-+   抽象提取公共样式，减少代码量
-+   属性值为0时，不加单位
-+   属性值为小于1的小数时，省略小数点前面的0
-+   css雪碧图
