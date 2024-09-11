@@ -1248,6 +1248,8 @@ const A = (props, ref) => {
     // 返回要绑定的实例对象
     return {};
   }, []);
+  
+  return <input {...props} />;
 }
 
 const App = forwardRef(A);
