@@ -990,13 +990,98 @@ export default createSlice({
 2.  `connect`: 高阶组件,用来包裹需要注入store的组件,有mapStateToProps/mapDispatchToProps/megerToProps/options, 可以用来给被注入组件以props的方式传入返回的对象
     使用方法: connect(mapStateToProps?,mapDispatchToProps?,megerToProps?,options?)(组件)
 
-+   通过 `context` 获取 `redux store`
-+   添加监听器, 当通过 `dispatch` 更新状态时执行该监听器, 监听器将执行第一参数(回调函数 `state => ({})`) 将返回值作为高阶组件的 `state`
-+   将第二参数使用 `dispathc` 进行包裹返回新函数: `(... arg) => dispatch(fun(... arg))`
-+   最后将 `state` 和封装后的方法挂载到组件上
+     +   通过 `context` 获取 `redux store`
+     +   添加监听器, 当通过 `dispatch` 更新状态时执行该监听器, 监听器将执行第一参数(回调函数 `state => ({})`) 将返回值作为高阶组件的 `state`
+     +   将第二参数使用 `dispathc` 进行包裹返回新函数: `(... arg) => dispatch(fun(... arg))`
+     +   最后将 `state` 和封装后的方法挂载到组件上
 
 3. `useSelector` 获取state的值
 4. `useDispatch` 获取dispatch
+5. `useStore` 获取store
+
+**代码示例:**
+```js
+// store.js
+import { configureStore } from '@reduxjs/toolkit';
+import counterReducer from './counterSlice';
+
+export default configureStore({
+    reducer: {
+        counter: counterReducer,
+    },
+});
+```
+```js
+// counterSlice.js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
+export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
+    const response = await client.get('/fakeApi/posts')
+    return response.data
+})
+
+export const counterSlice = createSlice({
+    name: 'counter',
+    initialState: {
+        value: 0,
+        posts: [],
+        status: ''
+    },
+    reducers: {
+        increment: (state) => {
+            // Redux Toolkit 允许我们在 reducers 中编写 mutating 逻辑。
+            // 它实际上并没有 mutate state 因为它使用了 Immer 库，
+            // 它检测到草稿 state 的变化并产生一个全新的基于这些更改的不可变 state
+            state.value += 1;
+        },
+        decrement: (state) => {
+            state.value -= 1;
+        },
+        incrementByAmount: (state, action) => {
+            state.value += action.payload;
+        },
+    },
+    // 异步数据处理
+    extraReducers(builder) {
+        builder
+            .addCase(fetchPosts.pending, (state, action) => {
+                state.status = 'loading'
+            })
+            .addCase(fetchPosts.fulfilled, (state, action) => {
+                state.status = 'succeeded'
+                // Add any fetched posts to the array
+                state.posts = state.posts.concat(action.payload)
+            })
+            .addCase(fetchPosts.rejected, (state, action) => {
+                state.status = 'failed'
+                state.error = action.error.message
+            })
+    }
+});
+
+// 为每个 case reducer 函数生成 Action creators
+export const { increment, decrement, incrementByAmount } = counterSlice.actions;
+export default counterSlice.reducer;
+```
+```js
+// index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import store from './app/store';
+import { Provider } from 'react-redux';
+
+// 从 React 18 开始
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+root.render(
+    <Provider store={store}>
+        <App />
+    </Provider>
+);
+
+```
 
 ### 1.6 reduxToolkit(RTK)
 1. `configStore` 创建store
