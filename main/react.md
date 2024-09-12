@@ -1592,7 +1592,7 @@ export default function TodosApp() {
 
 5.  `useLayoutEffect` 与 `useEffect` 基本相同, 但它会在所有的 `DOM` 变更之后 `同步` 调用, 一般可以使用它来读取 `DOM` 布局并同步触发重渲染, 为了避免阻塞视觉更新, 我们需要尽可能使用标准的 `useEffect`
 
-6.  `useEffect` 和 `useLayoutEffect` 都可用于模拟 `componentDidUpdate` `componentDidMount`
+6.  `useEffect` 和 `useLayoutEffect` 都可用于模拟 `componentDidUpdate` `componentDidMount`, 首次渲染先执行useEffect监听函数内容不执行return内容,rerender的时候先执行return内容,再执行监听函数内容.
 
 7.  当父子组件都用到 `useEffect` 时, 子组件中的会比父组件中的先触发
 
