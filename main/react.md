@@ -942,6 +942,7 @@ class ErrorBoundary extends React.Component {
 1. `dispatch`  派发action(一个有type与参数的对象)使用对应reducer函数生成新state,触发subscript
 2. `getState`  获取store的state数据
 3. `subscript` 订阅store变化
+4. `createStore` 创建store
 
 ### 1.3 redux-thunk 中间件
 
