@@ -1479,20 +1479,106 @@ const [state, setState] = useState(0);
 setState(0); // 不会引起组件重新渲染
 ```
 
++   `useRef`: 获取 `DOM` 元素对象、记录非状态数据、获取子组件实例对象
++   `useImperativeHandle` 用于绑定 `ref`
 +   `useEffect`: 让函数型组件拥有处理 `副作⽤` 的能⼒, 每次依赖项改变, 都会触发回调函数的执行, 通过它可模拟类似 `类组件` 中的部分⽣命周期
 +   `useLayoutEffect`: 与 `useEffect` 相同, 但它会在所有的 `DOM` 变更之后同步调用
 +   `useInsertionEffect`: 在任何 `DOM` 突变之前触发, 主要是解决 `CSS-in-JS` 在渲染中注入样式的性能问题
+
+```js
+  useEffect(() => {
+    const connection = createConnection(serverUrl, roomId);
+    connection.connect();
+    return () => {
+      connection.disconnect();
+    };
+  }, [serverUrl, roomId]);
+
+// useInsertionEffect(()=>{}, dependencies?)
+// useLayoutEffect(()=>{}, dependencies?)
+```
+
 +   `useMemo`: 可以监测某个值的变化, 根据变化值计算新值, `useMemo` 会缓存计算结果, 如果监测值没有发⽣变化, 即使组件重新渲染, 也不会重新计算
-+   `useRef`: 获取 `DOM` 元素对象、记录非状态数据、获取子组件实例对象
 +   `useCallback`: 可让您在重新渲染之间缓存函数定义, 使组件重新渲染时得到相同的函数实例
-+   `useImperativeHandle` 用于绑定 `ref`
+
+```js
+// useMemo
+useMemo(() => '返回缓存的值', [todos, tab])
+
+// useCallback
+  const handleSubmit = useCallback((orderDetails) => {
+    post('/product/' + productId + '/buy', {
+      referrer,
+      orderDetails,
+    });
+  }, [productId, referrer]);
+```
+
 +   `useReducer`: 使用简易版 `Redux`
+
+```js
+import { useReducer } from 'react';
+
+function reducer(state, action) {
+  // ...
+}
+
+function MyComponent() {
+  const [state, dispatch] = useReducer(reducer, { age: 42 });
+  // ...
+```
+
 +   `useContext`: 使用 `context`
-+   `useDebugValue`: 可以在 `React DevTools` 中向自定义 `Hook` 添加一个标签, 方便追踪数据
-+   `useId`: 生成唯一 `ID`, 是 `hook` 所以只能在组件的顶层或您自己的 `Hook` 中调用它, 您不能在循环或条件内调用它、不应该用于生成列表中的键
 +   `useDeferredValue`: 用于推迟更新部分 `UI`
-+   `useSyncExternalStore`: 使用外部 `store`
 +   `useTransition`: 允许在不阻塞 `UI` 的情况下更新状态
+
+```js
+// useDeferredValue
+function SearchPage() {
+  const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
+  // ...
+}
+
+// useTransition
+import { useTransition } from 'react';
+
+function TabContainer() {
+    const [isPending, startTransition] = useTransition();
+    startTransition(()=>{
+        // 延迟更新的逻辑
+        // ...
+    })
+}
+```
+
++   `useId`: 生成唯一 `ID`, 是 `hook` 所以只能在组件的顶层或您自己的 `Hook` 中调用它, 您不能在循环或条件内调用它、不应该用于生成列表中的键
++   `useDebugValue`: 可以在 `React DevTools` 中向自定义 `Hook` 添加一个标签, 方便追踪数据
+```js
+useDebugValue('dev工具显示的value');
+```
++   `useSyncExternalStore`: 使用外部 `store`
+
+```js
+import { useSyncExternalStore } from 'react';
+import { todosStore } from './todoStore.js';
+
+export default function TodosApp() {
+  const todos = useSyncExternalStore(todosStore.subscribe, todosStore.getSnapshot);
+  return (
+    <>
+      <button onClick={() => todosStore.addTodo()}>Add todo</button>
+      <hr />
+      <ul>
+        {todos.map(todo => (
+          <li key={todo.id}>{todo.text}</li>
+        ))}
+      </ul>
+    </>
+  );
+}
+```
+
 
 ### 7.3 useEffect、useLayoutEffect、useInsertionEffect 之间的区别
 
