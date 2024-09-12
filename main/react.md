@@ -1470,12 +1470,6 @@ const message = {
 3.  性能问题: 尽管 `Hooks` 通常可以优化组件逻辑, 但不正确地使用它们可能导致性能问题。比如, 在 `useEffect` 中没有正确处理依赖项数组可能会导致不必要的重复执行。
 
 
-**怎么避免 `hooks` 的常见问题:**
-
-1.  不要在 `useEffect` 里面写太多的依赖项, 划分这些依赖项成多个单一功能的 `useEffect` 其实这点是遵循了软件设计的 `单一职责模式`
-2.  拆分组件, 细化组件的粒度, 复杂业务场景中使用 `hooks` 应尽可能地细分组件, 使得组件的功能尽可能单一, 这样的 `hooks` 组件更好维护
-3.  能通过事件触发数据更新, 就尽量通过事件方式去实现, 尽量避免在 `useEffect` 中依赖 `A` 状态然后去修改 `B` 状态
-
 ### 7.2 常用的几个 Hooks
 
 +   `useState`: 用于定义组件状态, 需要注意的是该方法在更新状态时会进行浅比较, 如果待更新状态值和当前状态值一致, 则不会进行更新, 不会引起组件的重新渲染
@@ -1816,18 +1810,21 @@ const slowHandle = () => {
 }
 ```
 
-解决办法: 通过 `setTimeout` 将耗时任务放到下一个宏任务中去执行
-
+解决办法:
++ 通过`useDeferredValue`或`useTransition`延迟更新
++ 通过 `setTimeout` 将耗时任务放到下一个宏任务中去执行
+    
 ```js
-const fastHandle = () => {
-  // 优先响应用户行为
-  setShowInput(false)
-  // 将耗时任务移动到下一个宏任务执行
-  setTimeout(() => {
-    setNumbers([...numbers, +inputValue].sort((a, b) => a - b))
-  })
-}
+    const fastHandle = () => {
+      // 优先响应用户行为
+      setShowInput(false)
+      // 将耗时任务移动到下一个宏任务执行
+      setTimeout(() => {
+        setNumbers([...numbers, +inputValue].sort((a, b) => a - b))
+      })
+    }
 ```
+
 
 5.  缓存优化:
 
@@ -1862,8 +1859,8 @@ const fastHandle = () => {
 
 ### 9.1 彻底放弃 IE
 
-1.  `17` 还修复了 `IE` 兼容问题
-2.  `18` 就彻底放弃了对 `IE` 的支持
+1.  `17` 修复 `IE` 兼容问题
+2.  `18` 彻底放弃 `IE` 的支持
 
 ### 9.2 自动批处理
 
@@ -2130,7 +2127,7 @@ const App = () => {
 4.  `useDeferredValue` 与 `useTransition` 的区别
 
 +   相同: 从功能、作用以及内部的实现上来讲, 他们是一样的都是标记成了延迟更新任务
-+   不同: `useTransition` 是把更新任务变成了延迟更新任务, 而 `useDeferredValue` 是产生一个新的值, 这个值作为延时状态。（一个用来包装方法, 一个用来包装值）
++   不同: `useTransition` 是一段逻辑延迟更新, 而 `useDeferredValue` 是把一个值延迟更新.
 
 5.  简单总结: 所有的东西都是基于 `fiber` 架构实现的, `fiber` 为状态更新提供了可中断的能力
 
@@ -2142,13 +2139,12 @@ const App = () => {
 1.  `useId`:
 
 +   参考: [为了生成唯一id, React18专门引入了新Hook: useId](https://zhuanlan.zhihu.com/p/437913203 "https://zhuanlan.zhihu.com/p/437913203")
-+   主要适用于 `SSR`(服务端渲染), 在应用的服务端或客户端之间生成唯一且稳定的 `id`
-+   背后的原理: 通过该组件在组件树中的层级结构来生成 `id` 这样就能够保证服务端或客户端之间的 `id` 是稳定的
++   主要适用于 `SSR`(服务端渲染), 让服务端渲染的组件生成 `id` 与客户端渲染的组件的 `id` 一致
 
 2.  `useSyncExternalStore`:
     +   参考: [React 18 撕裂介绍](https://juejin.cn/post/6999778495077302302 "https://juejin.cn/post/6999778495077302302")
     +   参考: [React 的并发悖论](https://zhuanlan.zhihu.com/p/623324430 "https://zhuanlan.zhihu.com/p/623324430")
-    +   视图撕裂: 对于开启并发更新的 `React`, 更新流程可能中断, 相同组件可能是在中断前后不同的宏任务中 render, 传递给他们的 `state`、 `props` 可能并不相同, 这就导致同一次更新, 同一个状态前后 `UI` 不一致的情况
+    +   视图撕裂: 对于开启并发更新的 `React`, 更新流程可能中断, 因任务更新时间不一致,渲染内容冲突的现象
     +   `React` 的 `API` 已经原生的解决的并发特性下的撕裂(`tear`)问题, 但是对于 `redux` 等外部框架它在控制状态时可能并非直接使用的 `React`的 `API`(`useState`), 而是自己在外部维护了一个 `store` 对象, 它脱离了 `React` 的管理, 也就无法依靠 `React` 自动解决撕裂问题。因此, `React` 对外提供了这样一个 `API`, 帮助这类框架开发者(有外部 `store` 需求的)解决撕裂问题
     +   对于如何解决外部框架的并发特性下的撕裂(`tear`)问题, `React` 目前并没有好的一个方案, 目前 `useSyncExternalStore` 的作用其实是状态管理库触发的更新都以同步的方式执行, 这样就不会有同步时机的问题了
 3.  `useInsertionEffect`: 这个 `Hooks` 只建议 `css-in-js` 库来使用, 这个 `Hooks` 执行时机在 `DOM` 生成之后, `useLayoutEffect` 之前, `它的工作原理大致和 useLayoutEffect` 相同, 只是此时无法访问 `DOM` 节点的引用, 一般用于提前注入 `<style>` 脚本
