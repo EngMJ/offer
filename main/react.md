@@ -2253,3 +2253,7 @@ const App = () => {
 6.  类组件中注意事件函数中 `this` 指向: 使用普通函数声明事件, 函数中 `this` 不指向该组件.通过 `bind()` 来改变事件函数的this或使用箭头函数声明函数.
 
 7.  避免过度使用 `Redux`
+
+
+## 二十一、React-router
++   参考: [React-router API列表](./react_router.md)
