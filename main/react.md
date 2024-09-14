@@ -1072,9 +1072,12 @@ import './index.css';
 import App from './App';
 import store from './app/store';
 import { Provider } from 'react-redux';
+import { fetchUsers } from './features/users/usersSlice'
 
 // 从 React 18 开始
 const root = ReactDOM.createRoot(document.getElementById('root'));
+// 使用异步reduxer
+store.dispatch(fetchUsers());
 
 root.render(
     <Provider store={store}>
