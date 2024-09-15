@@ -780,7 +780,47 @@ interface RouteObject {
 
 </details>
 
-`createRoutesFromChildren` 是用 `<Route>` 创建路由对象的辅助函数，在 [`<Routes>`](#routes-and-route) 内部使用，用来给 [`<Route>`](#routes-and-route) 子级生成路由配置。
+`createRoutesFromChildren` 创建动态路由函数。
+
+**示例代码:**
+
+```jsx
+import { BrowserRouter, Routes, Route, useRoutes, createRoutesFromChildren } from 'react-router-dom';
+
+function App() {
+  const routes = createRoutesFromChildren(
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+    </Routes>
+  );
+
+  return useRoutes(routes);
+}
+
+function Home() {
+  return <h1>Home Page</h1>;
+}
+
+function About() {
+  return <h1>About Page</h1>;
+}
+
+function Dashboard() {
+  return <h1>Dashboard Page</h1>;
+}
+
+export default function Root() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
+
+```
+
 
 ### `generatePath`
 
@@ -796,26 +836,53 @@ declare function generatePath(
 
 </details>
 
-`generatePath` 将一组参数插入到带有 `:id` 和 `*` 占位符的路由路径字符串中，常用于从路由路径中消除占位符以使其静态匹配而非使用动态参数。
+`generatePath` 生成路由路径。
 
-```tsx
-generatePath("/users/:id", { id: 42 }); // "/users/42"
-generatePath("/files/:type/*", {
-  type: "img",
-  "*": "cat.jpg"
-}); // "/files/img/cat.jpg"
+**示例代码:**
+
+```jsx
+import { generatePath } from 'react-router-dom';
+
+const path = generatePath("/users/:id/:tab?", { id: 42 });
+console.log(path);  // 输出: "/users/42"
+
+const pathWithTab = generatePath("/users/:id/:tab?", { id: 42, tab: "profile" });
+console.log(pathWithTab);  // 输出: "/users/42/profile"
 ```
 
 ### `Location`
 
 React Router 中的术语 “location” 是指来自 [history](https://github.com/remix-run/history) 库的 `Location` 接口。
 
-> **注意：**
->
-> `history` 库是 React Router 唯一依赖项，许多
-> React Router 中的核心类型直接来自该库，包括
-> `Location`、`To`、`Path`、`State` 等。 可以阅读
-> [其文档](https://github.com/remix-run/history/tree/main/docs) 了解更多。
+**示例代码:**
+
+```jsx
+
+import { useLocation } from 'react-router-dom';
+
+function MyComponent() {
+  const location = useLocation();
+
+  console.log(location);
+  /**
+   * Location 对象具有以下属性：
+   pathname: 当前 URL 的路径部分（不包含查询字符串或哈希）。
+   search: 当前 URL 中的查询字符串（以 ? 开头）。
+   hash: 当前 URL 的哈希部分（以 # 开头）。
+   state: 通过 navigate 或 Link 导航传递的状态（即非 URL 中显示的额外数据）。
+   key: 当前导航的唯一标识符（通常用于浏览历史）。
+   * */
+
+  return (
+    <div>
+      <p>Current Pathname: {location.pathname}</p>
+      <p>Current Search: {location.search}</p>
+      <p>Current Hash: {location.hash}</p>
+    </div>
+  );
+}
+
+```
 
 ### `matchRoutes`
 
@@ -842,6 +909,12 @@ interface RouteMatch<ParamKey extends string = string> {
 
 这是 React Router 匹配算法的核心，[`useRoutes`](#useroutes) 和 [`<Routes>` 组件](#routes-and-route) 在内部使用它来确定哪些路由与当前 location 匹配，可在某些情况下用于手动匹配一组路由。
 
+**示例代码:**
+
+```jsx
+
+```
+
 ### `renderMatches`
 
 <details>
@@ -856,6 +929,12 @@ declare function renderMatches(
 </details>
 
 `renderMatches` 将 `matchRoutes()` 的结果渲染到 React 元素中。
+
+**示例代码:**
+
+```jsx
+
+```
 
 ### `matchPath`
 
@@ -889,6 +968,12 @@ interface PathPattern {
 
 [`useMatch` hook](#usematch) 在内部使用此函数来匹配当前 location 的路由路径。
 
+**示例代码:**
+
+```jsx
+
+```
+
 ### `resolvePath`
 
 <details>
@@ -915,6 +1000,12 @@ interface Path {
 
 [`useResolvedPath` hook](#useResolvedpath) 在内部使用 `resolvePath` 解析 pathname，如果 `to` 包含 pathname 则根据当前路由 pathname 进行解析，否则会根据当前 URL（`location.pathname`） 进行解析。
 
+**示例代码:**
+
+```jsx
+
+```
+
 ### `useHref`
 
 <details>
@@ -928,11 +1019,11 @@ declare function useHref(to: To): string;
 
 `useHref` hook 返回一个可链接到给定 `to` 的 location 的 URL，该 location 可以在 React Router 之外。
 
-> **提示：**
->
-> 有兴趣可查看 `react-router-dom` 中 `<Link>` 的源代码
-> ，看看如何在内部使用 `useHref`
-> 确定 `<Link>` 的 `href` 值。
+**示例代码:**
+
+```jsx
+
+```
 
 ### `useLinkClickHandler`
 
@@ -956,6 +1047,12 @@ declare function useLinkClickHandler<
 </details>
 
 在 `react-router-dom` 中构建自定义 `<Link>` 时，`useLinkClickHandler` hook 会返回一个点击事件 handler 来进行导航。
+
+**示例代码:**
+
+```jsx
+
+```
 
 ```tsx
 import {
@@ -1023,6 +1120,12 @@ declare function useLinkPressHandler<
 
 作为 `useLinkClickHandler` 在 `react-router-native` 中的对应项，`useLinkPressHandler` 返回一个用于自定义 `<Link>` 导航的 press 事件 handler。
 
+**示例代码:**
+
+```jsx
+
+```
+
 ```tsx
 import { TouchableHighlight } from "react-native";
 import { useLinkPressHandler } from "react-router-native";
@@ -1065,6 +1168,12 @@ declare function useInRouterContext(): boolean;
 </details>
 
 根据组件是否在包含 `<Router>` 的上下文中渲染， `useInRouterContext` hook 返回 `true` 或 `false`，常用于第三方扩展检验是否在包含 React Router 应用程序的上下文中。
+
+**示例代码:**
+
+```jsx
+
+```
 
 ### `useLocation`
 
@@ -1117,6 +1226,12 @@ type NavigationType = "POP" | "PUSH" | "REPLACE";
 
 此 hook 通过 history 堆栈上 pop、push 或 replace 操作，返回当前导航类型或者用户进入当前页的方式。
 
+**示例代码:**
+
+```jsx
+
+```
+
 ### `useMatch`
 
 <details>
@@ -1133,6 +1248,12 @@ declare function useMatch<ParamKey extends string = string>(
 返回给定路径相对当前 location 的路由匹配数据。
 
 有关详细信息，请参阅 [`matchPath`](#matchpath)。
+
+**示例代码:**
+
+```jsx
+
+```
 
 ### `useNavigate`
 
@@ -1154,6 +1275,12 @@ interface NavigateFunction {
 </details>
 
 `useNavigate` hook 返回一个用编程方式导航的函数，可用于例如提交表单。
+
+**示例代码:**
+
+```jsx
+
+```
 
 ```tsx
 import { useNavigate } from "react-router-dom";
@@ -1189,6 +1316,12 @@ declare function useOutlet(): React.ReactElement | null;
 
 返回位于该子路由层级的子路由元素，[`<Outlet>`](#outlet) 在内部使用此 hook 来渲染子路由。
 
+**示例代码:**
+
+```jsx
+
+```
+
 ### `useParams`
 
 <details>
@@ -1203,6 +1336,12 @@ declare function useParams<
 </details>
 
 `useParams` hook 返回当前 URL 与 `<Route path>` 匹配的动态参数的键值对（key/value pairs）对象，子路由继承父路由的所有参数。
+
+**示例代码:**
+
+```jsx
+
+```
 
 ```tsx
 import * as React from 'react';
@@ -1241,6 +1380,12 @@ declare function useResolvedPath(to: To): Path;
 
 有关详细信息，请参阅 [`resolvePath`](#resolvepath)。
 
+**示例代码:**
+
+```jsx
+
+```
+
 ### `useRoutes`
 
 <details>
@@ -1258,6 +1403,12 @@ declare function useRoutes(
 `useRoutes` hook 在功能上等同于 [`<Routes>`](#routes) 但使用 JavaScript 对象而不是 `<Route>` 元素来定义路由，所用对象与普通 [`<Route>` 元素](#routes-and-route) 具有相同属性但不需要用 JSX。
 
 `useRoutes` 返回值是一个可用来渲染路由树的有效 React 元素，如果没有匹配项则返回 `null`。
+
+**示例代码:**
+
+```jsx
+
+```
 
 ```tsx
 import * as React from "react";
@@ -1316,6 +1467,12 @@ interface URLSearchParamsSetter {
 </details>
 
 `useSearchParams` hook 用于读取和修改 URL 中当前 location 的查询字符串（query string），和 React 的 [`useState` hook](https://reactjs.org/docs/hooks-reference.html#usestate) 一样返回一个长度为2的数组：当前 location 的 [search params](https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams) 和一个可用来更新前者的函数。
+
+**示例代码:**
+
+```jsx
+
+```
 
 ```tsx
 import * as React from "react";
@@ -1418,3 +1575,9 @@ declare function createSearchParams(
 </details>
 
 `createSearchParams` 是 [`new URLSearchParams(init)`](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams) 增加了对带有数组值对象支持的一层简单封装，也是 `useSearchParams` 在内部用 `URLSearchParamsInit` 值创建 `URLSearchParams` 对象的函数。
+
+**示例代码:**
+
+```jsx
+
+```
