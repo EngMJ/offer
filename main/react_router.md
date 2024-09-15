@@ -83,21 +83,24 @@ interface BrowserRouterProps {
 
 </details>
 
-`<BrowserRouter>` 是在 Web 浏览器中运行 React Router 的推荐接口，`<BrowserRouter>` 使用干净的（clean） URL 将当前 location 存储在浏览器的地址栏中，并使用浏览器的内置 history 堆栈进行导航。
-
-`<BrowserRouter window>` 默认使用当前[文档的 `defaultView`](https://developer.mozilla.org/en-US/docs/Web/API/Document/defaultView)，也可用于跟踪对另一个窗口 URL 的更改，例如在 `<iframe>` 中。
+`<BrowserRouter>`  Web 浏览器中运行 React Router 的推荐接口，BrowserRouter 是用于管理基于浏览器历史记录的路由的一种常用路由器。它使用 HTML5 的 history API 来管理 URL，确保页面导航时不重新加载整个页面。。
 
 ```tsx
-import * as React from "react";
-import * as ReactDOM from "react-dom";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-ReactDOM.render(
-  <BrowserRouter>
-    {/* app的其余部分在这里 */}
-  </BrowserRouter>,
-  root
-);
+function App() {
+    return (
+        <BrowserRouter>
+            // <App/>
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+            </Routes>
+        </BrowserRouter>
+    );
+}
+
 ```
 
 ### `<HashRouter>`
@@ -119,9 +122,7 @@ interface HashRouterProps {
 
 </details>
 
-`<HashRouter>` 用于 Web 浏览器 URL 由于某种原因不应（或不能）发送到服务器时，比如在某些无法完全控制服务器的共享托管方案中。 这些情况下当前 location 可以被 `<HashRouter>` 存储在当前 URL 的 `hash` 中，因此永远不会被发送到服务器。
-
-`<HashRouter window>` 默认使用当前[文档的 `defaultView`](https://developer.mozilla.org/en-US/docs/Web/API/Document/defaultView)，也可用于跟踪对另一个窗口 URL 的更改，例如在 `<iframe>` 中。
+`<HashRouter>` 使用 URL 中的哈希部分（例如，http://example.com/#/about）来保持 UI 与当前路径同步。浏览器不会将 # 后的部分发送给服务器，这使得它适合在不需要服务器端处理路由的应用中使用。
 
 ```tsx
 import * as React from "react";
@@ -191,15 +192,10 @@ interface MemoryRouterProps {
 
 </details>
 
-`<MemoryRouter>` 在内部将其 location 存储在一个数组中。 不同于 `<BrowserHistory>` 和 `<HashHistory>` ，它不绑定到外部源如浏览器中的 history 堆栈，所以非常适合需要完全控制 history 堆栈的场景如测试。
+`<MemoryRouter>` 会把所有的路由信息存储在内存中，而不是在浏览器的地址栏中更新。这意味着它的 URL 不会反映在地址栏中，这也使得它不能直接通过地址栏进行页面刷新或书签操作。通常在测试环境中或需要隔离路由状态时使用
 
 - `<MemoryRouter initialEntries>` 默认为 `["/"]`（根 `/` URL 处的单个入口）
 - `<MemoryRouter initialIndex>` 默认为 `initialEntries` 的最后一个索引
-
-> **提示：**
->
-> 大多数 React Router 的测试都是使用 `<MemoryRouter>` 作为
-> 事实来源，可以[浏览我们的测试](https://github.com/remix-run/react-router/tree/main/packages/react-router/__tests__)查看一些很好的示例。
 
 ```tsx
 import * as React from "react";
@@ -258,23 +254,37 @@ type To = Partial<Location> | string;
 `<Link>` 是一个让用户点击它导航到另一个页面的元素，`<Link>` 在 `react-router-dom` 中渲染一个带有所链接资源 `href` 的可访问 `<a>` 标签。 可以使用 `<Link reloadDocument>` 来跳过客户端路由，让浏览器正常处理跳转（就好像一个 `<a href>`）。
 
 ```tsx
-import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 
-function UsersIndexPage({ users }) {
-  return (
-    <div>
-      <h1>Users</h1>
-      <ul>
-        {users.map(user => (
-          <li key={user.id}>
-            <Link to={user.id}>{user.name}</Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+function Navigation() {
+    return (
+        <nav>
+            <ul>
+                <li><Link to="/contact">Contact</Link></li>
+                <li><Link to="/about" className="nav-link" style={{ fontWeight: 'bold' }}>
+                    About
+                </Link></li>
+                <li><Link to="/profile" replace>Profile</Link></li>
+                <li>
+                    <Link to="/about" state={{ fromDashboard: true }}>
+                        // 目标页面组件可以通过 useLocation() Hook 访问到这个 state
+                        About
+                    </Link>
+                </li>
+                <li>
+                    <Link to={{
+                        pathname: "/about",
+                        search: "?sort=asc",
+                        hash: "#section1"
+                    }}>
+                        About Section 1
+                    </Link>
+                </li>
+            </ul>
+        </nav>
+    );
 }
+
 ```
 
 由渲染 `<Link>` 的路由匹配的 URL 路径所构建、相对于父路由进行解析的 `<Link to>` 相对值（不以 `/` 开头）可能包含 `..` 用以链接到更上层的路由，`..` 的工作方式与命令行的 `cd` 函数完全一样，每个 `..` 删除父路径一段。
@@ -358,9 +368,15 @@ interface NavLinkProps
 
 </details>
 
-`<NavLink>` 是一种能知道它是否激活（active）的特殊 [`<Link>`](#link)，能用在构建导航菜单（例如面包屑或一组选项卡（tabs））时在显示当前选择了哪些选项卡，还为屏幕阅读器等辅助技术提供了有用的上下文（context）
+**属性:**
 
-`<NavLink>` 组件激活时会默认添加 `active` 类，为大多数从 v5 升级的用户提供了同样简单的样式机制。 与 v6.0.0-beta.3 不同，NavLinkProps 中已删除了 activeClassName 和 activeStyle；但根据组件是否激活，可以将函数传递给 `style` 或 `className` 来自定义内联样式或类字符串，也可以将函数作为子项传递给自定义 `<NavLink>` 组件来更改内部元素样式。
++ end: 如果你在 /about 页面上，/ 路径的链接也会被标记为活跃。你可以通过 end 属性让 NavLink 只在路径完全匹配时才被激活.
++ className: 属性自定义当链接处于活跃状态时应用的类名。该属性可以接受一个回调函数，回调函数会收到一个 isActive 参数，用来判断链接是否处于激活状态.
++ style: 接受一个函数，根据链接的活跃状态动态应用样式.
++ caseSensitive: 路由匹配区分大小写.
+
+`<NavLink>` 是一种能知道它是否激活（active）的特殊 [`<Link>`](#link)，能用在构建导航菜单（例如面包屑或一组选项卡（tabs））时在高亮显示当前路由选项卡.
+
 
 ```tsx
 import * as React from "react";
@@ -405,51 +421,13 @@ function NavList() {
               <span className={isActive ? activeClassName : undefined}>
                 Tasks
               </span>
-            ))}
+            )}
           </NavLink>
         </li>
       </ul>
     </nav>
   );
 }
-```
-
-如果更喜欢 v5 API，可以创建自己的 `<NavLink />` 作为封装组件：
-
-```tsx
-import * as React from "react";
-import { NavLink as BaseNavLink } from "react-router-dom";
-
-const NavLink = React.forwardRef(
-  ({ activeClassName, activeStyle, ...props }, ref) => {
-    return (
-      <BaseNavLink
-        ref={ref}
-        {...props}
-        className={({ isActive }) =>
-          [
-            props.className,
-            isActive ? activeClassName : null
-          ]
-            .filter(Boolean)
-            .join(" ")
-        }
-        style={({ isActive }) => ({
-          ...props.style,
-          ...(isActive ? activeStyle : null)
-        })}
-      />
-    );
-  }
-);
-```
-
-使用 `end` 属性会确保该组件在其后代路径匹配时不会被匹配为 “active”。 例如，要渲染仅在网站根目录激活而非其他 URL 激活的链接时如下：
-
-```tsx
-<NavLink to="/" end>
-  Home
-</NavLink>
 ```
 
 ### `<Navigate>`
@@ -469,45 +447,25 @@ interface NavigateProps {
 
 </details>
 
-`<Navigate>` 元素在渲染时会更改当前 location ，是 [`useNavigate`](#usenavigate) 的封装组件并接受相同参数作为 props。
+`<Navigate>` 元素在渲染时会自动导航到指定路径,是 [`useNavigate`](#usenavigate) 的封装组件并接受相同参数作为 props。常见的使用场景包括登录后的重定向、页面权限检查后自动导航等.
 
-> **注意：**
->
-> 拥有基于组件（component-based）的 `useNavigate` hook可以用在不能使用 hooks 的 [`React.Component`](https://reactjs.org/docs/react-component.html) 子类上。
 
 ```tsx
-import * as React from "react";
-import { Navigate } from "react-router-dom";
+import { useParams, Navigate } from 'react-router-dom';
 
-class LoginForm extends React.Component {
-  state = { user: null, error: null };
+function UserProfile() {
+    const { userId } = useParams();
 
-  async handleSubmit(event) {
-    event.preventDefault();
-    try {
-      let user = await login(event.target);
-      this.setState({ user });
-    } catch (error) {
-      this.setState({ error });
+    if (!userId) {
+        return <Navigate to="/error" />;
+    } else if (userId === 1) {
+        // 目标页面中可以使用 useLocation Hook 获取传递的 state 信息
+        return <Navigate to="/home" state={{ id: userId }} />;
     }
-  }
 
-  render() {
-    let { user, error } = this.state;
-    return (
-      <div>
-        {error && <p>{error.message}</p>}
-        {user && (
-          <Navigate to="/dashboard" replace={true} />
-        )}
-        <form onSubmit={event => this.handleSubmit(event)}>
-          <input type="text" name="username" />
-          <input type="password" name="password" />
-        </form>
-      </div>
-    );
-  }
+    return <div>Profile of user {userId}</div>;
 }
+
 ```
 
 ### `<Outlet>`
