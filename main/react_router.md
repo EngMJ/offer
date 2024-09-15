@@ -905,13 +905,41 @@ interface RouteMatch<ParamKey extends string = string> {
 
 </details>
 
-`matchRoutes` 对给定 [`location`](#location) 的一组路由使用路由匹配算法以查看哪些路由匹配（如果有），找到匹配项则返回一个每项分别对应一个匹配路由的 `RouteMatch` 对象数组。
-
-这是 React Router 匹配算法的核心，[`useRoutes`](#useroutes) 和 [`<Routes>` 组件](#routes-and-route) 在内部使用它来确定哪些路由与当前 location 匹配，可在某些情况下用于手动匹配一组路由。
+`matchRoutes` 对给定路径进行路由匹配，返回匹配的路由对象数组。
 
 **示例代码:**
 
 ```jsx
+import { matchRoutes } from 'react-router-dom';
+
+const routes = [
+    {
+        path: "/",
+        element: <Layout />,
+        children: [
+            { path: "about", element: <About /> },
+            { path: "users/:id", element: <User /> },
+        ],
+    },
+];
+
+const matchedRoutes = matchRoutes(routes, "/users/123");
+
+console.log(matchedRoutes);
+// 输出类似以下结构
+/*
+[
+  {
+    route: { path: "/", element: <Layout /> },
+    pathname: "/"
+  },
+  {
+    route: { path: "users/:id", element: <User /> },
+    pathname: "/users/123",
+    params: { id: "123" }
+  }
+]
+*/
 
 ```
 
@@ -933,6 +961,21 @@ declare function renderMatches(
 **示例代码:**
 
 ```jsx
+import { useLocation, matchRoutes, renderMatches } from 'react-router-dom';
+
+function App() {
+  const location = useLocation();
+  
+  // 匹配当前路径
+  const matches = matchRoutes(routes, location.pathname);
+
+  // 渲染匹配的路由
+  return (
+    <div>
+      {renderMatches(matches) || <p>No matches found</p>}
+    </div>
+  );
+}
 
 ```
 
@@ -952,6 +995,7 @@ declare function matchPath<
 interface PathMatch<ParamKey extends string = string> {
   params: Params<ParamKey>;
   pathname: string;
+  pathnameBase: string;
   pattern: PathPattern;
 }
 
@@ -964,13 +1008,74 @@ interface PathPattern {
 
 </details>
 
-`matchPath` 将路由路径模式（path pattern）与 URL pathname 匹配以返回有关匹配信息，常用于手动运行router的匹配算法以确定路由路径是否匹配，不匹配返回 `null`。
++ pattern: 用于匹配的路径模式，支持动态参数（如 :id）和通配符（如 *），也可以是一个对象。
+
++ pathname: 实际要匹配的路径。
+
+**pattern 的结构:**
+
+1. 路径字符串: 例如 /users/:id 或 /about
+
+2. 对象: 
++ path: 匹配的路径模式，支持动态参数和通配符。
++ caseSensitive: 匹配是否区分大小写（默认是 false）。
++ end: 是否要求完全匹配（默认是 true，表示必须完全匹配路径）。
+
+**返回值:**
+1. 如果路径匹配成功，matchPath 返回一个对象，包含以下属性：
+
++ params: 包含匹配的动态参数（如 /users/:id 中的 id）。
++ pathname: 当前匹配的路径部分。
++ pathnameBase: 匹配的基础路径（忽略通配符部分）。
++ pattern: 使用的匹配模式对象。
+
+2. 如果匹配失败，返回 null。
+
+`matchPath` 匹配路由，匹配返回路由对象PathMatch，不匹配返回 `null`。
 
 [`useMatch` hook](#usematch) 在内部使用此函数来匹配当前 location 的路由路径。
 
 **示例代码:**
 
 ```jsx
+
+import { matchPath } from 'react-router-dom';
+
+const match = matchPath("/users/:id", "/users/123");
+console.log(match);
+// 输出:
+// {
+//   params: { id: "123" },
+//   pathname: "/users/123",
+//   pathnameBase: "/users/123",
+//   pattern: { path: "/users/:id", caseSensitive: false, end: true }
+// }
+
+const match = matchPath("/docs/*", "/docs/react/getting-started");
+console.log(match);
+// 输出:
+// {
+//   params: { "*": "react/getting-started" },
+//   pathname: "/docs/react/getting-started",
+//   pathnameBase: "/docs",
+//   pattern: { path: "/docs/*", caseSensitive: false, end: true }
+// }
+
+const match = matchPath({ path: "/users", end: false }, "/users/123");
+console.log(match);
+// 输出:
+// {
+//   params: {},
+//   pathname: "/users",
+//   pathnameBase: "/users",
+//   pattern: { path: "/users", caseSensitive: false, end: false }
+// }
+
+
+const match = matchPath({ path: "/About", caseSensitive: true }, "/about");
+console.log(match);
+// 输出: null，因为大小写不匹配
+
 
 ```
 
@@ -996,13 +1101,65 @@ interface Path {
 
 </details>
 
-`resolvePath` 将给定 `To` 值解析为具有绝对 `pathname` 的 `Path` 对象，常用于获取相对“To”值的确切路径，例如 `<Link>` 组件用它获取指向的 URL。
++ to: 你想要解析的目标路径。可以是一个相对路径或绝对路径。
++ from: （可选）作为基准的路径。默认为当前的 location.pathname，但你可以传入一个特定的路径作为基准。
 
-[`useResolvedPath` hook](#useResolvedpath) 在内部使用 `resolvePath` 解析 pathname，如果 `to` 包含 pathname 则根据当前路由 pathname 进行解析，否则会根据当前 URL（`location.pathname`） 进行解析。
+**返回值:**
+
+resolvePath 返回一个对象，包含以下属性：
+
++ pathname: 解析后的路径。
++ search: URL 的查询字符串（例如 ?name=value 部分）。
++ hash: URL 的哈希片段（例如 #section 部分）。
+
+`resolvePath` 用于将相对路径解析为绝对路径,可提供基准路径 from，不提供，它会使用当前的 location.pathname 作为基准.返回路径、查询字符串和哈希片段的对象.
+
+[`useResolvedPath` hook](#useResolvedpath) 类似resolvePath, 是React Hook，可以在组件中直接使用，基于当前的路由上下文来解析相对路径。
 
 **示例代码:**
 
 ```jsx
+
+import { resolvePath } from 'react-router-dom';
+
+const resolvedPath = resolvePath('about', '/home');
+console.log(resolvedPath);
+// 输出:
+// {
+//   pathname: '/home/about',
+//   search: '',
+//   hash: ''
+// }
+
+// 在这个例子中，'/about' 是绝对路径，所以基准路径 '/home' 被忽略，解析后的路径直接是 /about。
+const resolvedPath = resolvePath('/about', '/home');
+console.log(resolvedPath);
+// 输出:
+// {
+//   pathname: '/about',
+//   search: '',
+//   hash: ''
+// }
+
+const resolvedPath = resolvePath('profile?name=john#bio', '/users');
+console.log(resolvedPath);
+// 输出:
+// {
+//   pathname: '/users/profile',
+//   search: '?name=john',
+//   hash: '#bio'
+// }
+
+// 如果 from 参数没有提供，则默认使用当前路径
+const resolvedPath = resolvePath('about');
+console.log(resolvedPath);
+// 假设当前路径是 '/home'，输出:
+// {
+//   pathname: '/home/about',
+//   search: '',
+//   hash: ''
+// }
+
 
 ```
 
@@ -1376,13 +1533,50 @@ declare function useResolvedPath(to: To): Path;
 
 </details>
 
-此 hook 把给定 `to` 值 location 的 `pathname` 与当前 location 的 pathname 对比进行解析，可用于用相对值构建链接，例如 [`<NavLink>`](#navlink) 源代码内部调用 `useResolvedPath` 解析链接到页面的完整 pathname。
++ to: 你想要解析的目标路径，通常可以是相对路径或者绝对路径
+
+**返回值:**
+
+useResolvedPath 返回一个对象，包含以下属性：
+
++ pathname: 解析后的路径。
++ search: URL 的查询字符串（例如 ?name=value 部分）。
++ hash: URL 的哈希片段（例如 #section 部分）。
+
+useResolvedPath 可以在组件中直接使用，基于当前的路由上下文来解析相对路径。
 
 有关详细信息，请参阅 [`resolvePath`](#resolvepath)。
 
 **示例代码:**
 
 ```jsx
+
+import { Link, useResolvedPath } from 'react-router-dom';
+
+function MyComponent() {
+  const resolvedPath = useResolvedPath('about');
+  
+  console.log(resolvedPath);
+  // useResolvedPath('about') 会根据当前的路由上下文（假设当前路径是 /home）解析相对路径，生成一个完整的路径，比如 /home/about。
+  return (
+    <div>
+        // 结合Link组件实现绝对路径跳转
+      <Link to={resolvedPath}>Go to About</Link>
+    </div>
+  );
+}
+
+// 生成动态路径
+function UserProfile({ userId }) {
+    const resolvedPath = useResolvedPath(`/users/${userId}/profile`);
+
+    return (
+        <div>
+            <p>Resolved Path: {resolvedPath.pathname}</p>
+        </div>
+    );
+}
+
 
 ```
 
