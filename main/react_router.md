@@ -484,6 +484,10 @@ declare function Outlet(
 
 </details>
 
+***属性:***
+
++ Outlet 时可以通过 context 属性传递数据,可以是任意数据. 在被渲染的子组件中使用useOutletContext获取其数据.
+
 父路由元素中通过使用 `<Outlet>` 渲染子路由元素来显示嵌套 UI。 如果父路由精确匹配将渲染子索引路由，没有索引路由不渲染任何内容。
 
 ```tsx
@@ -525,7 +529,7 @@ declare function useOutletContext<
 
 </details>
 
-通常由父路由管理与子路由共享的状态或其他值，[context provider](https://reactjs.org/docs/context.html) 可按需创建但一般内置于 `<Outlet />` 中：
+在<Outlet>渲染的子组件中,获取父路由组件的context值:
 
 ```tsx lines=[3]
 function Parent() {
@@ -608,10 +612,6 @@ interface RouterProps {
 
 在应用中，`<Router basename>` 属性可能在创建所有路由和链接都会被用到，因为它是它们都共享的 URL pathname 的“基本”部分，常用于使用 React Router 渲染较大应用的一部分或应用具有多个入口点时。 基本名称（Basenames）不区分大小写。
 
-<a name="routes"></a>
-<a name="route"></a>
-<a name="routes-and-route"></a>
-
 ### `<Routes>` 和 `<Route>`
 
 <details>
@@ -642,13 +642,20 @@ interface RouteProps {
 
 </details>
 
-`<Routes>` 和 `<Route>` 是基于当前 [`location`](#location) 在 React Router 中渲染内容的主要方式。`<Route>` 可以想象成一个 `if` 语句，`path` 匹配当前 URL 时会渲染 `element`！ `<Route caseSensitive>` 属性确定匹配是否区分大小写（默认为 `false`）。
+Routes 是一个用于定义路由规则的组件
+`<Routes>` 包裹 `<Route>` 用于定义路由规则的组件。Routes 只渲染第一个匹配的 Route。
 
-每当 location 发生变化时，`<Routes>` 都会查找所有 `children` `<Route>` 元素以找到最佳匹配并渲染 UI 的对应分支。 `<Route>` 元素可以嵌套以表示嵌套的 UI 并对应嵌套的 URL 路径。 父路由通过 [`<Outlet>`](#outlet) 渲染子路由。
+`<Route>` 属性:
+
++ caseSensitive 匹配是否区分大小写（默认为 `false`）
++ index 定义父路由的默认子路由,当父路由匹配时，index 路由会自动被渲染
++ path 匹配的路径
++ element 要渲染的react组件
 
 ```tsx
 <Routes>
   <Route path="/" element={<Dashboard />}>
+    <Route index element={<Index />} />
     <Route
       path="messages"
       element={<DashboardMessages />}
@@ -664,9 +671,11 @@ interface RouteProps {
 > 如果要把路由定义为常规 JavaScript 对象而不是使用 JSX，
 > [请尝试使用 `useRoutes` 代替](#useroutes)。
 
-`<Route element>` 默认是一个 [`<Outlet>`](#outlet)，即使没有明确的 `element` 属性，路由仍然会渲染其子元素，因此可以嵌套路由路径且无需在子路由元素周围嵌套 UI。
+`<Route element>` 默认是 [`<Outlet>`](#outlet)，即使没有 `element` 属性，默认渲染子元素.
 
-例如在以下配置中，父路由默认渲染一个 `<Outlet>`，因此子路由将在没有任何周围 UI 的情况下渲染，不过子路由的路径会是 `/users/:id` 因为仍然在父路由上构建。
+例如:
+
+父路由默认渲染子路由,子路由路径是 `/users/:id` 
 
 ```tsx
 <Route path="users">
@@ -693,28 +702,36 @@ interface StaticRouterProps {
 
 </details>
 
-`<StaticRouter>` 用于在 [node](https://nodejs.org) 中渲染 React Router Web 应用程序，通过 `location` 属性提供当前 location 。
+`<StaticRouter>` 用于在 [node](https://nodejs.org) 中服务端渲染 React Router Web 应用程序，通过 location 属性接收当前的 URL，模拟客户端路由行为.
 
 - `<StaticRouter location>` 默认为 `"/"`
 
 ```tsx
-import * as React from "react";
-import * as ReactDOMServer from "react-dom/server";
-import { StaticRouter } from "react-router-dom/server";
-import http from "http";
+import { StaticRouter } from 'react-router-dom/server';
+import { Routes, Route } from 'react-router-dom';
+import ReactDOMServer from 'react-dom/server';
+import Home from './Home';
+import About from './About';
 
-function requestHandler(req, res) {
-  let html = ReactDOMServer.renderToString(
-    <StaticRouter location={req.url}>
-      {/* app的其余部分在这里 */}
-    </StaticRouter>
-  );
-
-  res.write(html);
-  res.end();
+function App({ location }) {
+    return (
+        <StaticRouter location={location}>
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+            </Routes>
+        </StaticRouter>
+    );
 }
 
-http.createServer(requestHandler).listen(3000);
+// 服务器端渲染示例
+const serverRender = (req) => {
+    const html = ReactDOMServer.renderToString(<App location={req.url} />);
+    return html;
+};
+
+export default serverRender;
+
 ```
 
 ### `createRoutesFromChildren`
@@ -738,7 +755,7 @@ interface RouteObject {
 
 </details>
 
-`createRoutesFromChildren` 创建动态路由函数。
+`createRoutesFromChildren` 创建动态路由函数。再通过useRoutes进行路由渲染.
 
 **示例代码:**
 
