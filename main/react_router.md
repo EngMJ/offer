@@ -1155,6 +1155,18 @@ declare function useHref(to: To): string;
 
 ```jsx
 
+import { Routes, Route, Link, useHref } from 'react-router-dom';
+
+function Contact() {
+  const href = useHref('/about'); // 返回 "/about", 即当前 basename 下的完整路径
+  return (
+    <div>
+      <h2>Contact</h2>
+      <a href={href}>Go to About Page</a>
+    </div>
+  );
+}
+
 ```
 
 ### `useLinkClickHandler`
