@@ -1190,57 +1190,39 @@ declare function useLinkClickHandler<
 
 </details>
 
-在 `react-router-dom` 中构建自定义 `<Link>` 时，`useLinkClickHandler` hook 会返回一个点击事件 handler 来进行导航。
+`useLinkClickHandler` 会返回一个点击事件函数,调用会进行导航。
 
 **示例代码:**
 
-```jsx
-
-```
-
 ```tsx
-import {
-  useHref,
-  useLinkClickHandler
-} from "react-router-dom";
+import { useLinkClickHandler, Routes, Route, useNavigate } from 'react-router-dom';
 
-const StyledLink = styled("a", { color: "fuchsia" });
-
-const Link = React.forwardRef(
-  (
-    {
-      onClick,
-      replace = false,
-      state,
-      target,
-      to,
-      ...rest
-    },
-    ref
-  ) => {
-    let href = useHref(to);
-    let handleClick = useLinkClickHandler(to, {
-      replace,
-      state,
-      target
-    });
+function Contact() {
+    const handleClick = useLinkClickHandler('/about', { replace: true });
 
     return (
-      <StyledLink
-        {...rest}
-        href={href}
-        onClick={event => {
-          onClick?.(event);
-          if (!event.defaultPrevented) {
-            handleClick(event);
-          }
-        }}
-        ref={ref}
-        target={target}
-      />
+        <div>
+            <h2>Contact</h2>
+            <button onClick={handleClick}>Go to About Page</button>
+        </div>
     );
-  }
-);
+}
+
+function About() {
+    return <h2>About</h2>;
+}
+
+function App() {
+    return (
+        <Routes>
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+        </Routes>
+    );
+}
+
+export default App;
+
 ```
 
 ### `useLinkPressHandler`
@@ -1265,10 +1247,6 @@ declare function useLinkPressHandler<
 作为 `useLinkClickHandler` 在 `react-router-native` 中的对应项，`useLinkPressHandler` 返回一个用于自定义 `<Link>` 导航的 press 事件 handler。
 
 **示例代码:**
-
-```jsx
-
-```
 
 ```tsx
 import { TouchableHighlight } from "react-native";
@@ -1311,11 +1289,39 @@ declare function useInRouterContext(): boolean;
 
 </details>
 
-根据组件是否在包含 `<Router>` 的上下文中渲染， `useInRouterContext` hook 返回 `true` 或 `false`，常用于第三方扩展检验是否在包含 React Router 应用程序的上下文中。
+根据当前组件是否在包含 `<Router>` 的上下文中渲染， `useInRouterContext` hook 返回 `true` 或 `false`，常用于第三方扩展检验是否在包含 React Router 应用程序的上下文中。
 
 **示例代码:**
 
 ```jsx
+
+import { useInRouterContext, BrowserRouter, Routes, Route } from 'react-router-dom';
+
+function Component() {
+  const inRouterContext = useInRouterContext();
+
+  return (
+    <div>
+      {inRouterContext ? (
+        <p>This component is inside a Router context.</p>
+      ) : (
+        <p>This component is NOT inside a Router context.</p>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Component />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
 
 ```
 
@@ -1368,11 +1374,46 @@ type NavigationType = "POP" | "PUSH" | "REPLACE";
 
 </details>
 
-此 hook 通过 history 堆栈上 pop、push 或 replace 操作，返回当前导航类型或者用户进入当前页的方式。
+useNavigationType 获取最近一次的导航类型。它可以帮助你确定用户是通过哪种方式进行页面导航的，比如点击链接、浏览器前进或后退、或直接加载页面。
 
 **示例代码:**
 
 ```jsx
+
+import { useNavigationType, Routes, Route, useNavigate } from 'react-router-dom';
+
+function Home() {
+  const navigationType = useNavigationType(); // 获取最近的导航类型
+
+  return (
+    <div>
+      <h2>Home</h2>
+      <p>Navigation Type: {navigationType}</p>
+    </div>
+  );
+}
+
+function About() {
+  const navigate = useNavigate();
+  return (
+    <div>
+      <h2>About</h2>
+      <button onClick={() => navigate('/', { replace: true })}>Go to Home</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="about" element={<About />} />
+    </Routes>
+  );
+}
+
+export default App;
+
 
 ```
 
@@ -1389,13 +1430,39 @@ declare function useMatch<ParamKey extends string = string>(
 
 </details>
 
-返回给定路径相对当前 location 的路由匹配数据。
+**参数：**
++ pattern: 一个字符串或对象，用于指定要匹配的路径模式。它可以是简单的路径字符串，也可以是更复杂的对象格式，包含 path、exact 等属性。
+
+**返回值:**
++ match: 如果当前 URL 与提供的模式匹配，则返回一个对象，包含路径中的匹配信息；否则返回 null。这个对象的结构如下：
++ params: 当前路径中的 URL 参数（如果有）。
++ pathname: 匹配的完整路径。
++ pattern: 提供的匹配模式。
+
+useMatch 匹配当前 URL 是否符合指定的路径模式，并返回有关匹配的信息。
 
 有关详细信息，请参阅 [`matchPath`](#matchpath)。
 
 **示例代码:**
 
 ```jsx
+
+import { useMatch, Routes, Route, Link } from 'react-router-dom';
+
+function Profile() {
+  const match = useMatch('/profile/:userId');
+
+  return (
+    <div>
+      <h2>Profile Page</h2>
+      {match ? (
+        <p>User ID: {match.params.userId}</p>
+      ) : (
+        <p>No user ID found in the URL.</p>
+      )}
+    </div>
+  );
+}
 
 ```
 
@@ -1418,14 +1485,10 @@ interface NavigateFunction {
 
 </details>
 
-`useNavigate` hook 返回一个用编程方式导航的函数，可用于例如提交表单。
+`useNavigate` 返回程方式导航的函数。
+- 传想要入 history 堆栈的增量，例如 `navigate(-1)` 相当于点击后退按钮。
 
 **示例代码:**
-
-```jsx
-
-```
-
 ```tsx
 import { useNavigate } from "react-router-dom";
 
@@ -1442,11 +1505,6 @@ function SignupForm() {
 }
 ```
 
-`navigate` 函数有两个签名：
-
-- 传一个带有可选第二个 `{ replace, state }` 变量（arg）的 `To` 值（与 `<Link to>` 类型相同） 或
-- 传想要入 history 堆栈的增量，例如 `navigate(-1)` 相当于点击后退按钮。
-
 ### `useOutlet`
 
 <details>
@@ -1458,11 +1516,59 @@ declare function useOutlet(): React.ReactElement | null;
 
 </details>
 
-返回位于该子路由层级的子路由元素，[`<Outlet>`](#outlet) 在内部使用此 hook 来渲染子路由。
+useOutlet 返回当前组件的子路由组件. [`<Outlet>`](#outlet) 在内部使用此 hook 来渲染子路由。
 
 **示例代码:**
 
 ```jsx
+
+import { Routes, Route, Link, Outlet, useOutlet } from 'react-router-dom';
+
+function Layout() {
+  // 使用 useOutlet 来获取嵌套路由的内容
+  const outlet = useOutlet();
+
+  return (
+    <div>
+      <nav>
+        <ul>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/about">About</Link></li>
+          <li><Link to="/contact">Contact</Link></li>
+        </ul>
+      </nav>
+      <hr />
+      {/* 如果有匹配的子路由，渲染它们 */}
+      <div>{outlet}</div>
+    </div>
+  );
+}
+
+function Home() {
+  return <h2>Home Page</h2>;
+}
+
+function About() {
+  return <h2>About Page</h2>;
+}
+
+function Contact() {
+  return <h2>Contact Page</h2>;
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="about" element={<About />} />
+        <Route path="contact" element={<Contact />} />
+      </Route>
+    </Routes>
+  );
+}
+
+export default App;
 
 ```
 
@@ -1479,34 +1585,51 @@ declare function useParams<
 
 </details>
 
-`useParams` hook 返回当前 URL 与 `<Route path>` 匹配的动态参数的键值对（key/value pairs）对象，子路由继承父路由的所有参数。
+`useParams` 返回当前URL的路由参数对象。
 
 **示例代码:**
 
 ```jsx
 
-```
+import { Routes, Route, Link, useParams } from 'react-router-dom';
 
-```tsx
-import * as React from 'react';
-import { Routes, Route, useParams } from 'react-router-dom';
+function UserProfile() {
+  // 使用 useParams 获取路由参数
+  // UserProfile 组件使用 useParams 来获取当前 URL 中的路由参数 userId
+  // 如果 URL 为 /user/123，useParams() 返回 { userId: '123' }，在组件中显示用户 I
+  const { userId } = useParams();
 
-function ProfilePage() {
-  // 从 URL 中获取 userId
-  let { userId } = useParams();
-  // ...
+  return (
+    <div>
+      <h2>User Profile</h2>
+      <p>User ID: {userId}</p>
+    </div>
+  );
+}
+
+function Home() {
+  return (
+    <div>
+      <h2>Home Page</h2>
+      <Link to="/user/123">Go to User 123 Profile</Link>
+      <br />
+      <Link to="/user/456">Go to User 456 Profile</Link>
+    </div>
+  );
 }
 
 function App() {
   return (
     <Routes>
-      <Route path="users">
-        <Route path=":userId" element={<ProfilePage />} />
-        <Route path="me" element={...} />
-      </Route>
+      <Route path="/" element={<Home />} />
+      <Route path="user/:userId" element={<UserProfile />} />
     </Routes>
   );
 }
+
+export default App;
+
+
 ```
 
 ### `useResolvedPath`
@@ -1530,7 +1653,7 @@ useResolvedPath 返回一个对象，包含以下属性：
 + search: URL 的查询字符串（例如 ?name=value 部分）。
 + hash: URL 的哈希片段（例如 #section 部分）。
 
-useResolvedPath 可以在组件中直接使用，基于当前的路由上下文来解析相对路径。
+useResolvedPath 基于当前URL解析相对路径。
 
 有关详细信息，请参阅 [`resolvePath`](#resolvepath)。
 
@@ -1581,15 +1704,11 @@ declare function useRoutes(
 
 </details>
 
-`useRoutes` hook 在功能上等同于 [`<Routes>`](#routes) 但使用 JavaScript 对象而不是 `<Route>` 元素来定义路由，所用对象与普通 [`<Route>` 元素](#routes-and-route) 具有相同属性但不需要用 JSX。
-
-`useRoutes` 返回值是一个可用来渲染路由树的有效 React 元素，如果没有匹配项则返回 `null`。
+**useRoutes:** 
++ 编程式渲染路由数组,替代router组件
++ 返回值是一个可用来渲染路由树的有效 React 元素，如果没有匹配项则返回 `null`。
 
 **示例代码:**
-
-```jsx
-
-```
 
 ```tsx
 import * as React from "react";
