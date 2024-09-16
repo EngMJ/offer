@@ -139,38 +139,7 @@ ReactDOM.render(
 
 <docs-warning>强烈建议不要使用`HashRouter`，除非必须。</docs-warning>
 
-### `<NativeRouter>`
 
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function NativeRouter(
-  props: NativeRouterProps
-): React.ReactElement;
-
-interface NativeRouterProps extends MemoryRouterProps {}
-```
-
-</details>
-
-`<NativeRouter>` 是在 [React Native](https://reactnative.dev) 应用中运行 React Router 的推荐接口。
-
-- `<NativeRouter initialEntries>` 默认为 `["/"]`（根 `/` URL 中的单个入口）
-- `<NativeRouter initialIndex>` 默认为 `initialEntries` 的最后一个索引（index）
-
-```tsx
-import * as React from "react";
-import { NativeRouter } from "react-router-native";
-
-function App() {
-  return (
-    <NativeRouter>
-      {/* app的其余部分在这里 */}
-    </NativeRouter>
-  );
-}
-```
 
 ### `<MemoryRouter>`
 
@@ -224,10 +193,6 @@ describe("My app", () => {
 ```
 
 ### `<Link>`
-
-> **注意：**
->
-> 这是 `<Link>` 的 web 版，React Native 版[去这里](#link-react-native)。
 
 <details>
   <summary>类型声明</summary>
@@ -294,46 +259,6 @@ function Navigation() {
 > 当当前 URL 以 `/` 结尾，
 > 带有 `..` 的 `<Link to>` 行为与正常 `<a href>` 不同。 `<Link to>` 忽略尾部斜杠并删除
 > 每个 `..` 一个 URL 段，而`<a href>` 值处理 `..` 的方式会以当前 URL 是否以 `/` 结尾而不同。
-
-### `<Link>` (React Native)
-
-> **注意：**
->
-> 这是 `<Link>` 的 React Native 版，web 版[去这里](#link)。
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function Link(props: LinkProps): React.ReactElement;
-
-interface LinkProps extends TouchableHighlightProps {
-  children?: React.ReactNode;
-  onPress?(event: GestureResponderEvent): void;
-  replace?: boolean;
-  state?: State;
-  to: To;
-}
-```
-
-</details>
-
-`<Link>` 是一个让用户轻敲（tap）它导航到另一个视图的元素，类似于 `<a>` 元素在 web 应用中的工作方式，`<Link>` 在 `react-router-native` 中会渲染一个 `TouchableHighlight`。 要覆盖默认样式和行为，请参阅 [`TouchableHighlight` 的 Props 参考](https://reactnative.dev/docs/touchablehighlight#props)。
-
-```tsx
-import * as React from "react";
-import { View, Text } from "react-native";
-import { Link } from "react-router-native";
-
-function Home() {
-  return (
-    <View>
-      <Text>Welcome!</Text>
-      <Link to="/profile">Visit your profile</Link>
-    </View>
-  );
-}
-```
 
 ### `<NavLink>`
 
@@ -681,57 +606,6 @@ Routes 是一个用于定义路由规则的组件
 <Route path="users">
   <Route path=":id" element={<UserProfile />} />
 </Route>
-```
-
-### `<StaticRouter>`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function StaticRouter(
-  props: StaticRouterProps
-): React.ReactElement;
-
-interface StaticRouterProps {
-  basename?: string;
-  children?: React.ReactNode;
-  location?: Path | LocationPieces;
-}
-```
-
-</details>
-
-`<StaticRouter>` 用于在 [node](https://nodejs.org) 中服务端渲染 React Router Web 应用程序，通过 location 属性接收当前的 URL，模拟客户端路由行为.
-
-- `<StaticRouter location>` 默认为 `"/"`
-
-```tsx
-import { StaticRouter } from 'react-router-dom/server';
-import { Routes, Route } from 'react-router-dom';
-import ReactDOMServer from 'react-dom/server';
-import Home from './Home';
-import About from './About';
-
-function App({ location }) {
-    return (
-        <StaticRouter location={location}>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-            </Routes>
-        </StaticRouter>
-    );
-}
-
-// 服务器端渲染示例
-const serverRender = (req) => {
-    const html = ReactDOMServer.renderToString(<App location={req.url} />);
-    return html;
-};
-
-export default serverRender;
-
 ```
 
 ### `createRoutesFromChildren`
@@ -1225,59 +1099,6 @@ export default App;
 
 ```
 
-### `useLinkPressHandler`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useLinkPressHandler<
-  S extends State = State
->(
-  to: To,
-  options?: {
-    replace?: boolean;
-    state?: S;
-  }
-): (event: GestureResponderEvent) => void;
-```
-
-</details>
-
-作为 `useLinkClickHandler` 在 `react-router-native` 中的对应项，`useLinkPressHandler` 返回一个用于自定义 `<Link>` 导航的 press 事件 handler。
-
-**示例代码:**
-
-```tsx
-import { TouchableHighlight } from "react-native";
-import { useLinkPressHandler } from "react-router-native";
-
-function Link({
-  onPress,
-  replace = false,
-  state,
-  to,
-  ...rest
-}) {
-  let handlePress = useLinkPressHandler(to, {
-    replace,
-    state
-  });
-
-  return (
-    <TouchableHighlight
-      {...rest}
-      onPress={event => {
-        onPress?.(event);
-        if (!event.defaultPrevented) {
-          handlePress(event);
-        }
-      }}
-    />
-  );
-}
-```
-
 ### `useInRouterContext`
 
 <details>
@@ -1736,10 +1557,6 @@ function App() {
 
 ### `useSearchParams`
 
-> **注意：**
->
-> 这是 `useSearchParams` 的 web 版，React Native 版[去这里](#usesearchparams-react-native)。
-
 <details>
   <summary>类型声明</summary>
 
@@ -1824,11 +1641,237 @@ export default ProductList;
 
 ```
 
-### `useSearchParams` (React Native)
+### `createSearchParams`
 
-> **注意：**
->
-> 这是 `useSearchParams` 的 React Native 版，web 版[去这里](#usesearchparams)。
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function createSearchParams(
+  init?: URLSearchParamsInit
+): URLSearchParams;
+```
+
+</details>
+
+参数：
+init: 可以是一个对象或 URLSearchParams 实例。对象的键值对将被转换为查询字符串中的参数。
+
+返回值：
+searchParams: 一个新的 URLSearchParams 实例，表示查询字符串.
+
+`createSearchParams` 用于创建和操作查询参数。它可以将一个对象或现有的 URLSearchParams 实例转换为一个新的 URLSearchParams 实例。这个函数常用于生成查询字符串，并与 useSearchParams 和其他相关 API 一起使用。。
+
+**示例代码:**
+
+```jsx
+
+import { useSearchParams, createSearchParams } from 'react-router-dom';
+
+const params = createSearchParams({ filter: 'fruit', sort: 'price' });
+console.log(params.toString()); // 'filter=fruit&sort=price'
+
+function ProductList() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const handleFilterChange = (filter) => {
+    // 使用 createSearchParams 生成新的查询参数
+    const newParams = createSearchParams({ ...Object.fromEntries(searchParams), filter });
+    setSearchParams(newParams);
+  };
+
+  return (
+    <div>
+      <h2>Product List</h2>
+      <button onClick={() => handleFilterChange('fruit')}>Filter Fruits</button>
+      <button onClick={() => handleFilterChange('vegetable')}>Filter Vegetables</button>
+      {/* 其他组件内容 */}
+    </div>
+  );
+}
+
+export default ProductList;
+
+```
+## 服务端渲染
+
+### `<StaticRouter>`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function StaticRouter(
+  props: StaticRouterProps
+): React.ReactElement;
+
+interface StaticRouterProps {
+  basename?: string;
+  children?: React.ReactNode;
+  location?: Path | LocationPieces;
+}
+```
+
+</details>
+
+`<StaticRouter>` 用于在 [node](https://nodejs.org) 中服务端渲染 React Router Web 应用程序，通过 location 属性接收当前的 URL，模拟客户端路由行为.
+
+- `<StaticRouter location>` 默认为 `"/"`
+
+```tsx
+import { StaticRouter } from 'react-router-dom/server';
+import { Routes, Route } from 'react-router-dom';
+import ReactDOMServer from 'react-dom/server';
+import Home from './Home';
+import About from './About';
+
+function App({ location }) {
+    return (
+        <StaticRouter location={location}>
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+            </Routes>
+        </StaticRouter>
+    );
+}
+
+// 服务器端渲染示例
+const serverRender = (req) => {
+    const html = ReactDOMServer.renderToString(<App location={req.url} />);
+    return html;
+};
+
+export default serverRender;
+
+```
+
+
+## React Native
+
+### `<NativeRouter>`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function NativeRouter(
+  props: NativeRouterProps
+): React.ReactElement;
+
+interface NativeRouterProps extends MemoryRouterProps {}
+```
+
+</details>
+
+`<NativeRouter>` 是在 [React Native](https://reactnative.dev) 应用中运行 React Router 的推荐接口。
+
+- `<NativeRouter initialEntries>` 默认为 `["/"]`（根 `/` URL 中的单个入口）
+- `<NativeRouter initialIndex>` 默认为 `initialEntries` 的最后一个索引（index）
+
+```tsx
+import * as React from "react";
+import { NativeRouter } from "react-router-native";
+
+function App() {
+  return (
+    <NativeRouter>
+      {/* app的其余部分在这里 */}
+    </NativeRouter>
+  );
+}
+```
+
+### `<Link>` 
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function Link(props: LinkProps): React.ReactElement;
+
+interface LinkProps extends TouchableHighlightProps {
+  children?: React.ReactNode;
+  onPress?(event: GestureResponderEvent): void;
+  replace?: boolean;
+  state?: State;
+  to: To;
+}
+```
+
+</details>
+
+`<Link>` 是一个让用户轻敲（tap）它导航到另一个视图的元素，类似于 `<a>` 元素在 web 应用中的工作方式，`<Link>` 在 `react-router-native` 中会渲染一个 `TouchableHighlight`。 要覆盖默认样式和行为，请参阅 [`TouchableHighlight` 的 Props 参考](https://reactnative.dev/docs/touchablehighlight#props)。
+
+```tsx
+import * as React from "react";
+import { View, Text } from "react-native";
+import { Link } from "react-router-native";
+
+function Home() {
+  return (
+    <View>
+      <Text>Welcome!</Text>
+      <Link to="/profile">Visit your profile</Link>
+    </View>
+  );
+}
+```
+
+### `useLinkPressHandler`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useLinkPressHandler<
+  S extends State = State
+>(
+  to: To,
+  options?: {
+    replace?: boolean;
+    state?: S;
+  }
+): (event: GestureResponderEvent) => void;
+```
+
+</details>
+
+作为 `useLinkClickHandler` 在 `react-router-native` 中的对应项，`useLinkPressHandler` 返回一个用于自定义 `<Link>` 导航的 press 事件 handler。
+
+**示例代码:**
+
+```tsx
+import { TouchableHighlight } from "react-native";
+import { useLinkPressHandler } from "react-router-native";
+
+function Link({
+  onPress,
+  replace = false,
+  state,
+  to,
+  ...rest
+}) {
+  let handlePress = useLinkPressHandler(to, {
+    replace,
+    state
+  });
+
+  return (
+    <TouchableHighlight
+      {...rest}
+      onPress={event => {
+        onPress?.(event);
+        if (!event.defaultPrevented) {
+          handlePress(event);
+        }
+      }}
+    />
+  );
+}
+```
+
+### `useSearchParams` 
 
 <details>
   <summary>类型声明</summary>
@@ -1883,55 +1926,4 @@ function App() {
 }
 ```
 
-### `createSearchParams`
 
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function createSearchParams(
-  init?: URLSearchParamsInit
-): URLSearchParams;
-```
-
-</details>
-
-参数：
-init: 可以是一个对象或 URLSearchParams 实例。对象的键值对将被转换为查询字符串中的参数。
-
-返回值：
-searchParams: 一个新的 URLSearchParams 实例，表示查询字符串.
-
-`createSearchParams` 用于创建和操作查询参数。它可以将一个对象或现有的 URLSearchParams 实例转换为一个新的 URLSearchParams 实例。这个函数常用于生成查询字符串，并与 useSearchParams 和其他相关 API 一起使用。。
-
-**示例代码:**
-
-```jsx
-
-import { useSearchParams, createSearchParams } from 'react-router-dom';
-
-const params = createSearchParams({ filter: 'fruit', sort: 'price' });
-console.log(params.toString()); // 'filter=fruit&sort=price'
-
-function ProductList() {
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const handleFilterChange = (filter) => {
-    // 使用 createSearchParams 生成新的查询参数
-    const newParams = createSearchParams({ ...Object.fromEntries(searchParams), filter });
-    setSearchParams(newParams);
-  };
-
-  return (
-    <div>
-      <h2>Product List</h2>
-      <button onClick={() => handleFilterChange('fruit')}>Filter Fruits</button>
-      <button onClick={() => handleFilterChange('vegetable')}>Filter Vegetables</button>
-      {/* 其他组件内容 */}
-    </div>
-  );
-}
-
-export default ProductList;
-
-```
