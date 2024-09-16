@@ -1766,41 +1766,63 @@ interface URLSearchParamsSetter {
 
 </details>
 
-`useSearchParams` hook 用于读取和修改 URL 中当前 location 的查询字符串（query string），和 React 的 [`useState` hook](https://reactjs.org/docs/hooks-reference.html#usestate) 一样返回一个长度为2的数组：当前 location 的 [search params](https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams) 和一个可用来更新前者的函数。
+`useSearchParams` 读取和操作 URL 中的查询参数。
+
+**返回值：**
+
++ searchParams: 提供了类似 URLSearchParams 的 API，用于读取查询字符串中的参数。searchParams.get('param'): 获取查询参数 param 的值。searchParams.has('param'): 检查是否存在查询参数 param。
+
++ setSearchParams: 可以用于修改查询参数，它会更新 URL 而不重新加载页面。更新查询参数，接收一个对象或 URLSearchParams 对象作为参数.第二个参数与 `navigate` 的第二个参数类型相同.
+
 
 **示例代码:**
 
 ```jsx
 
-```
+import { useSearchParams } from 'react-router-dom';
 
-```tsx
-import * as React from "react";
-import { useSearchParams } from "react-router-dom";
+function ProductList() {
+  // 获取查询参数
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // 读取查询参数 'filter' 的值
+  const filter = searchParams.get('filter') || 'all';
 
-function App() {
-  let [searchParams, setSearchParams] = useSearchParams();
+  const products = [
+    { id: 1, name: 'Apple', category: 'fruit' },
+    { id: 2, name: 'Carrot', category: 'vegetable' },
+    { id: 3, name: 'Banana', category: 'fruit' },
+  ];
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    // 这里序列化函数将用于从构成查询的表单字段创建一个键值对对象。
-    let params = serializeFormQuery(event.target);
-    setSearchParams(params);
-  }
+  // 根据查询参数筛选商品
+  const filteredProducts = filter === 'all'
+    ? products
+    : products.filter(product => product.category === filter);
+
+  // 更新查询参数
+  const handleFilterChange = (newFilter) => {
+    setSearchParams({ filter: newFilter });
+  };
 
   return (
     <div>
-      <form onSubmit={handleSubmit}>{/* ... */}</form>
+      <h2>Product List</h2>
+      <button onClick={() => handleFilterChange('all')}>All</button>
+      <button onClick={() => handleFilterChange('fruit')}>Fruits</button>
+      <button onClick={() => handleFilterChange('vegetable')}>Vegetables</button>
+      
+      <ul>
+        {filteredProducts.map(product => (
+          <li key={product.id}>{product.name}</li>
+        ))}
+      </ul>
     </div>
   );
 }
-```
 
-> **注意：**
->
-> `setSearchParams` 函数工作方式类似于 [`navigate`](#usenavigate)，但
-> 仅适用于 URL 的 [search 部分](https://developer.mozilla.org/en-US/docs/Web/API/Location/search)。
-> 另请注意，`setSearchParams` 的第二个参数与 `navigate` 的第二个参数类型相同。
+export default ProductList;
+
+```
 
 ### `useSearchParams` (React Native)
 
@@ -1874,10 +1896,42 @@ declare function createSearchParams(
 
 </details>
 
-`createSearchParams` 是 [`new URLSearchParams(init)`](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams) 增加了对带有数组值对象支持的一层简单封装，也是 `useSearchParams` 在内部用 `URLSearchParamsInit` 值创建 `URLSearchParams` 对象的函数。
+参数：
+init: 可以是一个对象或 URLSearchParams 实例。对象的键值对将被转换为查询字符串中的参数。
+
+返回值：
+searchParams: 一个新的 URLSearchParams 实例，表示查询字符串.
+
+`createSearchParams` 用于创建和操作查询参数。它可以将一个对象或现有的 URLSearchParams 实例转换为一个新的 URLSearchParams 实例。这个函数常用于生成查询字符串，并与 useSearchParams 和其他相关 API 一起使用。。
 
 **示例代码:**
 
 ```jsx
+
+import { useSearchParams, createSearchParams } from 'react-router-dom';
+
+const params = createSearchParams({ filter: 'fruit', sort: 'price' });
+console.log(params.toString()); // 'filter=fruit&sort=price'
+
+function ProductList() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const handleFilterChange = (filter) => {
+    // 使用 createSearchParams 生成新的查询参数
+    const newParams = createSearchParams({ ...Object.fromEntries(searchParams), filter });
+    setSearchParams(newParams);
+  };
+
+  return (
+    <div>
+      <h2>Product List</h2>
+      <button onClick={() => handleFilterChange('fruit')}>Filter Fruits</button>
+      <button onClick={() => handleFilterChange('vegetable')}>Filter Vegetables</button>
+      {/* 其他组件内容 */}
+    </div>
+  );
+}
+
+export default ProductList;
 
 ```
