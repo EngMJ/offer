@@ -874,9 +874,24 @@ function App() {
 }
 ```
 
-### `Location`
+### `useLocation`
 
-React Router 中的术语 “location” 是指来自 [history](https://github.com/remix-run/history) 库的 `Location` 接口。
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useLocation(): Location;
+
+interface Location<S extends State = object | null>
+  extends Path {
+  state: S;
+  key: Key;
+}
+```
+
+</details>
+
+useLocation 返回当前 location对象, 可获取 navigate 或 Link 导航传递的state对象。
 
 **示例代码:**
 
@@ -906,42 +921,6 @@ function MyComponent() {
   );
 }
 
-```
-
-### `useLocation`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useLocation(): Location;
-
-interface Location<S extends State = object | null>
-  extends Path {
-  state: S;
-  key: Key;
-}
-```
-
-</details>
-
-此 hook 返回当前 [`location`](#location) 对象，可用于在当前 location 改变时执行一些副作用。
-
-```tsx
-import * as React from 'react';
-import { useLocation } from 'react-router-dom';
-
-function App() {
-  let location = useLocation();
-
-  React.useEffect(() => {
-    ga('send', 'pageview');
-  }, [location]);
-
-  return (
-    // ...
-  );
-}
 ```
 
 
