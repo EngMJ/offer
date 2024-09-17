@@ -194,8 +194,6 @@ describe("My app", () => {
 });
 ```
 
-## 路由
-
 ### `<Router>`
 
 <details>
@@ -218,7 +216,9 @@ interface RouterProps {
 
 </details>
 
-`<Router>` 构成<BrowserRouter> /<HashRouter>等路由组件的底层组件,几乎不手动生成.
+`<Router>` 构成BrowserRouter/HashRouter等路由组件的底层组件,几乎不手动生成.
+
+## 路由
 
 ### `<Routes>` 和 `<Route>`
 
