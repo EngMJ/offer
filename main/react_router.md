@@ -509,6 +509,74 @@ export default function DashboardMessages() {
 }
 ```
 
+### `useOutlet`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useOutlet(): React.ReactElement | null;
+```
+
+</details>
+
+useOutlet 返回当前组件的子路由组件. [`<Outlet>`](#outlet) 在内部使用此 hook 来渲染子路由。
+
+**示例代码:**
+
+```jsx
+
+import { Routes, Route, Link, Outlet, useOutlet } from 'react-router-dom';
+
+function Layout() {
+  // 使用 useOutlet 来获取嵌套路由的内容
+  const outlet = useOutlet();
+
+  return (
+    <div>
+      <nav>
+        <ul>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/about">About</Link></li>
+          <li><Link to="/contact">Contact</Link></li>
+        </ul>
+      </nav>
+      <hr />
+      {/* 如果有匹配的子路由，渲染它们 */}
+      <div>{outlet}</div>
+    </div>
+  );
+}
+
+function Home() {
+  return <h2>Home Page</h2>;
+}
+
+function About() {
+  return <h2>About Page</h2>;
+}
+
+function Contact() {
+  return <h2>Contact Page</h2>;
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="about" element={<About />} />
+        <Route path="contact" element={<Contact />} />
+      </Route>
+    </Routes>
+  );
+}
+
+export default App;
+
+```
+
+
 ### `<Router>`
 
 <details>
@@ -531,11 +599,7 @@ interface RouterProps {
 
 </details>
 
-`<Router>` 是所有 router 组件（[`<BrowserRouter>`](#browserrouter), [`<HashRouter>`](#hashrouter), [`<StaticRouter>`](#staticrouter)、[`<NativeRouter>`](#nativerouter) 和 [`<MemoryRouter>`](#memoryrouter)）共享的底层接口，对于 React 是一个 [context provider](https://reactjs.org/docs/context.html#contextprovider)，为应用的其余部分提供路由信息。
-
-可能永远不需要手动渲染一个 `<Router>`，而是根据环境使用更高级 routers 的一种。 在一个给定的应用中只需一个 router。
-
-在应用中，`<Router basename>` 属性可能在创建所有路由和链接都会被用到，因为它是它们都共享的 URL pathname 的“基本”部分，常用于使用 React Router 渲染较大应用的一部分或应用具有多个入口点时。 基本名称（Basenames）不区分大小写。
+`<Router>` 构成<BrowserRouter> /<HashRouter>等路由组件的底层组件,几乎不手动生成.
 
 ### `<Routes>` 和 `<Route>`
 
@@ -629,7 +693,7 @@ interface RouteObject {
 
 </details>
 
-`createRoutesFromChildren` 创建动态路由函数。再通过useRoutes进行路由渲染.
+`createRoutesFromChildren` 创建动态路由函数。再通过useRoutes生成可渲染的路由组件.
 
 **示例代码:**
 
@@ -668,6 +732,50 @@ export default function Root() {
   );
 }
 
+```
+
+### `useRoutes`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useRoutes(
+  routes: RouteObject[],
+  location?: Partial<Location> | string;
+): React.ReactElement | null;
+```
+
+</details>
+
+**useRoutes:**
++ 编程式渲染路由数组,替代router组件
++ 返回值是一个可用来渲染路由树的有效 React 元素，如果没有匹配项则返回 `null`。
+
+**示例代码:**
+
+```tsx
+import * as React from "react";
+import { useRoutes } from "react-router-dom";
+
+function App() {
+  let element = useRoutes([
+    {
+      path: "/",
+      element: <Dashboard />,
+      children: [
+        {
+          path: "messages",
+          element: <DashboardMessages />
+        },
+        { path: "tasks", element: <DashboardTasks /> }
+      ]
+    },
+    { path: "team", element: <AboutPage /> }
+  ]);
+
+  return element;
+}
 ```
 
 
@@ -732,6 +840,156 @@ function MyComponent() {
 }
 
 ```
+
+### `matchPath`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function matchPath<
+  ParamKey extends string = string
+>(
+  pattern: PathPattern | string,
+  pathname: string
+): PathMatch<ParamKey> | null;
+
+interface PathMatch<ParamKey extends string = string> {
+  params: Params<ParamKey>;
+  pathname: string;
+  pathnameBase: string;
+  pattern: PathPattern;
+}
+
+interface PathPattern {
+  path: string;
+  caseSensitive?: boolean;
+  end?: boolean;
+}
+```
+
+</details>
+
++ pattern: 用于匹配的路径模式，支持动态参数（如 :id）和通配符（如 *），也可以是一个对象。
+
++ pathname: 实际要匹配的路径。
+
+**pattern 的结构:**
+
+1. 路径字符串: 例如 /users/:id 或 /about
+
+2. 对象:
++ path: 匹配的路径模式，支持动态参数和通配符。
++ caseSensitive: 匹配是否区分大小写（默认是 false）。
++ end: 是否要求完全匹配（默认是 true，表示必须完全匹配路径）。
+
+**返回值:**
+1. 如果路径匹配成功，matchPath 返回一个对象，包含以下属性：
+
++ params: 包含匹配的动态参数（如 /users/:id 中的 id）。
++ pathname: 当前匹配的路径部分。
++ pathnameBase: 匹配的基础路径（忽略通配符部分）。
++ pattern: 使用的匹配模式对象。
+
+2. 如果匹配失败，返回 null。
+
+`matchPath` 匹配路由，匹配返回路由对象PathMatch，不匹配返回 `null`。
+
+[`useMatch` hook](#usematch) 在内部使用此函数来匹配当前 location 的路由路径。
+
+**示例代码:**
+
+```jsx
+
+import { matchPath } from 'react-router-dom';
+
+const match = matchPath("/users/:id", "/users/123");
+console.log(match);
+// 输出:
+// {
+//   params: { id: "123" },
+//   pathname: "/users/123",
+//   pathnameBase: "/users/123",
+//   pattern: { path: "/users/:id", caseSensitive: false, end: true }
+// }
+
+const match = matchPath("/docs/*", "/docs/react/getting-started");
+console.log(match);
+// 输出:
+// {
+//   params: { "*": "react/getting-started" },
+//   pathname: "/docs/react/getting-started",
+//   pathnameBase: "/docs",
+//   pattern: { path: "/docs/*", caseSensitive: false, end: true }
+// }
+
+const match = matchPath({ path: "/users", end: false }, "/users/123");
+console.log(match);
+// 输出:
+// {
+//   params: {},
+//   pathname: "/users",
+//   pathnameBase: "/users",
+//   pattern: { path: "/users", caseSensitive: false, end: false }
+// }
+
+
+const match = matchPath({ path: "/About", caseSensitive: true }, "/about");
+console.log(match);
+// 输出: null，因为大小写不匹配
+
+
+```
+
+### `useMatch`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useMatch<ParamKey extends string = string>(
+  pattern: PathPattern | string
+): PathMatch<ParamKey> | null;
+```
+
+</details>
+
+**参数：**
++ pattern: 一个字符串或对象，用于指定要匹配的路径模式。它可以是简单的路径字符串，也可以是更复杂的对象格式，包含 path、exact 等属性。
+
+**返回值:**
++ match: 如果当前 URL 与提供的模式匹配，则返回一个对象，包含路径中的匹配信息；否则返回 null。这个对象的结构如下：
++ params: 当前路径中的 URL 参数（如果有）。
++ pathname: 匹配的完整路径。
++ pattern: 提供的匹配模式。
+
+useMatch 匹配当前 URL 是否符合指定的路径模式，并返回有关匹配的信息。
+
+有关详细信息，请参阅 [`matchPath`](#matchpath)。
+
+**示例代码:**
+
+```jsx
+
+import { useMatch, Routes, Route, Link } from 'react-router-dom';
+
+function Profile() {
+  const match = useMatch('/profile/:userId');
+
+  return (
+    <div>
+      <h2>Profile Page</h2>
+      {match ? (
+        <p>User ID: {match.params.userId}</p>
+      ) : (
+        <p>No user ID found in the URL.</p>
+      )}
+    </div>
+  );
+}
+
+```
+
 
 ### `matchRoutes`
 
@@ -828,106 +1086,6 @@ function App() {
 
 ```
 
-### `matchPath`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function matchPath<
-  ParamKey extends string = string
->(
-  pattern: PathPattern | string,
-  pathname: string
-): PathMatch<ParamKey> | null;
-
-interface PathMatch<ParamKey extends string = string> {
-  params: Params<ParamKey>;
-  pathname: string;
-  pathnameBase: string;
-  pattern: PathPattern;
-}
-
-interface PathPattern {
-  path: string;
-  caseSensitive?: boolean;
-  end?: boolean;
-}
-```
-
-</details>
-
-+ pattern: 用于匹配的路径模式，支持动态参数（如 :id）和通配符（如 *），也可以是一个对象。
-
-+ pathname: 实际要匹配的路径。
-
-**pattern 的结构:**
-
-1. 路径字符串: 例如 /users/:id 或 /about
-
-2. 对象: 
-+ path: 匹配的路径模式，支持动态参数和通配符。
-+ caseSensitive: 匹配是否区分大小写（默认是 false）。
-+ end: 是否要求完全匹配（默认是 true，表示必须完全匹配路径）。
-
-**返回值:**
-1. 如果路径匹配成功，matchPath 返回一个对象，包含以下属性：
-
-+ params: 包含匹配的动态参数（如 /users/:id 中的 id）。
-+ pathname: 当前匹配的路径部分。
-+ pathnameBase: 匹配的基础路径（忽略通配符部分）。
-+ pattern: 使用的匹配模式对象。
-
-2. 如果匹配失败，返回 null。
-
-`matchPath` 匹配路由，匹配返回路由对象PathMatch，不匹配返回 `null`。
-
-[`useMatch` hook](#usematch) 在内部使用此函数来匹配当前 location 的路由路径。
-
-**示例代码:**
-
-```jsx
-
-import { matchPath } from 'react-router-dom';
-
-const match = matchPath("/users/:id", "/users/123");
-console.log(match);
-// 输出:
-// {
-//   params: { id: "123" },
-//   pathname: "/users/123",
-//   pathnameBase: "/users/123",
-//   pattern: { path: "/users/:id", caseSensitive: false, end: true }
-// }
-
-const match = matchPath("/docs/*", "/docs/react/getting-started");
-console.log(match);
-// 输出:
-// {
-//   params: { "*": "react/getting-started" },
-//   pathname: "/docs/react/getting-started",
-//   pathnameBase: "/docs",
-//   pattern: { path: "/docs/*", caseSensitive: false, end: true }
-// }
-
-const match = matchPath({ path: "/users", end: false }, "/users/123");
-console.log(match);
-// 输出:
-// {
-//   params: {},
-//   pathname: "/users",
-//   pathnameBase: "/users",
-//   pattern: { path: "/users", caseSensitive: false, end: false }
-// }
-
-
-const match = matchPath({ path: "/About", caseSensitive: true }, "/about");
-console.log(match);
-// 输出: null，因为大小写不匹配
-
-
-```
-
 ### `resolvePath`
 
 <details>
@@ -1008,6 +1166,64 @@ console.log(resolvedPath);
 //   search: '',
 //   hash: ''
 // }
+
+
+```
+
+### `useResolvedPath`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useResolvedPath(to: To): Path;
+```
+
+</details>
+
++ to: 你想要解析的目标路径，通常可以是相对路径或者绝对路径
+
+**返回值:**
+
+useResolvedPath 返回一个对象，包含以下属性：
+
++ pathname: 解析后的路径。
++ search: URL 的查询字符串（例如 ?name=value 部分）。
++ hash: URL 的哈希片段（例如 #section 部分）。
+
+useResolvedPath 基于当前URL解析相对路径。
+
+有关详细信息，请参阅 [`resolvePath`](#resolvepath)。
+
+**示例代码:**
+
+```jsx
+
+import { Link, useResolvedPath } from 'react-router-dom';
+
+function MyComponent() {
+  const resolvedPath = useResolvedPath('about');
+  
+  console.log(resolvedPath);
+  // useResolvedPath('about') 会根据当前的路由上下文（假设当前路径是 /home）解析相对路径，生成一个完整的路径，比如 /home/about。
+  return (
+    <div>
+        // 结合Link组件实现绝对路径跳转
+      <Link to={resolvedPath}>Go to About</Link>
+    </div>
+  );
+}
+
+// 生成动态路径
+function UserProfile({ userId }) {
+    const resolvedPath = useResolvedPath(`/users/${userId}/profile`);
+
+    return (
+        <div>
+            <p>Resolved Path: {resolvedPath.pathname}</p>
+        </div>
+    );
+}
 
 
 ```
@@ -1238,55 +1454,6 @@ export default App;
 
 ```
 
-### `useMatch`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useMatch<ParamKey extends string = string>(
-  pattern: PathPattern | string
-): PathMatch<ParamKey> | null;
-```
-
-</details>
-
-**参数：**
-+ pattern: 一个字符串或对象，用于指定要匹配的路径模式。它可以是简单的路径字符串，也可以是更复杂的对象格式，包含 path、exact 等属性。
-
-**返回值:**
-+ match: 如果当前 URL 与提供的模式匹配，则返回一个对象，包含路径中的匹配信息；否则返回 null。这个对象的结构如下：
-+ params: 当前路径中的 URL 参数（如果有）。
-+ pathname: 匹配的完整路径。
-+ pattern: 提供的匹配模式。
-
-useMatch 匹配当前 URL 是否符合指定的路径模式，并返回有关匹配的信息。
-
-有关详细信息，请参阅 [`matchPath`](#matchpath)。
-
-**示例代码:**
-
-```jsx
-
-import { useMatch, Routes, Route, Link } from 'react-router-dom';
-
-function Profile() {
-  const match = useMatch('/profile/:userId');
-
-  return (
-    <div>
-      <h2>Profile Page</h2>
-      {match ? (
-        <p>User ID: {match.params.userId}</p>
-      ) : (
-        <p>No user ID found in the URL.</p>
-      )}
-    </div>
-  );
-}
-
-```
-
 ### `useNavigate`
 
 <details>
@@ -1324,73 +1491,6 @@ function SignupForm() {
 
   return <form onSubmit={handleSubmit}>{/* ... */}</form>;
 }
-```
-
-### `useOutlet`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useOutlet(): React.ReactElement | null;
-```
-
-</details>
-
-useOutlet 返回当前组件的子路由组件. [`<Outlet>`](#outlet) 在内部使用此 hook 来渲染子路由。
-
-**示例代码:**
-
-```jsx
-
-import { Routes, Route, Link, Outlet, useOutlet } from 'react-router-dom';
-
-function Layout() {
-  // 使用 useOutlet 来获取嵌套路由的内容
-  const outlet = useOutlet();
-
-  return (
-    <div>
-      <nav>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/about">About</Link></li>
-          <li><Link to="/contact">Contact</Link></li>
-        </ul>
-      </nav>
-      <hr />
-      {/* 如果有匹配的子路由，渲染它们 */}
-      <div>{outlet}</div>
-    </div>
-  );
-}
-
-function Home() {
-  return <h2>Home Page</h2>;
-}
-
-function About() {
-  return <h2>About Page</h2>;
-}
-
-function Contact() {
-  return <h2>Contact Page</h2>;
-}
-
-function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        <Route path="about" element={<About />} />
-        <Route path="contact" element={<Contact />} />
-      </Route>
-    </Routes>
-  );
-}
-
-export default App;
-
 ```
 
 ### `useParams`
@@ -1451,108 +1551,6 @@ function App() {
 export default App;
 
 
-```
-
-### `useResolvedPath`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useResolvedPath(to: To): Path;
-```
-
-</details>
-
-+ to: 你想要解析的目标路径，通常可以是相对路径或者绝对路径
-
-**返回值:**
-
-useResolvedPath 返回一个对象，包含以下属性：
-
-+ pathname: 解析后的路径。
-+ search: URL 的查询字符串（例如 ?name=value 部分）。
-+ hash: URL 的哈希片段（例如 #section 部分）。
-
-useResolvedPath 基于当前URL解析相对路径。
-
-有关详细信息，请参阅 [`resolvePath`](#resolvepath)。
-
-**示例代码:**
-
-```jsx
-
-import { Link, useResolvedPath } from 'react-router-dom';
-
-function MyComponent() {
-  const resolvedPath = useResolvedPath('about');
-  
-  console.log(resolvedPath);
-  // useResolvedPath('about') 会根据当前的路由上下文（假设当前路径是 /home）解析相对路径，生成一个完整的路径，比如 /home/about。
-  return (
-    <div>
-        // 结合Link组件实现绝对路径跳转
-      <Link to={resolvedPath}>Go to About</Link>
-    </div>
-  );
-}
-
-// 生成动态路径
-function UserProfile({ userId }) {
-    const resolvedPath = useResolvedPath(`/users/${userId}/profile`);
-
-    return (
-        <div>
-            <p>Resolved Path: {resolvedPath.pathname}</p>
-        </div>
-    );
-}
-
-
-```
-
-### `useRoutes`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useRoutes(
-  routes: RouteObject[],
-  location?: Partial<Location> | string;
-): React.ReactElement | null;
-```
-
-</details>
-
-**useRoutes:** 
-+ 编程式渲染路由数组,替代router组件
-+ 返回值是一个可用来渲染路由树的有效 React 元素，如果没有匹配项则返回 `null`。
-
-**示例代码:**
-
-```tsx
-import * as React from "react";
-import { useRoutes } from "react-router-dom";
-
-function App() {
-  let element = useRoutes([
-    {
-      path: "/",
-      element: <Dashboard />,
-      children: [
-        {
-          path: "messages",
-          element: <DashboardMessages />
-        },
-        { path: "tasks", element: <DashboardTasks /> }
-      ]
-    },
-    { path: "team", element: <AboutPage /> }
-  ]);
-
-  return element;
-}
 ```
 
 ### `useSearchParams`
