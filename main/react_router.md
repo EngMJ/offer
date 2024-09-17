@@ -1,4 +1,4 @@
-# API 参考
+# React Router V6
 
 React Router 是 [React components](https://reactjs.org/docs/components-and-props.html)、[hooks](https://reactjs.org/docs/hooks-intro.html) 和一些其他实用程序的集合，可搭配 [React](https://reactjs.org) 轻松构建多页面应用程序，此参考包含 React Router 中各种接口（interfaces）的函数签名和返回类型。
 
@@ -62,7 +62,9 @@ React Router 的导航接口可通过修改当前 [location](#location) 来改�
 
 ---
 
-## 参考
+# API参考
+
+## 根路由
 
 ### `<BrowserRouter>`
 
@@ -191,6 +193,397 @@ describe("My app", () => {
   });
 });
 ```
+
+## 路由
+
+### `<Router>`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function Router(
+  props: RouterProps
+): React.ReactElement | null;
+
+interface RouterProps {
+  basename?: string;
+  children?: React.ReactNode;
+  location: Partial<Location> | string;
+  navigationType?: NavigationType;
+  navigator: Navigator;
+  static?: boolean;
+}
+```
+
+</details>
+
+`<Router>` 构成<BrowserRouter> /<HashRouter>等路由组件的底层组件,几乎不手动生成.
+
+### `<Routes>` 和 `<Route>`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function Routes(
+  props: RoutesProps
+): React.ReactElement | null;
+
+interface RoutesProps {
+  children?: React.ReactNode;
+  location?: Partial<Location> | string;
+}
+
+declare function Route(
+  props: RouteProps
+): React.ReactElement | null;
+
+interface RouteProps {
+  caseSensitive?: boolean;
+  children?: React.ReactNode;
+  element?: React.ReactElement | null;
+  index?: boolean;
+  path?: string;
+}
+```
+
+</details>
+
+Routes 是一个用于定义路由规则的组件
+`<Routes>` 包裹 `<Route>` 用于定义路由规则的组件。Routes 只渲染第一个匹配的 Route。
+
+`<Route>` 属性:
+
++ caseSensitive 匹配是否区分大小写（默认为 `false`）
++ index 定义父路由的默认子路由,当父路由匹配时，index 路由会自动被渲染
++ path 匹配的路径
++ element 要渲染的react组件
+
+```tsx
+<Routes>
+  <Route path="/" element={<Dashboard />}>
+    <Route index element={<Index />} />
+    <Route
+      path="messages"
+      element={<DashboardMessages />}
+    />
+    <Route path="tasks" element={<DashboardTasks />} />
+  </Route>
+  <Route path="about" element={<AboutPage />} />
+</Routes>
+```
+
+> **注意：**
+>
+> 如果要把路由定义为常规 JavaScript 对象而不是使用 JSX，
+> [请尝试使用 `useRoutes` 代替](#useroutes)。
+
+`<Route element>` 默认是 [`<Outlet>`](#outlet)，即使没有 `element` 属性，默认渲染子元素.
+
+例如:
+
+父路由默认渲染子路由,子路由路径是 `/users/:id`
+
+```tsx
+<Route path="users">
+  <Route path=":id" element={<UserProfile />} />
+</Route>
+```
+
+### `createRoutesFromChildren`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function createRoutesFromChildren(
+  children: React.ReactNode
+): RouteObject[];
+
+interface RouteObject {
+  caseSensitive?: boolean;
+  children?: RouteObject[];
+  element?: React.ReactNode;
+  index?: boolean;
+  path?: string;
+}
+```
+
+</details>
+
+`createRoutesFromChildren` 创建动态路由函数。再通过useRoutes生成可渲染的路由组件.
+
+**示例代码:**
+
+```jsx
+import { BrowserRouter, Routes, Route, useRoutes, createRoutesFromChildren } from 'react-router-dom';
+
+function App() {
+  const routes = createRoutesFromChildren(
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+    </Routes>
+  );
+
+  return useRoutes(routes);
+}
+
+function Home() {
+  return <h1>Home Page</h1>;
+}
+
+function About() {
+  return <h1>About Page</h1>;
+}
+
+function Dashboard() {
+  return <h1>Dashboard Page</h1>;
+}
+
+export default function Root() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
+
+```
+
+### `useRoutes`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useRoutes(
+  routes: RouteObject[],
+  location?: Partial<Location> | string;
+): React.ReactElement | null;
+```
+
+</details>
+
+**useRoutes:**
++ 编程式渲染路由数组,替代router组件
++ 返回值是一个可用来渲染路由树的有效 React 元素，如果没有匹配项则返回 `null`。
+
+**示例代码:**
+
+```tsx
+import * as React from "react";
+import { useRoutes } from "react-router-dom";
+
+function App() {
+  let element = useRoutes([
+    {
+      path: "/",
+      element: <Dashboard />,
+      children: [
+        {
+          path: "messages",
+          element: <DashboardMessages />
+        },
+        { path: "tasks", element: <DashboardTasks /> }
+      ]
+    },
+    { path: "team", element: <AboutPage /> }
+  ]);
+
+  return element;
+}
+```
+
+
+## 子路由
+
+### `<Outlet>`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+interface OutletProps {
+  context?: unknown;
+}
+declare function Outlet(
+  props: OutletProps
+): React.ReactElement | null;
+```
+
+</details>
+
+***属性:***
+
++ Outlet 时可以通过 context 属性传递数据,可以是任意数据. 在被渲染的子组件中使用useOutletContext获取其数据.
+
+父路由元素中通过使用 `<Outlet>` 渲染子路由元素来显示嵌套 UI。 如果父路由精确匹配将渲染子索引路由，没有索引路由不渲染任何内容。
+
+```tsx
+function Dashboard() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      {/* 当 URL 为 "/messages" 时 <Outlet> 会渲染 <DashboardMessages>，为 "/tasks" 时会渲染 <DashboardTasks>，为 "/" 时 渲染 null */}
+      <Outlet />
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Dashboard />}>
+        <Route
+          path="messages"
+          element={<DashboardMessages />}
+        />
+        <Route path="tasks" element={<DashboardTasks />} />
+      </Route>
+    </Routes>
+  );
+}
+```
+
+### `useOutletContext`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useOutletContext<
+  Context = unknown
+>(): Context;
+```
+
+</details>
+
+在<Outlet>渲染的子组件中,获取父路由组件的context值:
+
+```tsx lines=[3]
+function Parent() {
+  const [count, setCount] = React.useState(0);
+  return <Outlet context={[count, setCount]} />;
+}
+```
+
+```tsx lines=[2]
+function Child() {
+  const [count, setCount] = useOutletContext();
+  const increment = () => setCount(c => c + 1);
+  return <button onClick={increment}>{count}</button>;
+}
+```
+
+使用 TypeScript时，父组件最好提供一个自定义 hook 来访问 context 值以使消费者更容易获得好的类型、控制消费者并知道谁在消费 context，下面是一个更实际的例子：
+
+```tsx filename=src/routes/dashboard.tsx lines=[12,17-19]
+import * as React from "react";
+import type { User } from "./types";
+
+type ContextType = { user: User | null };
+
+export default function Dashboard() {
+  const [user, setUser] = React.useState<User | null>(null);
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <Outlet context={user} />
+    </div>
+  );
+}
+
+export function useUser() {
+  return useOutletContext<ContextType>();
+}
+```
+
+```tsx filename=src/routes/dashboard/messages.tsx lines=[1,4]
+import { useUser } from "../dashboard";
+
+export default function DashboardMessages() {
+  const user = useUser();
+  return (
+    <div>
+      <h2>Messages</h2>
+      <p>Hello, {user.name}!</p>
+    </div>
+  );
+}
+```
+
+### `useOutlet`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useOutlet(): React.ReactElement | null;
+```
+
+</details>
+
+useOutlet 返回当前组件的子路由组件. [`<Outlet>`](#outlet) 在内部使用此 hook 来渲染子路由。
+
+**示例代码:**
+
+```jsx
+
+import { Routes, Route, Link, Outlet, useOutlet } from 'react-router-dom';
+
+function Layout() {
+  // 使用 useOutlet 来获取嵌套路由的内容
+  const outlet = useOutlet();
+
+  return (
+    <div>
+      <nav>
+        <ul>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/about">About</Link></li>
+          <li><Link to="/contact">Contact</Link></li>
+        </ul>
+      </nav>
+      <hr />
+      {/* 如果有匹配的子路由，渲染它们 */}
+      <div>{outlet}</div>
+    </div>
+  );
+}
+
+function Home() {
+  return <h2>Home Page</h2>;
+}
+
+function About() {
+  return <h2>About Page</h2>;
+}
+
+function Contact() {
+  return <h2>Contact Page</h2>;
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="about" element={<About />} />
+        <Route path="contact" element={<Contact />} />
+      </Route>
+    </Routes>
+  );
+}
+
+export default App;
+
+```
+
+## 路由导航
 
 ### `<Link>`
 
@@ -489,390 +882,6 @@ export default App;
 
 ```
 
-### `<Outlet>`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-interface OutletProps {
-  context?: unknown;
-}
-declare function Outlet(
-  props: OutletProps
-): React.ReactElement | null;
-```
-
-</details>
-
-***属性:***
-
-+ Outlet 时可以通过 context 属性传递数据,可以是任意数据. 在被渲染的子组件中使用useOutletContext获取其数据.
-
-父路由元素中通过使用 `<Outlet>` 渲染子路由元素来显示嵌套 UI。 如果父路由精确匹配将渲染子索引路由，没有索引路由不渲染任何内容。
-
-```tsx
-function Dashboard() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      {/* 当 URL 为 "/messages" 时 <Outlet> 会渲染 <DashboardMessages>，为 "/tasks" 时会渲染 <DashboardTasks>，为 "/" 时 渲染 null */}
-      <Outlet />
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Dashboard />}>
-        <Route
-          path="messages"
-          element={<DashboardMessages />}
-        />
-        <Route path="tasks" element={<DashboardTasks />} />
-      </Route>
-    </Routes>
-  );
-}
-```
-
-### `useOutletContext`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useOutletContext<
-  Context = unknown
->(): Context;
-```
-
-</details>
-
-在<Outlet>渲染的子组件中,获取父路由组件的context值:
-
-```tsx lines=[3]
-function Parent() {
-  const [count, setCount] = React.useState(0);
-  return <Outlet context={[count, setCount]} />;
-}
-```
-
-```tsx lines=[2]
-function Child() {
-  const [count, setCount] = useOutletContext();
-  const increment = () => setCount(c => c + 1);
-  return <button onClick={increment}>{count}</button>;
-}
-```
-
-使用 TypeScript时，父组件最好提供一个自定义 hook 来访问 context 值以使消费者更容易获得好的类型、控制消费者并知道谁在消费 context，下面是一个更实际的例子：
-
-```tsx filename=src/routes/dashboard.tsx lines=[12,17-19]
-import * as React from "react";
-import type { User } from "./types";
-
-type ContextType = { user: User | null };
-
-export default function Dashboard() {
-  const [user, setUser] = React.useState<User | null>(null);
-
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <Outlet context={user} />
-    </div>
-  );
-}
-
-export function useUser() {
-  return useOutletContext<ContextType>();
-}
-```
-
-```tsx filename=src/routes/dashboard/messages.tsx lines=[1,4]
-import { useUser } from "../dashboard";
-
-export default function DashboardMessages() {
-  const user = useUser();
-  return (
-    <div>
-      <h2>Messages</h2>
-      <p>Hello, {user.name}!</p>
-    </div>
-  );
-}
-```
-
-### `useOutlet`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useOutlet(): React.ReactElement | null;
-```
-
-</details>
-
-useOutlet 返回当前组件的子路由组件. [`<Outlet>`](#outlet) 在内部使用此 hook 来渲染子路由。
-
-**示例代码:**
-
-```jsx
-
-import { Routes, Route, Link, Outlet, useOutlet } from 'react-router-dom';
-
-function Layout() {
-  // 使用 useOutlet 来获取嵌套路由的内容
-  const outlet = useOutlet();
-
-  return (
-    <div>
-      <nav>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/about">About</Link></li>
-          <li><Link to="/contact">Contact</Link></li>
-        </ul>
-      </nav>
-      <hr />
-      {/* 如果有匹配的子路由，渲染它们 */}
-      <div>{outlet}</div>
-    </div>
-  );
-}
-
-function Home() {
-  return <h2>Home Page</h2>;
-}
-
-function About() {
-  return <h2>About Page</h2>;
-}
-
-function Contact() {
-  return <h2>Contact Page</h2>;
-}
-
-function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        <Route path="about" element={<About />} />
-        <Route path="contact" element={<Contact />} />
-      </Route>
-    </Routes>
-  );
-}
-
-export default App;
-
-```
-
-
-### `<Router>`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function Router(
-  props: RouterProps
-): React.ReactElement | null;
-
-interface RouterProps {
-  basename?: string;
-  children?: React.ReactNode;
-  location: Partial<Location> | string;
-  navigationType?: NavigationType;
-  navigator: Navigator;
-  static?: boolean;
-}
-```
-
-</details>
-
-`<Router>` 构成<BrowserRouter> /<HashRouter>等路由组件的底层组件,几乎不手动生成.
-
-### `<Routes>` 和 `<Route>`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function Routes(
-  props: RoutesProps
-): React.ReactElement | null;
-
-interface RoutesProps {
-  children?: React.ReactNode;
-  location?: Partial<Location> | string;
-}
-
-declare function Route(
-  props: RouteProps
-): React.ReactElement | null;
-
-interface RouteProps {
-  caseSensitive?: boolean;
-  children?: React.ReactNode;
-  element?: React.ReactElement | null;
-  index?: boolean;
-  path?: string;
-}
-```
-
-</details>
-
-Routes 是一个用于定义路由规则的组件
-`<Routes>` 包裹 `<Route>` 用于定义路由规则的组件。Routes 只渲染第一个匹配的 Route。
-
-`<Route>` 属性:
-
-+ caseSensitive 匹配是否区分大小写（默认为 `false`）
-+ index 定义父路由的默认子路由,当父路由匹配时，index 路由会自动被渲染
-+ path 匹配的路径
-+ element 要渲染的react组件
-
-```tsx
-<Routes>
-  <Route path="/" element={<Dashboard />}>
-    <Route index element={<Index />} />
-    <Route
-      path="messages"
-      element={<DashboardMessages />}
-    />
-    <Route path="tasks" element={<DashboardTasks />} />
-  </Route>
-  <Route path="about" element={<AboutPage />} />
-</Routes>
-```
-
-> **注意：**
->
-> 如果要把路由定义为常规 JavaScript 对象而不是使用 JSX，
-> [请尝试使用 `useRoutes` 代替](#useroutes)。
-
-`<Route element>` 默认是 [`<Outlet>`](#outlet)，即使没有 `element` 属性，默认渲染子元素.
-
-例如:
-
-父路由默认渲染子路由,子路由路径是 `/users/:id` 
-
-```tsx
-<Route path="users">
-  <Route path=":id" element={<UserProfile />} />
-</Route>
-```
-
-### `createRoutesFromChildren`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function createRoutesFromChildren(
-  children: React.ReactNode
-): RouteObject[];
-
-interface RouteObject {
-  caseSensitive?: boolean;
-  children?: RouteObject[];
-  element?: React.ReactNode;
-  index?: boolean;
-  path?: string;
-}
-```
-
-</details>
-
-`createRoutesFromChildren` 创建动态路由函数。再通过useRoutes生成可渲染的路由组件.
-
-**示例代码:**
-
-```jsx
-import { BrowserRouter, Routes, Route, useRoutes, createRoutesFromChildren } from 'react-router-dom';
-
-function App() {
-  const routes = createRoutesFromChildren(
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-    </Routes>
-  );
-
-  return useRoutes(routes);
-}
-
-function Home() {
-  return <h1>Home Page</h1>;
-}
-
-function About() {
-  return <h1>About Page</h1>;
-}
-
-function Dashboard() {
-  return <h1>Dashboard Page</h1>;
-}
-
-export default function Root() {
-  return (
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  );
-}
-
-```
-
-### `useRoutes`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useRoutes(
-  routes: RouteObject[],
-  location?: Partial<Location> | string;
-): React.ReactElement | null;
-```
-
-</details>
-
-**useRoutes:**
-+ 编程式渲染路由数组,替代router组件
-+ 返回值是一个可用来渲染路由树的有效 React 元素，如果没有匹配项则返回 `null`。
-
-**示例代码:**
-
-```tsx
-import * as React from "react";
-import { useRoutes } from "react-router-dom";
-
-function App() {
-  let element = useRoutes([
-    {
-      path: "/",
-      element: <Dashboard />,
-      children: [
-        {
-          path: "messages",
-          element: <DashboardMessages />
-        },
-        { path: "tasks", element: <DashboardTasks /> }
-      ]
-    },
-    { path: "team", element: <AboutPage /> }
-  ]);
-
-  return element;
-}
-```
 
 ### `useLocation`
 
@@ -923,6 +932,7 @@ function MyComponent() {
 
 ```
 
+## 匹配路由
 
 ### `matchPath`
 
@@ -1168,6 +1178,8 @@ function App() {
 }
 
 ```
+
+## 生成路径
 
 ### `resolvePath`
 
@@ -1472,6 +1484,8 @@ function App() {
 export default App;
 
 ```
+
+## 路由查询参数
 
 ### `useParams`
 
