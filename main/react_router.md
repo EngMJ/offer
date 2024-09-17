@@ -882,6 +882,62 @@ export default App;
 
 ```
 
+### `useLinkClickHandler`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useLinkClickHandler<
+  E extends Element = HTMLAnchorElement,
+  S extends State = State
+>(
+  to: To,
+  options?: {
+    target?: React.HTMLAttributeAnchorTarget;
+    replace?: boolean;
+    state?: S;
+  }
+): (event: React.MouseEvent<E, MouseEvent>) => void;
+```
+
+</details>
+
+`useLinkClickHandler` 会返回一个点击事件函数,调用会进行导航。
+
+**示例代码:**
+
+```tsx
+import { useLinkClickHandler, Routes, Route, useNavigate } from 'react-router-dom';
+
+function Contact() {
+    const handleClick = useLinkClickHandler('/about', { replace: true });
+
+    return (
+        <div>
+            <h2>Contact</h2>
+            <button onClick={handleClick}>Go to About Page</button>
+        </div>
+    );
+}
+
+function About() {
+    return <h2>About</h2>;
+}
+
+function App() {
+    return (
+        <Routes>
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+        </Routes>
+    );
+}
+
+export default App;
+
+```
+
 ## 当前路由信息
 
 ### `useLocation`
@@ -1427,62 +1483,6 @@ function Contact() {
     </div>
   );
 }
-
-```
-
-### `useLinkClickHandler`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useLinkClickHandler<
-  E extends Element = HTMLAnchorElement,
-  S extends State = State
->(
-  to: To,
-  options?: {
-    target?: React.HTMLAttributeAnchorTarget;
-    replace?: boolean;
-    state?: S;
-  }
-): (event: React.MouseEvent<E, MouseEvent>) => void;
-```
-
-</details>
-
-`useLinkClickHandler` 会返回一个点击事件函数,调用会进行导航。
-
-**示例代码:**
-
-```tsx
-import { useLinkClickHandler, Routes, Route, useNavigate } from 'react-router-dom';
-
-function Contact() {
-    const handleClick = useLinkClickHandler('/about', { replace: true });
-
-    return (
-        <div>
-            <h2>Contact</h2>
-            <button onClick={handleClick}>Go to About Page</button>
-        </div>
-    );
-}
-
-function About() {
-    return <h2>About</h2>;
-}
-
-function App() {
-    return (
-        <Routes>
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-        </Routes>
-    );
-}
-
-export default App;
 
 ```
 
