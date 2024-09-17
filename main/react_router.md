@@ -882,6 +882,7 @@ export default App;
 
 ```
 
+## 当前路由信息
 
 ### `useLocation`
 
@@ -929,6 +930,53 @@ function MyComponent() {
     </div>
   );
 }
+
+```
+
+### `useInRouterContext`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useInRouterContext(): boolean;
+```
+
+</details>
+
+根据当前组件是否在包含 `<Router>` 的上下文中渲染， `useInRouterContext` hook 返回 `true` 或 `false`，常用于第三方扩展检验是否在包含 React Router 应用程序的上下文中。
+
+**示例代码:**
+
+```jsx
+
+import { useInRouterContext, BrowserRouter, Routes, Route } from 'react-router-dom';
+
+function Component() {
+  const inRouterContext = useInRouterContext();
+
+  return (
+    <div>
+      {inRouterContext ? (
+        <p>This component is inside a Router context.</p>
+      ) : (
+        <p>This component is NOT inside a Router context.</p>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Component />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
 
 ```
 
@@ -1432,53 +1480,6 @@ function App() {
             <Route path="/contact" element={<Contact />} />
         </Routes>
     );
-}
-
-export default App;
-
-```
-
-### `useInRouterContext`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useInRouterContext(): boolean;
-```
-
-</details>
-
-根据当前组件是否在包含 `<Router>` 的上下文中渲染， `useInRouterContext` hook 返回 `true` 或 `false`，常用于第三方扩展检验是否在包含 React Router 应用程序的上下文中。
-
-**示例代码:**
-
-```jsx
-
-import { useInRouterContext, BrowserRouter, Routes, Route } from 'react-router-dom';
-
-function Component() {
-  const inRouterContext = useInRouterContext();
-
-  return (
-    <div>
-      {inRouterContext ? (
-        <p>This component is inside a Router context.</p>
-      ) : (
-        <p>This component is NOT inside a Router context.</p>
-      )}
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Component />} />
-      </Routes>
-    </BrowserRouter>
-  );
 }
 
 export default App;
