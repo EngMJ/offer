@@ -8,7 +8,7 @@ React Router 在 npm 发布三个不同的包：
 
 - [`react-router`](https://npm.im/react-router) 核心功能，包括路由匹配算法以及大部分核心组件和hooks
 - [`react-router-dom`](https://npm.im/react-router-dom) 包含 `react-router` 所有内容，添加了API，包括 [`<BrowserRouter>`](#browserrouter)，[`<HashRouter>`](#hashrouter) 和 [`<Link>`](#link)
-- [`react-router-native`](https://npm.im/react-router-native) 包含 `react-router` 所有内容，并添加了 React Native 的 API，包括 [`<NativeRouter>`](#nativerouter) 和 [`<Link>`](#link-react-native) 的原生版本
+- [`react-router-native`](https://npm.im/react-router-native) 包含 `react-router` 所有内容，并添加了 React Native 的 API，包括 [`<NativeRouter>`](#nativerouter) 和 `<Link>` 的原生版本
 
 **注意:**
 
