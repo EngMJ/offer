@@ -1,66 +1,28 @@
 # React Router V6
 
-React Router 是 [React components](https://reactjs.org/docs/components-and-props.html)、[hooks](https://reactjs.org/docs/hooks-intro.html) 和一些其他实用程序的集合，可搭配 [React](https://reactjs.org) 轻松构建多页面应用程序，此参考包含 React Router 中各种接口（interfaces）的函数签名和返回类型。
-
 ## 概述
 
 ### 依赖包
 
 React Router 在 npm 发布三个不同的包：
 
-- [`react-router`](https://npm.im/react-router) 包含 React Router 的大部分核心功能，包括路由匹配算法以及大部分核心组件和hooks
-- [`react-router-dom`](https://npm.im/react-router-dom) 包括 `react-router` 的所有内容，并添加了一些特定于 DOM 的 API，包括 [`<BrowserRouter>`](#browserrouter)，[`<HashRouter>`](#hashrouter) 和 [`<Link>`](#link)
-- [`react-router-native`](https://npm.im/react-router-native) 包括 `react-router` 的所有内容，并添加了一些特定于 React Native 的 API，包括 [`<NativeRouter>`](#nativerouter) 和 [`<Link>` 的原生版本](#link-react-native)
+- [`react-router`](https://npm.im/react-router) 核心功能，包括路由匹配算法以及大部分核心组件和hooks
+- [`react-router-dom`](https://npm.im/react-router-dom) 包含 `react-router` 所有内容，添加了API，包括 [`<BrowserRouter>`](#browserrouter)，[`<HashRouter>`](#hashrouter) 和 [`<Link>`](#link)
+- [`react-router-native`](https://npm.im/react-router-native) 包含 `react-router` 所有内容，并添加了 React Native 的 API，包括 [`<NativeRouter>`](#nativerouter) 和 [`<Link>`](#link-react-native) 的原生版本
 
-`react-router-dom` 和 `react-router-native` 在安装时都会自动包含 `react-router` 作为依赖，并且都从 `react-router` 重新 export 所有内容。当 import 时，总是 import from `react-router-dom` 或 `react-router-native` 而非直接 import from `react-router`，否则可能会意外在应用中 import 不匹配版本的库（library）。
+**注意:**
 
-如果[安装](./getting-started/installation.md) React Router 以在全局使用（使用 `<script>` 标签），可以在 `window.ReactRouterDOM` 对象上找到该库。如果从 npm 安装，则可以 import 需要的部分。本参考中的示例均使用 `import` 语法。
++ 应 import from `react-router-dom` 或 `react-router-native` 而非直接 import from `react-router`，否则可能会意外在应用中 import 不匹配版本的库（library）。
++ 如果[安装](./getting-started/installation.md) React Router 以在全局使用（使用 `<script>` 标签），可以在 `window.ReactRouterDOM` 对象上找到该库。
 
 ### 构建
 
-为了让 React Router 在应用中工作，需要在 element tree 的根部或附近渲染（render）一个 router 元素。 依据应用运行的位置，以下提供几种不同的routers：
+不同环境使用不同Router：
 
-- 在 Web 浏览器中运行时使用 [`<BrowserRouter>`](#browserrouter) 或 [`<HashRouter>`](#hashrouter)（根据个人偏好或需要的 URL 样式选择）
-- 在服务器端渲染（server-rendering）网站时使用 [`<StaticRouter>`](#staticrouter)
-- 在 [React Native](https://reactnative.dev/) 应用中使用 [`<NativeRouter>`](#nativerouter)
-- [`<MemoryRouter>`](#memoryrouter) 在测试场景中较实用，也可以作为其他routers的参考实现
-
-这些 routers 提供了 React Router 在特定环境中运行所需的条件。每个 router 都在内部渲染[一个 `<Router>`](#router)，如需更细粒度的控制也可以这样做。但大概率只需使用上述内置 routers 中的一个。
-
-### 路由
-
-路由是决定哪些 React 元素将在应用程序给定页面上渲染和如何嵌套的过程，React Router 提供了两个接口来声明路由。
-
-- [`<Routes>` 和 `<Route>`](#routes-and-route) 使用 JSX 时
-- [`useRoutes`](#useroutes) 如果更喜欢基于 JavaScript 对象的路由配置
-
-内部一些底层 API 也暴露为公共 API，用于根据需要构建自己的高级接口。
-
-- [`matchPath`](#matchpath) - 匹配路径模式（path pattern）与 URL pathname
-- [`matchRoutes`](#matchroutes) - 根据 [location](#location) 匹配一组路由
-- [`createRoutesFromChildren`](#createroutesfromchildren) - 从一组 React 元素（即 [`<Route>`](#routes-and-route) 元素）创建路由配置
-
-### 导航
-
-React Router 的导航接口可通过修改当前 [location](#location) 来改变当前渲染的页面，有两个主要接口可按需在应用程序页面之间导航。
-
-- [`<Link>`](#link) 和 [`<NavLink>`](#navlink) 渲染可访问的 `<a>` 标签或在 React Native 上渲染可访问的 `TouchableHighlight`，让用户可以通过点击页面上的元素来导航。
-- [`useNavigate`](#usenavigate) 和 [`<Navigate>`](#navigate) 以编程方式导航，通常在event handler中或响应某些状态变化时使用
-
-内部一些底层 API也可用于构建自己的导航接口。
-
-- [`useResolvedPath`](#useresolvedpath) - 解析当前 [location](#location) 的相对路径
-- [`useHref`](#usehref) - 解析适合用作 `<a href>` 的相对路径
-- [`useLocation`](#uselocation) 和 [`useNavigationType`](#usenavigationtype) - 描述了当前 [location](#location) 以及如何导航到该 location
-- [`useLinkClickHandler`](#uselinkclickhandler) - 在 `react-router-dom` 中构建自定义 `<Link>` 时返回（return）用于导航的 event handler
-- [`useLinkPressHandler`](#uselinkpresshandler) - 在 `react-router-native` 中构建自定义 `<Link>` 时返回用于导航的 event handler
-- [`resolvePath`](#resolvepath) - 根据给定的 URL pathname 解析相对路径
-
-### 搜索参数
-
-通过 [`useSearchParams`](#usesearchparams) hook 提供对 URL [search parameters](https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams) 的访问。
-
----
+- 浏览器使用 [`<BrowserRouter>`](#browserrouter) 或 [`<HashRouter>`](#hashrouter)
+- 服务器端渲染使用 [`<StaticRouter>`](#staticrouter)
+- [React Native](https://reactnative.dev/) 中使用 [`<NativeRouter>`](#nativerouter)
+- 测试场景使用[`<MemoryRouter>`](#memoryrouter)
 
 # API参考
 
