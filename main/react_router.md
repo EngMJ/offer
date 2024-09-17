@@ -393,6 +393,102 @@ function UserProfile() {
 
 ```
 
+
+### `useNavigate`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useNavigate(): NavigateFunction;
+
+interface NavigateFunction {
+  (
+    to: To,
+    options?: { replace?: boolean; state?: any }
+  ): void;
+  (delta: number): void;
+}
+```
+
+</details>
+
+`useNavigate` 返回程方式导航的函数。
+- 传想要入 history 堆栈的增量，例如 `navigate(-1)` 相当于点击后退按钮。
+
+**示例代码:**
+```tsx
+import { useNavigate } from "react-router-dom";
+
+function SignupForm() {
+  let navigate = useNavigate();
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    await submitForm(event.target);
+    navigate("../success", { replace: true });
+  }
+
+  return <form onSubmit={handleSubmit}>{/* ... */}</form>;
+}
+```
+
+### `useNavigationType`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useNavigationType(): NavigationType;
+
+type NavigationType = "POP" | "PUSH" | "REPLACE";
+```
+
+</details>
+
+useNavigationType 获取最近一次的导航类型。它可以帮助你确定用户是通过哪种方式进行页面导航的，比如点击链接、浏览器前进或后退、或直接加载页面。
+
+**示例代码:**
+
+```jsx
+
+import { useNavigationType, Routes, Route, useNavigate } from 'react-router-dom';
+
+function Home() {
+  const navigationType = useNavigationType(); // 获取最近的导航类型
+
+  return (
+    <div>
+      <h2>Home</h2>
+      <p>Navigation Type: {navigationType}</p>
+    </div>
+  );
+}
+
+function About() {
+  const navigate = useNavigate();
+  return (
+    <div>
+      <h2>About</h2>
+      <button onClick={() => navigate('/', { replace: true })}>Go to Home</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="about" element={<About />} />
+    </Routes>
+  );
+}
+
+export default App;
+
+
+```
+
 ### `<Outlet>`
 
 <details>
@@ -778,35 +874,6 @@ function App() {
 }
 ```
 
-
-### `generatePath`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function generatePath(
-  path: string,
-  params?: Params
-): string;
-```
-
-</details>
-
-`generatePath` 生成路由路径。
-
-**示例代码:**
-
-```jsx
-import { generatePath } from 'react-router-dom';
-
-const path = generatePath("/users/:id/:tab?", { id: 42 });
-console.log(path);  // 输出: "/users/42"
-
-const pathWithTab = generatePath("/users/:id/:tab?", { id: 42, tab: "profile" });
-console.log(pathWithTab);  // 输出: "/users/42/profile"
-```
-
 ### `Location`
 
 React Router 中的术语 “location” 是指来自 [history](https://github.com/remix-run/history) 库的 `Location` 接口。
@@ -840,6 +907,43 @@ function MyComponent() {
 }
 
 ```
+
+### `useLocation`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function useLocation(): Location;
+
+interface Location<S extends State = object | null>
+  extends Path {
+  state: S;
+  key: Key;
+}
+```
+
+</details>
+
+此 hook 返回当前 [`location`](#location) 对象，可用于在当前 location 改变时执行一些副作用。
+
+```tsx
+import * as React from 'react';
+import { useLocation } from 'react-router-dom';
+
+function App() {
+  let location = useLocation();
+
+  React.useEffect(() => {
+    ga('send', 'pageview');
+  }, [location]);
+
+  return (
+    // ...
+  );
+}
+```
+
 
 ### `matchPath`
 
@@ -1228,6 +1332,34 @@ function UserProfile({ userId }) {
 
 ```
 
+### `generatePath`
+
+<details>
+  <summary>类型声明</summary>
+
+```tsx
+declare function generatePath(
+  path: string,
+  params?: Params
+): string;
+```
+
+</details>
+
+`generatePath` 生成路由路径。
+
+**示例代码:**
+
+```jsx
+import { generatePath } from 'react-router-dom';
+
+const path = generatePath("/users/:id/:tab?", { id: 42 });
+console.log(path);  // 输出: "/users/42"
+
+const pathWithTab = generatePath("/users/:id/:tab?", { id: 42, tab: "profile" });
+console.log(pathWithTab);  // 输出: "/users/42/profile"
+```
+
 ### `useHref`
 
 <details>
@@ -1360,137 +1492,6 @@ function App() {
 
 export default App;
 
-```
-
-### `useLocation`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useLocation(): Location;
-
-interface Location<S extends State = object | null>
-  extends Path {
-  state: S;
-  key: Key;
-}
-```
-
-</details>
-
-此 hook 返回当前 [`location`](#location) 对象，可用于在当前 location 改变时执行一些副作用。
-
-```tsx
-import * as React from 'react';
-import { useLocation } from 'react-router-dom';
-
-function App() {
-  let location = useLocation();
-
-  React.useEffect(() => {
-    ga('send', 'pageview');
-  }, [location]);
-
-  return (
-    // ...
-  );
-}
-```
-
-### `useNavigationType`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useNavigationType(): NavigationType;
-
-type NavigationType = "POP" | "PUSH" | "REPLACE";
-```
-
-</details>
-
-useNavigationType 获取最近一次的导航类型。它可以帮助你确定用户是通过哪种方式进行页面导航的，比如点击链接、浏览器前进或后退、或直接加载页面。
-
-**示例代码:**
-
-```jsx
-
-import { useNavigationType, Routes, Route, useNavigate } from 'react-router-dom';
-
-function Home() {
-  const navigationType = useNavigationType(); // 获取最近的导航类型
-
-  return (
-    <div>
-      <h2>Home</h2>
-      <p>Navigation Type: {navigationType}</p>
-    </div>
-  );
-}
-
-function About() {
-  const navigate = useNavigate();
-  return (
-    <div>
-      <h2>About</h2>
-      <button onClick={() => navigate('/', { replace: true })}>Go to Home</button>
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="about" element={<About />} />
-    </Routes>
-  );
-}
-
-export default App;
-
-
-```
-
-### `useNavigate`
-
-<details>
-  <summary>类型声明</summary>
-
-```tsx
-declare function useNavigate(): NavigateFunction;
-
-interface NavigateFunction {
-  (
-    to: To,
-    options?: { replace?: boolean; state?: any }
-  ): void;
-  (delta: number): void;
-}
-```
-
-</details>
-
-`useNavigate` 返回程方式导航的函数。
-- 传想要入 history 堆栈的增量，例如 `navigate(-1)` 相当于点击后退按钮。
-
-**示例代码:**
-```tsx
-import { useNavigate } from "react-router-dom";
-
-function SignupForm() {
-  let navigate = useNavigate();
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    await submitForm(event.target);
-    navigate("../success", { replace: true });
-  }
-
-  return <form onSubmit={handleSubmit}>{/* ... */}</form>;
-}
 ```
 
 ### `useParams`
