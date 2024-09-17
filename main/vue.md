@@ -3544,3 +3544,14 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 ![image-20220630193341500](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a70d8c83e3254b39800e9d646731039d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
 [github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/packages/router/src/router.ts#L808-L809 "https://github1s.com/vuejs/router/blob/HEAD/packages/router/src/router.ts#L808-L809")
+
+
+## Vue2 API
+
+## Vue3 API
+
+## Vue Router
+
+## Vuex
+
+## Pinia

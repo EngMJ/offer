@@ -7,6 +7,7 @@
 #### 5. [Vue_todo](main/vue.md)
 #### 6. [React](main/react.md)
 #### 7. [Webpack](main/webpack.md)
+#### 7. [Vite_todo](main/vite.md)
 #### 8. [Http](main/http.md)
 #### 9. [Git](main/git.md)
 #### 10. [设计模式_todo](main/design.md)
