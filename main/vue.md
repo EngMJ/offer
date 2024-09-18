@@ -92,27 +92,27 @@ export function genElement (el: ASTElement, state: CodegenState): string {
 
 * * *
 
-| 生命周期v2 | 生命周期v3 | 描述                              | 
-| --- | --- |---------------------------------|
-| beforeCreate | beforeCreate | 组件实例被创建之初                       |
-| created | created | 组件实例已经完全创建,各种数据可以使用，常用于异步数据获取   |
-| beforeMount | beforeMount | 组件挂载之前                          |
-| mounted | mounted | 组件挂载到实例后,dom已创建，可用于获取访问数据和dom元素 |
-| beforeUpdate | beforeUpdate | 组件数据发生变化更新之前,可用于获取更新前各种状态       |
-| updated | updated | 数据数据更新之后                        |
+| 生命周期v2        | 生命周期v3            | 描述                              | 
+|---------------|-------------------|---------------------------------|
+| beforeCreate  | beforeCreate      | 组件实例被创建之初                       |
+| created       | created           | 组件实例已经完全创建,各种数据可以使用，常用于异步数据获取   |
+| beforeMount   | beforeMount       | 组件挂载之前                          |
+| mounted       | mounted           | 组件挂载到实例后,dom已创建，可用于获取访问数据和dom元素 |
+| beforeUpdate  | beforeUpdate      | 组件数据发生变化更新之前,可用于获取更新前各种状态       |
+| updated       | updated           | 数据数据更新之后                        |
 | beforeDestroy | **beforeUnmount** | 组件实例销毁之前,可用于一些定时器或订阅的取消         |
-| destroyed | **unmounted** | 组件实例销毁之后,可用于一些定时器或订阅的取消                       |
+| destroyed     | **unmounted**     | 组件实例销毁之后,可用于一些定时器或订阅的取消         |
 
 * * *
 
-| 生命周期v2 | 生命周期v3 | 描述 |
-| --- | --- | --- |
-| activated | activated | keep-alive 缓存的组件激活时 |
-| deactivated | deactivated | keep-alive 缓存的组件停用时调用 |
-| errorCaptured | errorCaptured | 捕获一个来自子孙组件的错误时被调用 |
-| \- | **renderTracked** | 调试钩子，响应式依赖被收集时调用 |
-| \- | **renderTriggered** | 调试钩子，响应式依赖被触发时调用 |
-| \- | **serverPrefetch** | ssr only，组件实例在服务器上被渲染前调用 |
+| 生命周期v2        | 生命周期v3              | 描述                       |
+|---------------|---------------------|--------------------------|
+| activated     | activated           | keep-alive 缓存的组件激活时      |
+| deactivated   | deactivated         | keep-alive 缓存的组件停用时调用    |
+| errorCaptured | errorCaptured       | 捕获一个来自子孙组件的错误时被调用        |
+| \-            | **renderTracked**   | 调试钩子，响应式依赖被收集时调用         |
+| \-            | **renderTriggered** | 调试钩子，响应式依赖被触发时调用         |
+| \-            | **serverPrefetch**  | ssr only，组件实例在服务器上被渲染前调用 |
 
 * * *
 
