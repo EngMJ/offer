@@ -2585,7 +2585,11 @@ Composition API能更好的组织代码，下面这个代码用options api实现
 
 # Vue2 API
 
+参考: [vue 2.x](vue2.md)
+
 # Vue3 API
+
+参考: [vue 3.x](vue3.md)
 
 ## 1 - 你知道哪些vue3新特性
 
@@ -2770,6 +2774,7 @@ function defineReactive(obj, key, val) {
 
 # Vue Router
 
+参考: [vue router](vue_router.md)
 
 ## 1 - 怎么定义动态路由？怎么获取传过来的动态参数？
 
@@ -3142,6 +3147,8 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 
 
 # Vuex
+
+参考: [vuex](vuex.md)
 
 ## 1 - 简单说一说你对vuex理解？
 
@@ -3562,3 +3569,4 @@ if (!isRoot && !hot) {
 * * *
 
 # Pinia
+参考: [pinia](pinia.md)
