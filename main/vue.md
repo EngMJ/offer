@@ -3,53 +3,33 @@
 
 ## 01-Vue组件之间通信方式有哪些
 
-vue是组件化开发框架，所以对于vue应用来说组件间的数据通信非常重要。 此题主要考查大家vue基本功，对于vue基础api运用熟练度。 另外一些边界知识如provide/inject/$attrs则提现了面试者的知识广度。
-
-* * *
-
 组件传参的各种方式 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bf775050e1f948bfa52f3c79b3a3e538~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
 * * *
 
-### 思路分析：
-
-1.  总述知道的所有方式
-2.  按组件关系阐述使用场景
-
-* * *
-
-### 回答范例：
-
-1.  组件通信常用方式有以下8种：
+1.  组件通信常用方式： (vue3去除了删除线的api)
 
 +   props
-+   $emit/$on
-+   $children/$parent
-+   $attrs/$listeners
-+   ref
++   $emit/~~$on~~
++   $parent/~~$children~~
++   $attrs/~~$listeners~~
 +   $root
-+   eventbus
++   ref
++   Provide 与 Inject
 +   vuex
-
-> 注意vue3中废弃的几个API
->
-> [v3-migration.vuejs.org/breaking-ch…](https://v3-migration.vuejs.org/breaking-changes/children.html "https://v3-migration.vuejs.org/breaking-changes/children.html")
->
-> [v3-migration.vuejs.org/breaking-ch…](https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html "https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html")
->
-> [v3-migration.vuejs.org/breaking-ch…](https://v3-migration.vuejs.org/breaking-changes/events-api.html#overview "https://v3-migration.vuejs.org/breaking-changes/events-api.html#overview")
++   eventbus
 
 * * *
 
-2.  根据组件之间关系讨论组件通信最为清晰有效
+2.  组件关系通信
 
 +   父子组件
 
-    +   `props`/`$emit`/`$parent`/`ref`/`$attrs`
+    +   `props`/`$emit`/~~$on~~/`$parent`/~~$children~~/`ref`/`$attrs`/~~$listeners~~
 +   兄弟组件
 
-    +   `$parent`/`$root`/`eventbus`/`vuex`
-+   跨层级关系
+    +   `$parent`/`$root`
++   任意关系
 
     +   `eventbus`/`vuex`/`provide`+`inject`
 
@@ -57,80 +37,52 @@ vue是组件化开发框架，所以对于vue应用来说组件间的数据通�
 
 ## 02-v-if和v-for哪个优先级更高？
 
-### 分析：
-
-此题考查常识，文档中曾有详细说明[v2](https://cn.vuejs.org/v2/style-guide/#%E9%81%BF%E5%85%8D-v-if-%E5%92%8C-v-for-%E7%94%A8%E5%9C%A8%E4%B8%80%E8%B5%B7%E5%BF%85%E8%A6%81 "https://cn.vuejs.org/v2/style-guide/#%E9%81%BF%E5%85%8D-v-if-%E5%92%8C-v-for-%E7%94%A8%E5%9C%A8%E4%B8%80%E8%B5%B7%E5%BF%85%E8%A6%81")|[v3](https://staging.vuejs.org/style-guide/rules-essential.html#avoid-v-if-with-v-for "https://staging.vuejs.org/style-guide/rules-essential.html#avoid-v-if-with-v-for")；也是一个很好的实践题目，项目中经常会遇到，能够看出面试者api熟悉程度和应用能力。
+两个指令一起使用,会造成性能浪费,因vue2版本中v-for优先于v-if执行.
 
 * * *
 
-### 思路分析：
+1.  文档中明确指出**永远不要把 `v-if` 和 `v-for` 同时用在同一个元素上**
 
-1.  先给出结论
-2.  为什么是这样的，说出细节
-3.  哪些场景可能导致我们这样做，该怎么处理
-4.  总结，拔高
+2.  在**vue2中**，**v-for的优先级是高于v-if**，先执行循环再判断条件，造成浪费；在**vue3中则完全相反，v-if的优先级高于v-for**，所以v-if执行时，v-for产生的变量还不存在，就会导致报错.
 
-* * *
+3.  处理方法：
 
-### 回答范例：
+    +   使用computed或js提前过滤列表数据
 
-1.  实践中**不应该把v-for和v-if放一起**
+    +   外层包裹template或div执行v-if判断
 
-2.  在**vue2中**，**v-for的优先级是高于v-if**，把它们放在一起，输出的渲染函数中可以看出会先执行循环再判断条件，哪怕我们只渲染列表中一小部分元素，也得在每次重渲染的时候遍历整个列表，这会比较浪费；另外需要注意的是在**vue3中则完全相反，v-if的优先级高于v-for**，所以v-if执行时，它调用的变量还不存在，就会导致异常
-
-3.  通常有两种情况下导致我们这样做：
-
-    +   为了**过滤列表中的项目** (比如 `v-for="user in users" v-if="user.isActive"`)。此时定义一个计算属性 (比如 `activeUsers`)，让其返回过滤后的列表即可（比如`users.filter(u=>u.isActive)`）。
-
-    +   为了**避免渲染本应该被隐藏的列表** (比如 `v-for="user in users" v-if="shouldShowUsers"`)。此时把 `v-if` 移动至容器元素上 (比如 `ul`、`ol`)或者外面包一层`template`即可。
-
-4.  文档中明确指出**永远不要把 `v-if` 和 `v-for` 同时用在同一个元素上**，显然这是一个重要的注意事项。
-
-5.  源码里面关于代码生成的部分，能够清晰的看到是先处理v-if还是v-for，顺序上vue2和vue3正好相反，因此产生了一些症状的不同，但是不管怎样都是不能把它们写在一起的。
-
-
-* * *
-
-### 知其所以然：
-
-做个测试，[test.html](https://juejin.cn/post/test.html "./test.html") 两者同级时，渲染函数如下：
+4.  问题原因: vue源码判断循序造成的，vue2 判断中el.for快于el.if,vue3正好相反.
 
 ```js
-ƒ anonymous(
-) {
-with(this){return _c('div',{attrs:{"id":"app"}},_l((items),function(item){return (item.isActive)?_c('div',{key:item.id},[_v("\n      "+_s(item.name)+"\n    ")]):_e()}),0)}
+// vue 2x
+// \vue-dev\src\compiler\codegen\index.js
+export function genElement (el: ASTElement, state: CodegenState): string {
+    if (el.parent) {
+        el.pre = el.pre || el.parent.pre
+    }
+    if (el.staticRoot && !el.staticProcessed) {
+        return genStatic(el, state)
+    } else if (el.once && !el.onceProcessed) {
+        return genOnce(el, state)
+    } else if (el.for && !el.forProcessed) {
+        return genFor(el, state)
+    } else if (el.if && !el.ifProcessed) {
+        return genIf(el, state)
+    } else if (el.tag === 'template' && !el.slotTarget && !state.pre) {
+        return genChildren(el, state) || 'void 0'
+    } else if (el.tag === 'slot') {
+        return genSlot(el, state)
+    } else {
+        // component or element
+    ...
+    }
 }
 ```
 
-* * *
-
-做个测试，test-v3.html
-
-![image-20220210104854185](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6c265563dcbf4dbab2b889ac72d8f654~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-源码中找答案
-
-v2：[github1s.com/vuejs/vue/b…](https://github1s.com/vuejs/vue/blob/HEAD/src/compiler/codegen/index.js#L65-L66 "https://github1s.com/vuejs/vue/blob/HEAD/src/compiler/codegen/index.js#L65-L66")
-
-v3：[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/compiler-core/src/codegen.ts#L586-L587 "https://github1s.com/vuejs/core/blob/HEAD/packages/compiler-core/src/codegen.ts#L586-L587")
 
 * * *
 
 ## 03-简述 Vue 的生命周期以及每个阶段做的事
-
-必问题目，考查vue基础知识。
-
-### 思路
-
-1.  给出概念
-2.  列举生命周期各阶段
-3.  阐述整体流程
-4.  结合实践
-5.  扩展：vue3变化
-
-* * *
 
 ### 回答范例
 
@@ -140,7 +92,7 @@ v3：[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/pac
 
 * * *
 
-| 生命周期v2 | 生命周期v3 | 描述 |
+| 生命周期v2 | 生命周期v3 | 描述 | 
 | --- | --- | --- |
 | beforeCreate | beforeCreate | 组件实例被创建之初 |
 | created | created | 组件实例已经完全创建 |
@@ -190,18 +142,6 @@ v3：[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/pac
 
 1.  setup和created谁先执行？
 2.  setup中为什么没有beforeCreate和created？
-
-* * *
-
-### 知其所以然
-
-vue3中生命周期的派发时刻：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L554-L555 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L554-L555")
-
-vue2中声明周期的派发时刻：
-
-[github1s.com/vuejs/vue/b…](https://github1s.com/vuejs/vue/blob/HEAD/src/core/instance/init.js#L55-L56 "https://github1s.com/vuejs/vue/blob/HEAD/src/core/instance/init.js#L55-L56")
 
 * * *
 
