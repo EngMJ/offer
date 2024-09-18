@@ -1511,7 +1511,7 @@ vue3编译过程窥探：
     ```javascript
     import { createApp } from 'vue';
     import { Button, Select } from 'element-plus';
-    ​
+    
     const app = createApp()
     app.use(Button)
     app.use(Select)
@@ -1528,7 +1528,7 @@ vue3编译过程窥探：
         <ChildComp/>
       </div>
     </template>
-    ​
+    
     <script>
     export default {
       components: {
@@ -1658,7 +1658,7 @@ ref：[vuejs.org/api/reactiv…](https://vuejs.org/api/reactivity-core.html#ref 
 ```scss
 const count = ref(0)
 console.log(count.value) // 0
-​
+
 count.value++
 console.log(count.value) // 1
 ```
@@ -1720,10 +1720,10 @@ ref实现响应式：
 
 ```scss
 const count = ref(0)
-​
+
 watchEffect(() => console.log(count.value))
 // -> logs 0
-​
+
 count.value++
 // -> logs 1
 ```
@@ -1861,7 +1861,7 @@ SPA
 <template>
   <div class="example">{{ msg }}</div>
 </template>
-​
+
 <script>
 export default {
   data() {
@@ -1871,7 +1871,7 @@ export default {
   },
 }
 </script>
-​
+
 <style>
 .example {
   color: red;
@@ -1905,7 +1905,7 @@ export default {
 
 ```javascript
 // source.vue被vue-loader处理之后返回的代码
-​
+
 // import the <template> block
 import render from 'source.vue?vue&type=template'
 // import the <script> block
@@ -1913,7 +1913,7 @@ import script from 'source.vue?vue&type=script'
 export * from 'source.vue?vue&type=script'
 // import <style> blocks
 import 'source.vue?vue&type=style&index=1'
-​
+
 script.render = render
 export default script
 ```
@@ -1963,7 +1963,7 @@ import 'style-loader!css-loader!sass-loader!vue-loader!source.vue?vue&type=style
 ```arduino
 // <template lang="pug">
 import 'vue-loader/template-loader!pug-loader!source.vue?vue&type=template'
-​
+
 // <style scoped lang="scss">
 import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loader!source.vue?vue&type=style&index=1&scoped&lang=scss'
 ```
@@ -1986,7 +1986,7 @@ import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loa
 const focus = {
   mounted: (el) => el.focus()
 }
-​
+
 export default {
   directives: {
     // enables v-focus in template
@@ -2183,10 +2183,10 @@ _createVNode(Comp, {
 ```xml
 <script setup>
 import { ref } from 'vue'
-​
+
 const msg = ref('Hello World!')
 </script>
-​
+
 <template>
   <h1 v-once>{{ msg }}</h1>
   <input v-model="msg">
@@ -2421,9 +2421,9 @@ vue中全局捕获异常：
 
 ```javascript
 import { createApp } from 'vue'
-​
+
 const app = createApp(...)
-​
+
 app.config.errorHandler = (err, instance, info) => {
   // report error to tracking services
 }
@@ -2864,7 +2864,7 @@ API题目，考查基础能力，不容有失，尽可能说的详细。
 // import UserDetails from './views/UserDetails'
 // 替换为
 const UserDetails = () => import('./views/UserDetails')
-​
+
 const router = createRouter({
   // ...
   routes: [{ path: '/users/:id', component: UserDetails }],
@@ -2960,10 +2960,10 @@ vue-router导航有两种方式：`声明式导航`和`编程方式导航`
 ```php
 // literal string path
 router.push('/users/eduardo')
-​
+
 // object with path
 router.push({ path: '/users/eduardo' })
-​
+
 // named route with params to let the router build the url
 router.push({ name: 'user', params: { username: 'eduardo' } })
 ```
@@ -3074,7 +3074,7 @@ router-view获取自己所在的深度：默认0，加1之后传给后代，同�
 
 ```javascript
 const router = createRouter({ ... })
-​
+
 router.beforeEach((to, from) => {
   // ...
   // 返回 false 以取消导航
