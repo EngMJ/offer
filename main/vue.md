@@ -1,4 +1,4 @@
-## Vue todo
+# Vue 面试题
 * * *
 
 ## 01-Vue组件之间通信方式有哪些
@@ -767,7 +767,7 @@ patch关键代码
 
 * * *
 
-## 14-能说说key的作用吗？
+## 11-能说说key的作用吗？
 
 ### 分析：
 
@@ -889,7 +889,7 @@ F C
 
 * * *
 
-## 15-说说nextTick的使用和原理？
+## 12-说说nextTick的使用和原理？
 
 ### 分析
 
@@ -946,7 +946,7 @@ nextTick定义：
 
 * * *
 
-## 16-watch和computed的区别以及选择?
+## 13-watch和computed的区别以及选择?
 
 两个重要API，反应应聘者熟练程度。
 
@@ -1027,7 +1027,7 @@ watch的实现
 
 * * *
 
-## 17-说一下 Vue 子组件和父组件创建和挂载顺序
+## 14-说一下 Vue 子组件和父组件创建和挂载顺序
 
 这题考查大家对创建过程的理解程度。
 
@@ -1065,7 +1065,7 @@ watch的实现
 
 * * *
 
-## 18-怎么缓存当前的组件？缓存后怎么更新？
+## 15-怎么缓存当前的组件？缓存后怎么更新？
 
 缓存组件使用keep-alive组件，这是一个非常常见且有用的优化手段，vue3中keep-alive有比较大的更新，能说的点比较多。
 
@@ -1153,7 +1153,7 @@ KeepAlive定义
 
 * * *
 
-## 19-从0到1自己构架一个vue项目，说说有哪些步骤、哪些重要插件、目录结构你会怎么组织
+## 16-从0到1自己构架一个vue项目，说说有哪些步骤、哪些重要插件、目录结构你会怎么组织
 
 综合实践类题目，考查实战能力。没有什么绝对的正确答案，把平时工作的重点有条理的描述一下即可。
 
@@ -1212,7 +1212,7 @@ KeepAlive定义
 
 * * *
 
-## 20-实际工作中，你总结的vue最佳实践有哪些？
+## 17-实际工作中，你总结的vue最佳实践有哪些？
 
 看到这样的题目，可以用以下图片来回答：
 
@@ -1262,7 +1262,7 @@ KeepAlive定义
 
 * * *
 
-## 22-说说从 template 到 render 处理过程
+## 18-说说从 template 到 render 处理过程
 
 ### 分析
 
@@ -1293,7 +1293,7 @@ vue3编译过程窥探：
 1.  Vue中编译器何时执行？
 2.  react有没有编译器？
 
-## 23-Vue实例挂载的过程中发生了什么?
+## 19-Vue实例挂载的过程中发生了什么?
 
 ### 分析
 
@@ -1328,7 +1328,7 @@ vue3编译过程窥探：
 ***
 
 
-## 25-你了解哪些Vue性能优化方法？
+## 20-你了解哪些Vue性能优化方法？
 
 ### 分析
 
@@ -1557,7 +1557,7 @@ vue3编译过程窥探：
 
 * * *
 
-## 26-Vue组件为什么只能有一个根元素?
+## 21-Vue组件为什么只能有一个根元素?
 
 这题现在有些落伍，`vue3`已经不用一个根了。因此这题目很有说头！
 
@@ -1645,7 +1645,7 @@ Vue.createApp({
 * * *
 
 
-## 29-ref和reactive异同
+## 22-ref和reactive异同
 
 这是`Vue3`数据响应式中非常重要的两个概念，自然的，跟我们写代码关系也很大。
 
@@ -1706,7 +1706,7 @@ ref实现响应式：
 
 * * *
 
-## 30-watch和watchEffect异同
+## 23-watch和watchEffect异同
 
 我们经常性需要侦测响应式数据的变化，vue3中除了watch之外又出现了watchEffect，不少同学会混淆这两个api。
 
@@ -1795,7 +1795,7 @@ export function watch<T = any, Immediate extends Readonly<boolean> = false>(
 
 * * *
 
-## 31-SPA、SSR的区别是什么
+## 24-SPA、SSR的区别是什么
 
 我们现在编写的Vue、React和Angular应用大多数情况下都会在一个页面中，点击链接跳转页面通常是内容切换而非页面跳转，由于良好的用户体验逐渐成为主流的开发模式。但同时也会有首屏加载时间长，SEO不友好的问题，因此有了SSR，这也是为什么面试中会问到两者的区别。
 
@@ -1839,7 +1839,7 @@ SPA
 
 * * *
 
-## 32-vue-loader是什么？它有什么作用？
+## 25-vue-loader是什么？它有什么作用？
 
 ### 分析
 
@@ -1970,7 +1970,7 @@ import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loa
 
 * * *
 
-## 33-你写过自定义指令吗？使用场景有哪些？
+## 26-你写过自定义指令吗？使用场景有哪些？
 
 ### 分析
 
@@ -2045,7 +2045,7 @@ export default {
 
 * * *
 
-## 34-说下$attrs和$listeners的使用场景
+## 27-说下$attrs和$listeners的使用场景
 
 ### 分析
 
@@ -2124,7 +2124,7 @@ _createVNode(Comp, {
 
 * * *
 
-## 34-v-once的使用场景有哪些？
+## 28-v-once的使用场景有哪些？
 
 ### 分析
 
@@ -2213,7 +2213,7 @@ return (_ctx, _cache) => {
 
 * * *
 
-## 35-什么是递归组件？举个例子说明下？
+## 29-什么是递归组件？举个例子说明下？
 
 ### 分析
 
@@ -2306,7 +2306,7 @@ if (!res && maybeSelfReference) {
 
 * * *
 
-## 36-异步组件是什么？使用场景有哪些？
+## 30-异步组件是什么？使用场景有哪些？
 
 ### 分析
 
@@ -2362,7 +2362,7 @@ defineAsyncComponent定义了一个高阶组件，返回一个包装组件。包
 
 * * *
 
-## 37-你是怎么处理vue项目中的错误的？
+## 31-你是怎么处理vue项目中的错误的？
 
 ### 分析
 
@@ -2475,7 +2475,7 @@ function handleError(error, type) {
 * * *
 
 
-## 46-History模式和Hash模式有何区别？
+## 32-History模式和Hash模式有何区别？
 
 ### 分析
 
@@ -2536,7 +2536,7 @@ hash是一种特殊的history实现：
 * * *
 
 
-## 50-Composition API 与 Options API 有什么不同
+## 33-Composition API 与 Options API 有什么不同
 
 ### 分析
 
@@ -2583,11 +2583,11 @@ Composition API能更好的组织代码，下面这个代码用options api实现
 * * *
 
 
-## Vue2 API
+# Vue2 API
 
-## Vue3 API
+# Vue3 API
 
-## 11 - 你知道哪些vue3新特性
+## 1 - 你知道哪些vue3新特性
 
 ### 分析
 
@@ -2643,7 +2643,7 @@ reactive实现
 
 * * *
 
-## 24-Vue 3.0的设计目标是什么？做了哪些优化?
+## 2-Vue 3.0的设计目标是什么？做了哪些优化?
 
 ### 分析
 
@@ -2676,7 +2676,7 @@ reactive实现
 
 * * *
 
-## 44-Vue3.0 性能提升体现在哪些方面？
+## 3-Vue3.0 性能提升体现在哪些方面？
 
 ### 分析
 
@@ -2717,7 +2717,7 @@ vue3在设计时有几个目标：更小、更快、更友好，这些多数适�
 
 [github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20")
 
-## 45-Vue3.0里为什么要用 Proxy 替代 defineProperty ？
+## 4-Vue3.0里为什么要用 Proxy 替代 defineProperty ？
 
 ### 分析
 
@@ -2768,10 +2768,10 @@ function defineReactive(obj, key, val) {
 
 * * *
 
-## Vue Router
+# Vue Router
 
 
-## 12 - 怎么定义动态路由？怎么获取传过来的动态参数？
+## 1 - 怎么定义动态路由？怎么获取传过来的动态参数？
 
 ### 分析
 
@@ -2807,7 +2807,7 @@ API题目，考查基础能力，不容有失，尽可能说的详细。
 
 * * *
 
-## 13-如果让你从零开始写一个vue路由，说说你的思路
+## 2-如果让你从零开始写一个vue路由，说说你的思路
 
 ### 思路分析：
 
@@ -2853,7 +2853,7 @@ API题目，考查基础能力，不容有失，尽可能说的详细。
 
 * * *
 
-## 28-怎么实现路由懒加载呢？
+## 3-怎么实现路由懒加载呢？
 
 ### 分析
 
@@ -2911,7 +2911,7 @@ const router = createRouter({
 
 * * *
 
-## 42-router-link和router-view是如何起作用的？
+## 4-router-link和router-view是如何起作用的？
 
 ### 分析
 
@@ -2939,7 +2939,7 @@ vue-router中两个重要组件`router-link`和`router-view`，分别起到导�
 
 [github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44")
 
-## 43-Vue-router 除了 router-link 怎么实现跳转
+## 5-Vue-router 除了 router-link 怎么实现跳转
 
 ### 分析
 
@@ -2998,7 +2998,7 @@ routerlink点击跳转，调用的是navigate方法
 
 navigate内部依然调用的push
 
-## 47-在什么场景下会用到嵌套路由？
+## 6-在什么场景下会用到嵌套路由？
 
 ### 分析
 
@@ -3060,7 +3060,7 @@ router-view获取自己所在的深度：默认0，加1之后传给后代，同�
 
 * * *
 
-## 51-vue-router中如何保护路由？
+## 7-vue-router中如何保护路由？
 
 ### 分析
 
@@ -3141,9 +3141,9 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 
 
 
-## Vuex
+# Vuex
 
-## 21 - 简单说一说你对vuex理解？
+## 1 - 简单说一说你对vuex理解？
 
 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cb128aee87e5424a83511deee98f1702~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
@@ -3172,7 +3172,7 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 
 * * *
 
-## 27-你有使用过vuex的module吗？
+## 2-你有使用过vuex的module吗？
 
 这是基本应用能力考察，稍微上点规模的项目都要拆分vuex模块便于维护。
 
@@ -3233,7 +3233,7 @@ store.dispatch('e') // -> 能同时触发子模块中同名action
 
 * * *
 
-## 38-如果让你从零开始写一个vuex，说说你的思路
+## 3-如果让你从零开始写一个vuex，说说你的思路
 
 ### 思路分析
 
@@ -3279,7 +3279,7 @@ Vuex中Store的实现：
 
 [github1s.com/vuejs/vuex/…](https://github1s.com/vuejs/vuex/blob/HEAD/src/store.js#L19-L20 "https://github1s.com/vuejs/vuex/blob/HEAD/src/store.js#L19-L20")
 
-## 39-vuex中actions和mutations有什么区别？
+## 4-vuex中actions和mutations有什么区别？
 
 ### 题目分析
 
@@ -3355,7 +3355,7 @@ class Store {
 }
 ```
 
-## 40-使用vue渲染大量数据时应该怎么优化？说下你的思路！
+## 5-使用vue渲染大量数据时应该怎么优化？说下你的思路！
 
 ### 分析
 
@@ -3381,7 +3381,7 @@ class Store {
 2.  总之，还是要看具体需求，首先从设计上避免大数据获取和渲染；实在需要这样做可以采用虚表的方式优化渲染；最后优化更新，如果不需要更新可以v-once处理，需要更新可以v-memo进一步优化大数据更新性能。其他可以采用的是交互方式优化，无线滚动、懒加载等方案。
 
 
-## 41-怎么监听vuex数据的变化？
+## 6-怎么监听vuex数据的变化？
 
 ### 分析
 
@@ -3434,7 +3434,7 @@ subscribe方式：
   })
 ```
 
-## 48-页面刷新后vuex的state数据丢失怎么解决？
+## 7-页面刷新后vuex的state数据丢失怎么解决？
 
 ### 分析
 
@@ -3493,7 +3493,7 @@ localStorage.setItem('count', store.state.count)
 
 * * *
 
-## 49-你觉得vuex有什么缺点？
+## 8-你觉得vuex有什么缺点？
 
 ### 分析
 
@@ -3561,4 +3561,4 @@ if (!isRoot && !hot) {
 
 * * *
 
-## Pinia
+# Pinia
