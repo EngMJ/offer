@@ -1,7 +1,7 @@
 # Vue 面试题
 * * *
 
-## 01-Vue组件之间通信方式有哪些
+## 1. Vue组件之间通信方式有哪些
 
 组件传参的各种方式 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bf775050e1f948bfa52f3c79b3a3e538~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
@@ -35,7 +35,7 @@
 
 * * *
 
-## 02-v-if和v-for哪个优先级更高？
+## 2. v-if和v-for哪个优先级更高？
 
 两个指令一起使用,会造成性能浪费,因vue2版本中v-for优先于v-if执行.
 
@@ -82,7 +82,7 @@ export function genElement (el: ASTElement, state: CodegenState): string {
 
 * * *
 
-## 03-简述 Vue 的生命周期以及每个阶段做的事
+## 3. 简述 Vue 的生命周期以及每个阶段做的事
 
 Vue生命周期总共可以分为8个阶段：**创建前后, 载入前后, 更新前后, 销毁前后**，以及一些特殊场景的生命周期。vue3中新增了三个用于调试和服务端渲染场景。
 
