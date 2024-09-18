@@ -1348,9 +1348,9 @@ vue3编译过程窥探：
 
     ```css
     const router = createRouter({
-      routes: [
-        // 借助webpack的import()实现异步组件
-        { path: '/foo', component: () => import('./Foo.vue') }
+      routes: [
+        // 借助webpack的import()实现异步组件
+        { path: '/foo', component: () => import('./Foo.vue') }
       ]
     })
     ```
@@ -1364,7 +1364,7 @@ vue3编译过程窥探：
     <router-view v-slot="{ Component }">
         <keep-alive>
         <component :is="Component"></component>
-      </keep-alive>
+      </keep-alive>
     </router-view>
     ```
 
@@ -1375,15 +1375,15 @@ vue3编译过程窥探：
 
     ```xml
     <template>
-      <div class="cell">
-        <!-- 这种情况用v-show复用DOM，比v-if效果好 -->
-        <div v-show="value" class="on">
-          <Heavy :n="10000"/>
-        </div>
-        <section v-show="!value" class="off">
-          <Heavy :n="10000"/>
-        </section>
-      </div>
+      <div class="cell">
+        <!-- 这种情况用v-show复用DOM，比v-if效果好 -->
+        <div v-show="value" class="on">
+          <Heavy :n="10000"/>
+        </div>
+        <section v-show="!value" class="off">
+          <Heavy :n="10000"/>
+        </section>
+      </div>
     </template>
     ```
 
@@ -1394,23 +1394,23 @@ vue3编译过程窥探：
 
     ```xml
     <template>
-        <ul>
-          <li
-            v-for="user in activeUsers"
-            <!-- 避免同时使用，vue3中会报错 -->
-            <!-- v-if="user.isActive" -->
-            :key="user.id">
-            {{ user.name }}
-          </li>
-        </ul>
+        <ul>
+          <li
+            v-for="user in activeUsers"
+            <!-- 避免同时使用，vue3中会报错 -->
+            <!-- v-if="user.isActive" -->
+            :key="user.id">
+            {{ user.name }}
+          </li>
+        </ul>
     </template>
     <script>
-      export default {
-        computed: {
-          activeUsers: function () {
-            return this.users.filter(user => user.isActive)
-          }
-        }
+      export default {
+        computed: {
+          activeUsers: function () {
+            return this.users.filter(user => user.isActive)
+          }
+        }
       }
     </script>
     ```
@@ -1425,14 +1425,14 @@ vue3编译过程窥探：
     <span v-once>This will never change: {{msg}}</span>
     <!-- the element have children -->
     <div v-once>
-      <h1>comment</h1>
-      <p>{{msg}}</p>
+      <h1>comment</h1>
+      <p>{{msg}}</p>
     </div>
     <!-- component -->
     <my-component v-once :comment="msg"></my-component>
     <!-- `v-for` directive -->
     <ul>
-      <li v-for="i in list" v-once>{{i}}</li>
+      <li v-for="i in list" v-once>{{i}}</li>
     </ul>
     ```
 
@@ -1440,8 +1440,8 @@ vue3编译过程窥探：
 
     ```css
     <div v-for="item in list" :key="item.id" v-memo="[item.id === selected]">
-      <p>ID: {{ item.id }} - selected: {{ item.id === selected }}</p>
-      <p>...more child nodes</p>
+      <p>ID: {{ item.id }} - selected: {{ item.id === selected }}</p>
+      <p>...more child nodes</p>
     </div>
     ```
 
@@ -1454,16 +1454,16 @@ vue3编译过程窥探：
 
     ```ini
     <recycle-scroller
-      class="items"
-      :items="items"
-      :item-size="24"
+      class="items"
+      :items="items"
+      :item-size="24"
     >
-      <template v-slot="{ item }">
-        <FetchItemView
-          :item="item"
-          @vote="voteItem(item)"
-        />
-      </template>
+      <template v-slot="{ item }">
+        <FetchItemView
+          :item="item"
+          @vote="voteItem(item)"
+        />
+      </template>
     </recycle-scroller>
     ```
 
@@ -1479,11 +1479,11 @@ vue3编译过程窥探：
 
     ```javascript
     export default {
-      created() {
-        this.timer = setInterval(this.refresh, 2000)
+      created() {
+        this.timer = setInterval(this.refresh, 2000)
       },
-      beforeUnmount() {
-        clearInterval(this.timer)
+      beforeUnmount() {
+        clearInterval(this.timer)
       }
     }
     ```
@@ -1524,22 +1524,22 @@ vue3编译过程窥探：
 
     ```xml
     <template>
-      <div>
-        <ChildComp/>
-      </div>
+      <div>
+        <ChildComp/>
+      </div>
     </template>
     ​
     <script>
     export default {
-      components: {
-        ChildComp: {
-          methods: {
-            heavy () { /* 耗时任务 */ }
-          },
-          render (h) {
-            return h('div', this.heavy())
-          }
-        }
+      components: {
+        ChildComp: {
+          methods: {
+            heavy () { /* 耗时任务 */ }
+          },
+          render (h) {
+            return h('div', this.heavy())
+          }
+        }
       }
     }
     </script>
@@ -1569,13 +1569,13 @@ vue2直接报错，test-v2.html
 
 ```bash
 new Vue({
-  components: {
-    comp: {
-      template: `
-        <div>root1</div>
-        <div>root2</div>
-      `
-    }
+  components: {
+    comp: {
+      template: `
+        <div>root1</div>
+        <div>root2</div>
+      `
+    }
   }
 }).$mount('#app')
 ```
@@ -1588,13 +1588,13 @@ vue3中没有问题，test-v3.html
 
 ```php
 Vue.createApp({
-  components: {
-    comp: {
-      template: `
-        <div>root1</div>
-        <div>root2</div>
-      `
-    }
+  components: {
+    comp: {
+      template: `
+        <div>root1</div>
+        <div>root2</div>
+      `
+    }
   }
 }).mount('#app')
 ```
@@ -1739,7 +1739,7 @@ const state = reactive({ count: 0 })
 watch(
   () => state.count,
   (count, prevCount) => {
-    /* ... */
+    /* ... */
   }
 )
 ```
@@ -1770,10 +1770,10 @@ watch(
 
 ```javascript
 export function watchEffect(
-  effect: WatchEffect,
-  options?: WatchOptionsBase
+  effect: WatchEffect,
+  options?: WatchOptionsBase
 ): WatchStopHandle {
-  return doWatch(effect, null, options)
+  return doWatch(effect, null, options)
 }
 ```
 
@@ -1783,11 +1783,11 @@ export function watchEffect(
 
 ```typescript
 export function watch<T = any, Immediate extends Readonly<boolean> = false>(
-  source: T | WatchSource<T>,
-  cb: any,
-  options?: WatchOptions<Immediate>
+  source: T | WatchSource<T>,
+  cb: any,
+  options?: WatchOptions<Immediate>
 ): WatchStopHandle {
-  return doWatch(source as any, cb, options)
+  return doWatch(source as any, cb, options)
 }
 ```
 
@@ -1859,22 +1859,22 @@ SPA
 
 ```xml
 <template>
-  <div class="example">{{ msg }}</div>
+  <div class="example">{{ msg }}</div>
 </template>
 ​
 <script>
 export default {
-  data() {
-    return {
-      msg: 'Hello world!',
-    }
+  data() {
+    return {
+      msg: 'Hello world!',
+    }
   },
 }
 </script>
 ​
 <style>
 .example {
-  color: red;
+  color: red;
 }
 </style>
 ```
@@ -1984,13 +1984,13 @@ import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loa
 
 ```javascript
 const focus = {
-  mounted: (el) => el.focus()
+  mounted: (el) => el.focus()
 }
 ​
 export default {
-  directives: {
-    // enables v-focus in template
-    focus
+  directives: {
+    // enables v-focus in template
+    focus
   }
 }
 <input v-focus />
@@ -2071,8 +2071,8 @@ API考察，但$attrs和$listeners是比较少用的边界知识，而且vue3有
 ```xml
 <template>
     <child-component v-bind="$attrs">
-        将非属性特性透传给内部的子组件
-    </child-component>
+        将非属性特性透传给内部的子组件
+    </child-component>
 </template>
 ```
 
@@ -2093,28 +2093,28 @@ API考察，但$attrs和$listeners是比较少用的边界知识，而且vue3有
 
 ```xml
 <template>
-  <h1>{{ msg }}</h1>
-  <comp foo="foo" bar="bar" />
+  <h1>{{ msg }}</h1>
+  <comp foo="foo" bar="bar" />
 </template>
 ```
 
 ```xml
 <template>
-  <div>
-    {{$attrs.foo}} {{bar}}
-  </div>
+  <div>
+    {{$attrs.foo}} {{bar}}
+  </div>
 </template>
 <script setup>
 defineProps({
-  bar: String
+  bar: String
 })
 </script>
 ```
 
 ```php
 _createVNode(Comp, {
-    foo: "foo",
-    bar: "bar"
+    foo: "foo",
+    bar: "bar"
 })
 ```
 
@@ -2143,14 +2143,14 @@ _createVNode(Comp, {
 <span v-once>This will never change: {{msg}}</span>
 <!-- the element have children -->
 <div v-once>
-  <h1>comment</h1>
-  <p>{{msg}}</p>
+  <h1>comment</h1>
+  <p>{{msg}}</p>
 </div>
 <!-- component -->
 <my-component v-once :comment="msg"></my-component>
 <!-- `v-for` directive -->
 <ul>
-  <li v-for="i in list" v-once>{{i}}</li>
+  <li v-for="i in list" v-once>{{i}}</li>
 </ul>
 ```
 
@@ -2188,8 +2188,8 @@ const msg = ref('Hello World!')
 </script>
 ​
 <template>
-  <h1 v-once>{{ msg }}</h1>
-  <input v-model="msg">
+  <h1 v-once>{{ msg }}</h1>
+  <input v-model="msg">
 </template>
 ```
 
@@ -2198,16 +2198,16 @@ const msg = ref('Hello World!')
 ```scss
 // ...
 return (_ctx, _cache) => {
-  return (_openBlock(), _createElementBlock(_Fragment, null, [
-    // 从缓存获取vnode
-    _cache[0] || (
-      _setBlockTracking(-1),
-      _cache[0] = _createElementVNode("h1", null, [
-        _createTextVNode(_toDisplayString(msg.value), 1 /* TEXT */)
-      ]),
-      _setBlockTracking(1),
-      _cache[0]
-    ),
+  return (_openBlock(), _createElementBlock(_Fragment, null, [
+    // 从缓存获取vnode
+    _cache[0] || (
+      _setBlockTracking(-1),
+      _cache[0] = _createElementVNode("h1", null, [
+        _createTextVNode(_toDisplayString(msg.value), 1 /* TEXT */)
+      ]),
+      _setBlockTracking(1),
+      _cache[0]
+    ),
 // ...
 ```
 
@@ -2229,21 +2229,21 @@ return (_ctx, _cache) => {
 
 ```xml
 <template>
-  <li>
-    <div> {{ model.name }}</div>
-    <ul v-show="isOpen" v-if="isFolder">
-      <!-- 注意这里：组件递归渲染了它自己 -->
-      <TreeItem
-        class="item"
-        v-for="model in model.children"
-        :model="model">
-      </TreeItem>
-    </ul>
-  </li>
+  <li>
+    <div> {{ model.name }}</div>
+    <ul v-show="isOpen" v-if="isFolder">
+      <!-- 注意这里：组件递归渲染了它自己 -->
+      <TreeItem
+        class="item"
+        v-for="model in model.children"
+        :model="model">
+      </TreeItem>
+    </ul>
+  </li>
 <script>
 export default {
-  name: 'TreeItem',
-  // ...
+  name: 'TreeItem',
+  // ...
 }
 </script>
 ```
@@ -2280,10 +2280,10 @@ const _component_Comp = _resolveComponent("Comp", true)
 
 ```typescript
 export function resolveComponent(
-  name: string,
-  maybeSelfReference?: boolean
+  name: string,
+  maybeSelfReference?: boolean
 ): ConcreteComponent | string {
-  return resolveAsset(COMPONENTS, name, true, maybeSelfReference) || name
+  return resolveAsset(COMPONENTS, name, true, maybeSelfReference) || name
 }
 ```
 
@@ -2291,8 +2291,8 @@ resolveAsset中最终返回的是组件自身：
 
 ```kotlin
 if (!res && maybeSelfReference) {
-    // fallback to implicit self-reference
-    return Component
+    // fallback to implicit self-reference
+    return Component
 }
 ```
 
@@ -2322,15 +2322,15 @@ if (!res && maybeSelfReference) {
 import { defineAsyncComponent } from 'vue'
 // defineAsyncComponent定义异步组件
 const AsyncComp = defineAsyncComponent(() => {
-  // 加载函数返回Promise
-  return new Promise((resolve, reject) => {
-    // ...可以从服务器加载组件
-    resolve(/* loaded component */)
+  // 加载函数返回Promise
+  return new Promise((resolve, reject) => {
+    // ...可以从服务器加载组件
+    resolve(/* loaded component */)
   })
 })
 // 借助打包工具实现ES模块动态导入
 const AsyncComp = defineAsyncComponent(() =>
-  import('./components/MyComponent.vue')
+  import('./components/MyComponent.vue')
 )
 ```
 
@@ -2398,19 +2398,19 @@ axios拦截器中处理捕获异常：
 // 响应拦截器
 instance.interceptors.response.use(
   (response) => {
-    return response.data;
+    return response.data;
   },
   (error) => {
-    // 存在response说明服务器有响应
-    if (error.response) {
-      let response = error.response;
-      if (response.status >= 400) {
-        handleError(response);
-      }
-    } else {
-      handleError(null);
-    }
-    return Promise.reject(error);
+    // 存在response说明服务器有响应
+    if (error.response) {
+      let response = error.response;
+      if (response.status >= 400) {
+        handleError(response);
+      }
+    } else {
+      handleError(null);
+    }
+    return Promise.reject(error);
   },
 );
 ```
@@ -2425,7 +2425,7 @@ import { createApp } from 'vue'
 const app = createApp(...)
 ​
 app.config.errorHandler = (err, instance, info) => {
-  // report error to tracking services
+  // report error to tracking services
 }
 ```
 
@@ -2435,14 +2435,14 @@ app.config.errorHandler = (err, instance, info) => {
 
 ```lua
 function handleError(error, type) {
-  if(type == 1) {
-    // 接口错误，从config字段中获取请求信息
-    let { url, method, params, data } = error.config
-    let err_data = {
-       url, method,
-       params: { query: params, body: data },
-       error: error.data?.message || JSON.stringify(error.data),
-    })
+  if(type == 1) {
+    // 接口错误，从config字段中获取请求信息
+    let { url, method, params, data } = error.config
+    let err_data = {
+       url, method,
+       params: { query: params, body: data },
+       error: error.data?.message || JSON.stringify(error.data),
+    })
   }
 }
 ```
@@ -2453,21 +2453,21 @@ function handleError(error, type) {
 
 ```go
 function handleError(error, type) {
-  if(type == 2) {
-    let errData = null
-    // 逻辑错误
-    if(error instanceof Error) {
-      let { name, message } = error
-      errData = {
-        type: name,
-        error: message
-      }
-    } else {
-      errData = {
-        type: 'other',
-        error: JSON.strigify(error)
-      }
-    }
+  if(type == 2) {
+    let errData = null
+    // 逻辑错误
+    if(error instanceof Error) {
+      let { name, message } = error
+      errData = {
+        type: name,
+        error: message
+      }
+    } else {
+      errData = {
+        type: 'other',
+        error: JSON.strigify(error)
+      }
+    }
   }
 }
 ```
@@ -2491,8 +2491,8 @@ vue-router4.x中设置模式已经变化：
 
 ```bash
 const router = createRouter({
-  history: createWebHashHistory(), // hash模式
-  history: createWebHistory(),     // history模式
+  history: createWebHashHistory(), // hash模式
+  history: createWebHistory(),     // history模式
 })
 ```
 
@@ -2745,11 +2745,11 @@ Proxy属性拦截的原理：利用get、set、deleteProperty这三个trap实现
 
 ```javascript
 function reactive(obj) {
-    return new Proxy(obj, {
-        get(target, key) {},
-        set(target, key, val) {},
-        deleteProperty(target, key){}
-    })
+    return new Proxy(obj, {
+        get(target, key) {},
+        set(target, key, val) {},
+        deleteProperty(target, key){}
+    })
 }
 ```
 
@@ -2757,10 +2757,10 @@ Object.defineProperty属性拦截原理：利用get、set这两个trap实现拦�
 
 ```vbnet
 function defineReactive(obj, key, val) {
-    Object.defineReactive(obj, key, {
-        get(key) {},
-        set(key, val) {}
-    })
+    Object.defineReactive(obj, key, {
+        get(key) {},
+        set(key, val) {}
+    })
 }
 ```
 
@@ -2866,8 +2866,8 @@ API题目，考查基础能力，不容有失，尽可能说的详细。
 const UserDetails = () => import('./views/UserDetails')
 ​
 const router = createRouter({
-  // ...
-  routes: [{ path: '/users/:id', component: UserDetails }],
+  // ...
+  routes: [{ path: '/users/:id', component: UserDetails }],
 })
 ```
 
@@ -3015,20 +3015,20 @@ navigate内部依然调用的push
 ```sql
 const routes = [
   {
-    path: '/user/:id',
-    component: User,
-    children: [
-      {
-        // UserProfile 会被渲染在 User 组件中的 <router-view> 里
-        path: 'profile',
-        component: UserProfile,
-      },
-      {
-        // UserPosts 会被渲染在 User 组件中的 <router-view> 里
-        path: 'posts',
-        component: UserPosts,
-      },
-    ],
+    path: '/user/:id',
+    component: User,
+    children: [
+      {
+        // UserProfile 会被渲染在 User 组件中的 <router-view> 里
+        path: 'profile',
+        component: UserProfile,
+      },
+      {
+        // UserPosts 会被渲染在 User 组件中的 <router-view> 里
+        path: 'posts',
+        component: UserPosts,
+      },
+    ],
   },
 ]
 ```
@@ -3076,9 +3076,9 @@ router-view获取自己所在的深度：默认0，加1之后传给后代，同�
 const router = createRouter({ ... })
 ​
 router.beforeEach((to, from) => {
-  // ...
-  // 返回 false 以取消导航
-  return false
+  // ...
+  // 返回 false 以取消导航
+  return false
 })
 ```
 
@@ -3087,12 +3087,12 @@ router.beforeEach((to, from) => {
 ```javascript
 const routes = [
   {
-    path: '/users/:id',
-    component: UserDetails,
-    beforeEnter: (to, from) => {
-      // reject the navigation
-      return false
-    },
+    path: '/users/:id',
+    component: UserDetails,
+    beforeEnter: (to, from) => {
+      // reject the navigation
+      return false
+    },
   },
 ]
 ```
@@ -3101,15 +3101,15 @@ const routes = [
 
 ```javascript
 const UserDetails = {
-  template: `...`,
-  beforeRouteEnter(to, from) {
-    // 在渲染该组件的对应路由被验证前调用
+  template: `...`,
+  beforeRouteEnter(to, from) {
+    // 在渲染该组件的对应路由被验证前调用
   },
-  beforeRouteUpdate(to, from) {
-    // 在当前路由改变，但是该组件被复用时调用
+  beforeRouteUpdate(to, from) {
+    // 在当前路由改变，但是该组件被复用时调用
   },
-  beforeRouteLeave(to, from) {
-    // 在导航离开渲染该组件的对应路由时调用
+  beforeRouteLeave(to, from) {
+    // 在导航离开渲染该组件的对应路由时调用
   },
 }
 ```
@@ -3184,20 +3184,20 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 
 ```php
 const moduleA = {
-  state: () => ({ ... }),
-  mutations: { ... },
-  actions: { ... },
-  getters: { ... }
+  state: () => ({ ... }),
+  mutations: { ... },
+  actions: { ... },
+  getters: { ... }
 }
 const moduleB = {
-  state: () => ({ ... }),
-  mutations: { ... },
-  actions: { ... }
+  state: () => ({ ... }),
+  mutations: { ... },
+  actions: { ... }
 }
 const store = createStore({
-  modules: {
-    a: moduleA,
-    b: moduleB
+  modules: {
+    a: moduleA,
+    b: moduleB
   }
 })
 store.state.a // -> moduleA 的状态
@@ -3263,13 +3263,13 @@ Store的实现：
 
 ```kotlin
 class Store {
-    constructor(options) {
-        this.state = reactive(options.state)
-        this.options = options
-    }
-    commit(type, payload) {
-        this.options.mutations[type].call(this, this.state, payload)
-    }
+    constructor(options) {
+        this.state = reactive(options.state)
+        this.options = options
+    }
+    commit(type, payload) {
+        this.options.mutations[type].call(this, this.state, payload)
+    }
 }
 ```
 
@@ -3298,18 +3298,18 @@ Vuex中Store的实现：
 
 ```php
 const store = createStore({
-  state: {
-    count: 0
+  state: {
+    count: 0
   },
-  mutations: {
-    increment (state) {
-      state.count++
-    }
+  mutations: {
+    increment (state) {
+      state.count++
+    }
   },
-  actions: {
-    increment (context) {
-      context.commit('increment')
-    }
+  actions: {
+    increment (context) {
+      context.commit('increment')
+    }
   }
 })
 ```
@@ -3340,18 +3340,18 @@ const store = createStore({
 
 ```kotlin
 class Store {
-    constructor(options) {
-        this.state = reactive(options.state)
-        this.options = options
-    }
-    commit(type, payload) {
-        // 传入上下文和参数1都是state对象
-        this.options.mutations[type].call(this.state, this.state, payload)
-    }
-    dispatch(type, payload) {
-        // 传入上下文和参数1都是store本身
-        this.options.actions[type].call(this, this, payload)
-    }
+    constructor(options) {
+        this.state = reactive(options.state)
+        this.options = options
+    }
+    commit(type, payload) {
+        // 传入上下文和参数1都是state对象
+        this.options.mutations[type].call(this.state, this.state, payload)
+    }
+    dispatch(type, payload) {
+        // 传入上下文和参数1都是store本身
+        this.options.actions[type].call(this, this, payload)
+    }
 }
 ```
 
@@ -3416,21 +3416,21 @@ watch方式
 
 ```arduino
 const app = createApp({
-    watch: {
-      '$store.state.counter'() {
-        console.log('counter change!');
-      }
-    }
+    watch: {
+      '$store.state.counter'() {
+        console.log('counter change!');
+      }
+    }
   })
 ```
 
 subscribe方式：
 
 ```javascript
-  store.subscribe((mutation, state) => {
-    if (mutation.type === 'add') {
-      console.log('counter change in subscribe()!');
-    }
+  store.subscribe((mutation, state) => {
+    if (mutation.type === 'add') {
+      console.log('counter change in subscribe()!');
+    }
   })
 ```
 
@@ -3450,10 +3450,10 @@ subscribe方式：
 
 ```javascript
 const store = createStore({
-  state () {
-    return {
-      count: localStorage.getItem('count')
-    }
+  state () {
+    return {
+      count: localStorage.getItem('count')
+    }
   }
 })
 ```
@@ -3507,8 +3507,8 @@ localStorage.setItem('count', store.state.count)
 
 ```php
 const store = createStore({
-  modules: {
-    a: moduleA
+  modules: {
+    a: moduleA
   }
 })
 store.state.a // -> 要带上 moduleA 的key，内嵌模块的话会很长，不得不配合mapState使用
@@ -3544,14 +3544,14 @@ store.commit('a/d') // -> 有namespaced时要加path，配合mapMutations使用�
 
 ```scss
 if (!isRoot && !hot) {
-    // 获取父模块state
-    const parentState = getNestedState(rootState, path.slice(0, -1))
-    // 获取子模块名称
-    const moduleName = path[path.length - 1]
-    store._withCommit(() => {
-        // 把子模块state设置到父模块上
-        parentState[moduleName] = module.state
-    })
+    // 获取父模块state
+    const parentState = getNestedState(rootState, path.slice(0, -1))
+    // 获取子模块名称
+    const moduleName = path[path.length - 1]
+    store._withCommit(() => {
+        // 把子模块state设置到父模块上
+        parentState[moduleName] = module.state
+    })
 }
 ```
 
