@@ -767,144 +767,6 @@ patch关键代码
 
 * * *
 
-## 11 - 你知道哪些vue3新特性
-
-### 分析
-
-官网列举的最值得注意的新特性：[v3-migration.vuejs.org/](https://v3-migration.vuejs.org/ "https://v3-migration.vuejs.org/")
-
-![image-20220210165307624](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5e52235d31934130914925042b96e3a7~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-也就是下面这些：
-
-+   Composition API
-+   SFC Composition API语法糖
-+   Teleport传送门
-+   Fragments片段
-+   Emits选项
-+   自定义渲染器
-+   SFC CSS变量
-+   Suspense
-
-以上这些是api相关，另外还有很多框架特性也不能落掉。
-
-* * *
-
-### 回答范例
-
-1.  api层面Vue3新特性主要包括：Composition API、SFC Composition API语法糖、Teleport传送门、Fragments 片段、Emits选项、自定义渲染器、SFC CSS变量、Suspense
-
-2.  另外，Vue3.0在框架层面也有很多亮眼的改进：
-
-
-+   更快
-    +   虚拟DOM重写
-    +   编译器优化：静态提升、patchFlags、block等
-    +   基于Proxy的响应式系统
-+   更小：更好的摇树优化
-+   更容易维护：TypeScript + 模块化
-+   更容易扩展
-    +   独立的响应化模块
-    +   自定义渲染器
-
-* * *
-
-### 知其所以然
-
-体验编译器优化
-
-[sfc.vuejs.org/](https://sfc.vuejs.org/ "https://sfc.vuejs.org/")
-
-reactive实现
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/reactive.ts#L90-L91 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/reactive.ts#L90-L91")
-
-* * *
-
-## 12 - 怎么定义动态路由？怎么获取传过来的动态参数？
-
-### 分析
-
-API题目，考查基础能力，不容有失，尽可能说的详细。
-
-### 思路
-
-1.  什么是动态路由
-2.  什么时候使用动态路由，怎么定义动态路由
-3.  参数如何获取
-4.  细节、注意事项
-
-* * *
-
-### 回答范例
-
-1.  很多时候，我们需要**将给定匹配模式的路由映射到同一个组件**，这种情况就需要定义动态路由。
-2.  例如，我们可能有一个 `User` 组件，它应该对所有用户进行渲染，但用户 ID 不同。在 Vue Router 中，我们可以在路径中使用一个动态字段来实现，例如：`{ path: '/users/:id', component: User }`，其中`:id`就是路径参数
-3.  *路径参数* 用冒号 `:` 表示。当一个路由被匹配时，它的 *params* 的值将在每个组件中以 `this.$route.params` 的形式暴露出来。
-4.  参数还可以有多个，例如`/users/:username/posts/:postId`；除了 `$route.params` 之外，`$route` 对象还公开了其他有用的信息，如 `$route.query`、`$route.hash` 等。
-
-* * *
-
-### 可能的追问
-
-1.  如何响应动态路由参数的变化
-
-[router.vuejs.org/zh/guide/es…](https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E5%93%8D%E5%BA%94%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E7%9A%84%E5%8F%98%E5%8C%96 "https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E5%93%8D%E5%BA%94%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E7%9A%84%E5%8F%98%E5%8C%96")
-
-2.  我们如何处理404 Not Found路由
-
-[router.vuejs.org/zh/guide/es…](https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E6%8D%95%E8%8E%B7%E6%89%80%E6%9C%89%E8%B7%AF%E7%94%B1%E6%88%96-404-not-found-%E8%B7%AF%E7%94%B1 "https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E6%8D%95%E8%8E%B7%E6%89%80%E6%9C%89%E8%B7%AF%E7%94%B1%E6%88%96-404-not-found-%E8%B7%AF%E7%94%B1")
-
-* * *
-
-## 13-如果让你从零开始写一个vue路由，说说你的思路
-
-### 思路分析：
-
-首先思考vue路由要解决的问题：用户点击跳转链接内容切换，页面不刷新。
-
-+   借助hash或者history api实现url跳转页面不刷新
-+   同时监听hashchange事件或者popstate事件处理跳转
-+   根据hash值或者state值从routes表中匹配对应component并渲染之
-
-* * *
-
-### 回答范例：
-
-一个SPA应用的路由需要解决的问题是**页面跳转内容改变同时不刷新**，同时路由还需要以插件形式存在，所以：
-
-1.  首先我会定义一个`createRouter`函数，返回路由器实例，实例内部做几件事：
-    +   保存用户传入的配置项
-    +   监听hash或者popstate事件
-    +   回调里根据path匹配对应路由
-2.  将router定义成一个Vue插件，即实现install方法，内部做两件事：
-    +   实现两个全局组件：router-link和router-view，分别实现页面跳转和内容显示
-    +   定义两个全局变量：$route和$router，组件内可以访问当前路由和路由器实例
-
-* * *
-
-### 知其所以然：
-
-+   createRouter如何创建实例
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/router.ts#L355-L356 "https://github1s.com/vuejs/router/blob/HEAD/src/router.ts#L355-L356")
-
-+   事件监听
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/history/html5.ts#L314-L315 "https://github1s.com/vuejs/router/blob/HEAD/src/history/html5.ts#L314-L315") RouterView
-
-+   页面跳转RouterLink
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185")
-
-+   内容显示RouterView
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44")
-
-* * *
-
 ## 14-能说说key的作用吗？
 
 ### 分析：
@@ -1400,35 +1262,6 @@ KeepAlive定义
 
 * * *
 
-## 21 - 简单说一说你对vuex理解？
-
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cb128aee87e5424a83511deee98f1702~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-### 思路
-
-1.  给定义
-2.  必要性阐述
-3.  何时使用
-4.  拓展：一些个人思考、实践经验等
-
-* * *
-
-### 范例
-
-1.  Vuex 是一个专为 Vue.js 应用开发的**状态管理模式 + 库**。它采用集中式存储，管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化。
-2.  我们期待以一种简单的“单向数据流”的方式管理应用，即状态 -> 视图 -> 操作单向循环的方式。但当我们的应用遇到**多个组件共享状态**时，比如：多个视图依赖于同一状态或者来自不同视图的行为需要变更同一状态。此时单向数据流的简洁性很容易被破坏。因此，我们有必要把组件的共享状态抽取出来，以一个全局单例模式管理。通过定义和隔离状态管理中的各种概念并通过强制规则维持视图和状态间的独立性，我们的代码将会变得更结构化且易维护。这是vuex存在的必要性，它和react生态中的redux之类是一个概念。
-3.  Vuex 解决状态管理的同时引入了不少概念：例如state、mutation、action等，是否需要引入还需要根据应用的实际情况衡量一下：如果不打算开发大型单页应用，使用 Vuex 反而是繁琐冗余的，一个简单的 [store 模式](https://v3.cn.vuejs.org/guide/state-management.html#%E4%BB%8E%E9%9B%B6%E6%89%93%E9%80%A0%E7%AE%80%E5%8D%95%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86 "https://v3.cn.vuejs.org/guide/state-management.html#%E4%BB%8E%E9%9B%B6%E6%89%93%E9%80%A0%E7%AE%80%E5%8D%95%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86")就足够了。但是，如果要构建一个中大型单页应用，Vuex 基本是标配。
-4.  我在使用vuex过程中感受到一些blabla
-
-* * *
-
-### 可能的追问
-
-1.  vuex有什么缺点吗？你在开发过程中有遇到什么问题吗？
-2.  action和mutation的区别是什么？为什么要区分它们？
-
-* * *
-
 ## 22-说说从 template 到 render 处理过程
 
 ### 分析
@@ -1494,39 +1327,6 @@ vue3编译过程窥探：
 
 ***
 
-
-## 24-Vue 3.0的设计目标是什么？做了哪些优化?
-
-### 分析
-
-还是问新特性，陈述典型新特性，分析其给你带来的变化即可。
-
-* * *
-
-### 思路
-
-从以下几方面分门别类阐述：易用性、性能、扩展性、可维护性、开发体验等
-
-* * *
-
-### 范例
-
-0.  Vue3的最大设计目标是替代Vue2（皮一下），为了实现这一点，Vue3在以下几个方面做了很大改进，如：易用性、框架性能、扩展性、可维护性、开发体验等
-1.  易用性方面主要是API简化，比如`v-model`在Vue3中变成了Vue2中`v-model`和`sync`修饰符的结合体，用户不用区分两者不同，也不用选择困难。类似的简化还有用于渲染函数内部生成VNode的`h(type, props, children)`，其中`props`不用考虑区分属性、特性、事件等，框架替我们判断，易用性大增。
-2.  开发体验方面，新组件`Teleport`传送门、`Fragments` 、`Suspense`等都会简化特定场景的代码编写，`SFC Composition API`语法糖更是极大提升我们开发体验。
-3.  扩展性方面提升如独立的`reactivity`模块，`custom renderer` API等
-4.  可维护性方面主要是`Composition API`，更容易编写高复用性的业务逻辑。还有对TypeScript支持的提升。
-5.  性能方面的改进也很显著，例如编译期优化、基于`Proxy`的响应式系统
-6.  。。。
-
-* * *
-
-### 可能的追问
-
-0.  Vue3做了哪些编译优化？
-1.  `Proxy`和`defineProperty`有什么不同？
-
-* * *
 
 ## 25-你了解哪些Vue性能优化方法？
 
@@ -1844,124 +1644,6 @@ Vue.createApp({
 
 * * *
 
-## 27-你有使用过vuex的module吗？
-
-这是基本应用能力考察，稍微上点规模的项目都要拆分vuex模块便于维护。
-
-* * *
-
-### 体验
-
-[vuex.vuejs.org/zh/guide/mo…](https://vuex.vuejs.org/zh/guide/modules.html "https://vuex.vuejs.org/zh/guide/modules.html")
-
-```php
-const moduleA = {
-  state: () => ({ ... }),
-  mutations: { ... },
-  actions: { ... },
-  getters: { ... }
-}
-const moduleB = {
-  state: () => ({ ... }),
-  mutations: { ... },
-  actions: { ... }
-}
-const store = createStore({
-  modules: {
-    a: moduleA,
-    b: moduleB
-  }
-})
-store.state.a // -> moduleA 的状态
-store.state.b // -> moduleB 的状态
-store.getters.c // -> moduleA里的getters
-store.commit('d') // -> 能同时触发子模块中同名mutation
-store.dispatch('e') // -> 能同时触发子模块中同名action
-```
-
-* * *
-
-### 思路
-
-0.  概念和必要性
-1.  怎么拆
-2.  使用细节
-3.  优缺点
-
-* * *
-
-### 范例
-
-0.  用过module，项目规模变大之后，单独一个store对象会过于庞大臃肿，通过模块方式可以拆分开来便于维护
-1.  可以按之前规则单独编写子模块代码，然后在主文件中通过`modules`选项组织起来：`createStore({modules:{...}})`
-2.  不过使用时要注意访问子模块状态时需要加上注册时模块名：`store.state.a.xxx`，但同时`getters`、`mutations`和`actions`又在全局空间中，使用方式和之前一样。如果要做到完全拆分，需要在子模块加上`namespace`选项，此时再访问它们就要加上命名空间前缀。
-3.  很显然，模块的方式可以拆分代码，但是缺点也很明显，就是使用起来比较繁琐复杂，容易出错。而且类型系统支持很差，不能给我们带来帮助。pinia显然在这方面有了很大改进，是时候切换过去了。
-
-* * *
-
-### 可能的追问
-
-0.  用过pinia吗？都做了哪些改善？
-
-* * *
-
-## 28-怎么实现路由懒加载呢？
-
-### 分析
-
-这是一道应用题。当打包应用时，JavaScript 包会变得非常大，影响页面加载。如果我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问时才加载对应组件，这样就会更加高效。
-
-```javascript
-// 将
-// import UserDetails from './views/UserDetails'
-// 替换为
-const UserDetails = () => import('./views/UserDetails')
-​
-const router = createRouter({
-  // ...
-  routes: [{ path: '/users/:id', component: UserDetails }],
-})
-```
-
-参考[router.vuejs.org/zh/guide/ad…](https://router.vuejs.org/zh/guide/advanced/lazy-loading.html "https://router.vuejs.org/zh/guide/advanced/lazy-loading.html")
-
-* * *
-
-### 思路
-
-0.  必要性
-1.  何时用
-2.  怎么用
-3.  使用细节
-
-* * *
-
-### 回答范例
-
-0.  当打包构建应用时，JavaScript 包会变得非常大，影响页面加载。利用路由懒加载我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问的时候才加载对应组件，这样会更加高效，是一种优化手段。
-
-1.  一般来说，对所有的路由**都使用动态导入**是个好主意。
-
-2.  给`component`选项配置一个返回 Promise 组件的函数就可以定义懒加载路由。例如：
-
-    `{ path: '/users/:id', component: () => import('./views/UserDetails') }`
-
-3.  结合注释`() => import(/* webpackChunkName: "group-user" */ './UserDetails.vue')`可以做webpack代码分块
-
-    vite中结合[rollupOptions](https://router.vuejs.org/zh/guide/advanced/lazy-loading.html#%E4%BD%BF%E7%94%A8-vite "https://router.vuejs.org/zh/guide/advanced/lazy-loading.html#%E4%BD%BF%E7%94%A8-vite")定义分块
-
-4.  路由中不能使用异步组件
-
-
-* * *
-
-### 知其所以然
-
-`component` (和 `components`) 配置如果接收一个返回 Promise 组件的函数，Vue Router **只会在第一次进入页面时才会获取这个函数**，然后使用缓存数据。
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/navigationGuards.ts#L292-L293 "https://github1s.com/vuejs/router/blob/HEAD/src/navigationGuards.ts#L292-L293")
-
-* * *
 
 ## 29-ref和reactive异同
 
@@ -2792,6 +2474,765 @@ function handleError(error, type) {
 
 * * *
 
+
+## 46-History模式和Hash模式有何区别？
+
+### 分析
+
+vue-router有3个模式，其中两个更为常用，那便是history和hash。
+
+两者差别主要在显示形式和部署上。
+
+* * *
+
+### 体验
+
+vue-router4.x中设置模式已经变化：
+
+```bash
+const router = createRouter({
+  history: createWebHashHistory(), // hash模式
+  history: createWebHistory(),     // history模式
+})
+```
+
+用起来一模一样
+
+```ini
+<router-link to="/about">Go to About</router-link>
+```
+
+区别只在url形式
+
+```ruby
+// hash
+// 浏览器里的形态：http://xx.com/#/about
+// history
+// 浏览器里的形态：http://xx.com/about
+```
+
+### 思路
+
++   区别
++   详细阐述
++   实现
+
+* * *
+
+### 回答范例
+
++   vue-router有3个模式，其中history和hash更为常用。两者差别主要在显示形式、seo和部署上。
++   hash模式在地址栏显示的时候是已哈希的形式：#/xxx，这种方式使用和部署简单，但是不会被搜索引擎处理，seo有问题；history模式则建议用在大部分web项目上，但是它要求应用在部署时做特殊配置，服务器需要做回退处理，否则会出现刷新页面404的问题。
++   底层实现上其实hash是一种特殊的history实现。
+
+* * *
+
+### 知其所以然
+
+hash是一种特殊的history实现：
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32 "https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32")
+
+* * *
+
+
+## 50-Composition API 与 Options API 有什么不同
+
+### 分析
+
+Vue3最重要更新之一就是Composition API，它具有一些列优点，其中不少是针对Options API暴露的一些问题量身打造。是Vue3推荐的写法，因此掌握好Composition API应用对掌握好Vue3至关重要。
+
+![image-20220629182639250](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8b7b4bfafa5c4507be726d273161c3c2~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+[vuejs.org/guide/extra…](https://vuejs.org/guide/extras/composition-api-faq.html "https://vuejs.org/guide/extras/composition-api-faq.html")
+
+* * *
+
+### 体验
+
+Composition API能更好的组织代码，下面这个代码用options api实现
+
+![image-20220629183203082](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a280d15533ad4481a6121064940eae1b~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+如果用composition api可以提取为useCount()，用于组合、复用
+
+![image-20220629184919471](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1aa01aeeff224815bef1356b773fae2d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+### 思路
+
++   总述不同点
++   composition api动机
++   两者选择
+
+* * *
+
+### 回答范例
+
++   `Composition API`是一组API，包括：Reactivity API、生命周期钩子、依赖注入，使用户可以通过导入函数方式编写vue组件。而`Options API`则通过声明组件选项的对象形式编写组件。
++   `Composition API`最主要作用是能够简洁、高效复用逻辑。解决了过去`Options API`中`mixins`的各种缺点；另外`Composition API`具有更加敏捷的代码组织能力，很多用户喜欢`Options API`，认为所有东西都有固定位置的选项放置代码，但是单个组件增长过大之后这反而成为限制，一个逻辑关注点分散在组件各处，形成代码碎片，维护时需要反复横跳，`Composition API`则可以将它们有效组织在一起。最后`Composition API`拥有更好的类型推断，对ts支持更友好，`Options API`在设计之初并未考虑类型推断因素，虽然官方为此做了很多复杂的类型体操，确保用户可以在使用`Options API`时获得类型推断，然而还是没办法用在mixins和provide/inject上。
++   Vue3首推`Composition API`，但是这会让我们在代码组织上多花点心思，因此在选择上，如果我们项目属于中低复杂度的场景，`Options API`仍是一个好选择。对于那些大型，高扩展，强维护的项目上，`Composition API`会获得更大收益。
+
+* * *
+
+### 可能的追问
+
++   `Composition API`能否和`Options API`一起使用？
+
+* * *
+
+
+## Vue2 API
+
+## Vue3 API
+
+## 11 - 你知道哪些vue3新特性
+
+### 分析
+
+官网列举的最值得注意的新特性：[v3-migration.vuejs.org/](https://v3-migration.vuejs.org/ "https://v3-migration.vuejs.org/")
+
+![image-20220210165307624](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5e52235d31934130914925042b96e3a7~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+也就是下面这些：
+
++   Composition API
++   SFC Composition API语法糖
++   Teleport传送门
++   Fragments片段
++   Emits选项
++   自定义渲染器
++   SFC CSS变量
++   Suspense
+
+以上这些是api相关，另外还有很多框架特性也不能落掉。
+
+* * *
+
+### 回答范例
+
+1.  api层面Vue3新特性主要包括：Composition API、SFC Composition API语法糖、Teleport传送门、Fragments 片段、Emits选项、自定义渲染器、SFC CSS变量、Suspense
+
+2.  另外，Vue3.0在框架层面也有很多亮眼的改进：
+
+
++   更快
+    +   虚拟DOM重写
+    +   编译器优化：静态提升、patchFlags、block等
+    +   基于Proxy的响应式系统
++   更小：更好的摇树优化
++   更容易维护：TypeScript + 模块化
++   更容易扩展
+    +   独立的响应化模块
+    +   自定义渲染器
+
+* * *
+
+### 知其所以然
+
+体验编译器优化
+
+[sfc.vuejs.org/](https://sfc.vuejs.org/ "https://sfc.vuejs.org/")
+
+reactive实现
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/reactive.ts#L90-L91 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/reactive.ts#L90-L91")
+
+* * *
+
+## 24-Vue 3.0的设计目标是什么？做了哪些优化?
+
+### 分析
+
+还是问新特性，陈述典型新特性，分析其给你带来的变化即可。
+
+* * *
+
+### 思路
+
+从以下几方面分门别类阐述：易用性、性能、扩展性、可维护性、开发体验等
+
+* * *
+
+### 范例
+
+0.  Vue3的最大设计目标是替代Vue2（皮一下），为了实现这一点，Vue3在以下几个方面做了很大改进，如：易用性、框架性能、扩展性、可维护性、开发体验等
+1.  易用性方面主要是API简化，比如`v-model`在Vue3中变成了Vue2中`v-model`和`sync`修饰符的结合体，用户不用区分两者不同，也不用选择困难。类似的简化还有用于渲染函数内部生成VNode的`h(type, props, children)`，其中`props`不用考虑区分属性、特性、事件等，框架替我们判断，易用性大增。
+2.  开发体验方面，新组件`Teleport`传送门、`Fragments` 、`Suspense`等都会简化特定场景的代码编写，`SFC Composition API`语法糖更是极大提升我们开发体验。
+3.  扩展性方面提升如独立的`reactivity`模块，`custom renderer` API等
+4.  可维护性方面主要是`Composition API`，更容易编写高复用性的业务逻辑。还有对TypeScript支持的提升。
+5.  性能方面的改进也很显著，例如编译期优化、基于`Proxy`的响应式系统
+6.  。。。
+
+* * *
+
+### 可能的追问
+
+0.  Vue3做了哪些编译优化？
+1.  `Proxy`和`defineProperty`有什么不同？
+
+* * *
+
+## 44-Vue3.0 性能提升体现在哪些方面？
+
+### 分析
+
+vue3在设计时有几个目标：更小、更快、更友好，这些多数适合性能相关，因此可以围绕介绍。
+
+* * *
+
+### 思路
+
++   总述和性能相关的新特性
++   逐个说细节
++   能说点原理更佳
+
+* * *
+
+### 回答范例
+
++   我分别从代码、编译、打包三方面介绍vue3性能方面的提升
++   代码层面性能优化主要体现在全新响应式API，基于Proxy实现，初始化时间和内存占用均大幅改进；
++   编译层面做了更多编译优化处理，比如静态提升、动态标记、事件缓存，区块等，可以有效跳过大量diff过程；
++   打包时更好的支持tree-shaking，因此整体体积更小，加载更快
+
+* * *
+
+### 体验
+
+通过playground体验编译优化：[sfc.vuejs.org](https://sfc.vuejs.org/ "https://sfc.vuejs.org")
+
+* * *
+
+### 知其所以然
+
+为什么基于Proxy更快了：初始化时懒处理，用户访问才做拦截处理，初始化更快：
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/baseHandlers.ts#L136-L137 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/baseHandlers.ts#L136-L137")
+
+轻量的依赖关系保存：利用WeakMap、Map和Set保存响应式数据和副作用之间的依赖关系
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20")
+
+## 45-Vue3.0里为什么要用 Proxy 替代 defineProperty ？
+
+### 分析
+
+Vue3中最重大的更新之一就是响应式模块`reactivity`的重写。主要的修改就是`Proxy`替换`defineProperty`实现响应式。
+
+此变化主要是从性能方面考量。
+
+### 思路
+
++   属性拦截的几种方式
++   defineProperty的问题
++   Proxy的优点
++   其他考量
+
+### 回答范例
+
++   JS中做属性拦截常见的方式有三：: [defineProperty](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty")，[getter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get")/[setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set") 和[Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy").
++   Vue2中使用`defineProperty`的原因是，2013年时只能用这种方式。由于该API存在一些局限性，比如对于数组的拦截有问题，为此vue需要专门为数组响应式做一套实现。另外不能拦截那些新增、删除属性；最后`defineProperty`方案在初始化时需要深度递归遍历待处理的对象才能对它进行完全拦截，明显增加了初始化的时间。
++   以上两点在Proxy出现之后迎刃而解，不仅可以对数组实现拦截，还能对Map、Set实现拦截；另外Proxy的拦截也是懒处理行为，如果用户没有访问嵌套对象，那么也不会实施拦截，这就让初始化的速度和内存占用都改善了。
++   当然Proxy是有兼容性问题的，IE完全不支持，所以如果需要IE兼容就不合适
+
+### 知其所以然
+
+Proxy属性拦截的原理：利用get、set、deleteProperty这三个trap实现拦截
+
+```javascript
+function reactive(obj) {
+    return new Proxy(obj, {
+        get(target, key) {},
+        set(target, key, val) {},
+        deleteProperty(target, key){}
+    })
+}
+```
+
+Object.defineProperty属性拦截原理：利用get、set这两个trap实现拦截
+
+```vbnet
+function defineReactive(obj, key, val) {
+    Object.defineReactive(obj, key, {
+        get(key) {},
+        set(key, val) {}
+    })
+}
+```
+
+很容易看出两者的区别！
+
+* * *
+
+## Vue Router
+
+
+## 12 - 怎么定义动态路由？怎么获取传过来的动态参数？
+
+### 分析
+
+API题目，考查基础能力，不容有失，尽可能说的详细。
+
+### 思路
+
+1.  什么是动态路由
+2.  什么时候使用动态路由，怎么定义动态路由
+3.  参数如何获取
+4.  细节、注意事项
+
+* * *
+
+### 回答范例
+
+1.  很多时候，我们需要**将给定匹配模式的路由映射到同一个组件**，这种情况就需要定义动态路由。
+2.  例如，我们可能有一个 `User` 组件，它应该对所有用户进行渲染，但用户 ID 不同。在 Vue Router 中，我们可以在路径中使用一个动态字段来实现，例如：`{ path: '/users/:id', component: User }`，其中`:id`就是路径参数
+3.  *路径参数* 用冒号 `:` 表示。当一个路由被匹配时，它的 *params* 的值将在每个组件中以 `this.$route.params` 的形式暴露出来。
+4.  参数还可以有多个，例如`/users/:username/posts/:postId`；除了 `$route.params` 之外，`$route` 对象还公开了其他有用的信息，如 `$route.query`、`$route.hash` 等。
+
+* * *
+
+### 可能的追问
+
+1.  如何响应动态路由参数的变化
+
+[router.vuejs.org/zh/guide/es…](https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E5%93%8D%E5%BA%94%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E7%9A%84%E5%8F%98%E5%8C%96 "https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E5%93%8D%E5%BA%94%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E7%9A%84%E5%8F%98%E5%8C%96")
+
+2.  我们如何处理404 Not Found路由
+
+[router.vuejs.org/zh/guide/es…](https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E6%8D%95%E8%8E%B7%E6%89%80%E6%9C%89%E8%B7%AF%E7%94%B1%E6%88%96-404-not-found-%E8%B7%AF%E7%94%B1 "https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E6%8D%95%E8%8E%B7%E6%89%80%E6%9C%89%E8%B7%AF%E7%94%B1%E6%88%96-404-not-found-%E8%B7%AF%E7%94%B1")
+
+* * *
+
+## 13-如果让你从零开始写一个vue路由，说说你的思路
+
+### 思路分析：
+
+首先思考vue路由要解决的问题：用户点击跳转链接内容切换，页面不刷新。
+
++   借助hash或者history api实现url跳转页面不刷新
++   同时监听hashchange事件或者popstate事件处理跳转
++   根据hash值或者state值从routes表中匹配对应component并渲染之
+
+* * *
+
+### 回答范例：
+
+一个SPA应用的路由需要解决的问题是**页面跳转内容改变同时不刷新**，同时路由还需要以插件形式存在，所以：
+
+1.  首先我会定义一个`createRouter`函数，返回路由器实例，实例内部做几件事：
+    +   保存用户传入的配置项
+    +   监听hash或者popstate事件
+    +   回调里根据path匹配对应路由
+2.  将router定义成一个Vue插件，即实现install方法，内部做两件事：
+    +   实现两个全局组件：router-link和router-view，分别实现页面跳转和内容显示
+    +   定义两个全局变量：$route和$router，组件内可以访问当前路由和路由器实例
+
+* * *
+
+### 知其所以然：
+
++   createRouter如何创建实例
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/router.ts#L355-L356 "https://github1s.com/vuejs/router/blob/HEAD/src/router.ts#L355-L356")
+
++   事件监听
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/history/html5.ts#L314-L315 "https://github1s.com/vuejs/router/blob/HEAD/src/history/html5.ts#L314-L315") RouterView
+
++   页面跳转RouterLink
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185")
+
++   内容显示RouterView
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44")
+
+* * *
+
+## 28-怎么实现路由懒加载呢？
+
+### 分析
+
+这是一道应用题。当打包应用时，JavaScript 包会变得非常大，影响页面加载。如果我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问时才加载对应组件，这样就会更加高效。
+
+```javascript
+// 将
+// import UserDetails from './views/UserDetails'
+// 替换为
+const UserDetails = () => import('./views/UserDetails')
+​
+const router = createRouter({
+  // ...
+  routes: [{ path: '/users/:id', component: UserDetails }],
+})
+```
+
+参考[router.vuejs.org/zh/guide/ad…](https://router.vuejs.org/zh/guide/advanced/lazy-loading.html "https://router.vuejs.org/zh/guide/advanced/lazy-loading.html")
+
+* * *
+
+### 思路
+
+0.  必要性
+1.  何时用
+2.  怎么用
+3.  使用细节
+
+* * *
+
+### 回答范例
+
+0.  当打包构建应用时，JavaScript 包会变得非常大，影响页面加载。利用路由懒加载我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问的时候才加载对应组件，这样会更加高效，是一种优化手段。
+
+1.  一般来说，对所有的路由**都使用动态导入**是个好主意。
+
+2.  给`component`选项配置一个返回 Promise 组件的函数就可以定义懒加载路由。例如：
+
+    `{ path: '/users/:id', component: () => import('./views/UserDetails') }`
+
+3.  结合注释`() => import(/* webpackChunkName: "group-user" */ './UserDetails.vue')`可以做webpack代码分块
+
+    vite中结合[rollupOptions](https://router.vuejs.org/zh/guide/advanced/lazy-loading.html#%E4%BD%BF%E7%94%A8-vite "https://router.vuejs.org/zh/guide/advanced/lazy-loading.html#%E4%BD%BF%E7%94%A8-vite")定义分块
+
+4.  路由中不能使用异步组件
+
+
+* * *
+
+### 知其所以然
+
+`component` (和 `components`) 配置如果接收一个返回 Promise 组件的函数，Vue Router **只会在第一次进入页面时才会获取这个函数**，然后使用缓存数据。
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/navigationGuards.ts#L292-L293 "https://github1s.com/vuejs/router/blob/HEAD/src/navigationGuards.ts#L292-L293")
+
+* * *
+
+## 42-router-link和router-view是如何起作用的？
+
+### 分析
+
+vue-router中两个重要组件`router-link`和`router-view`，分别起到导航作用和内容渲染作用，但是回答如何生效还真有一定难度哪！
+
+### 思路
+
++   两者作用
++   阐述使用方式
++   原理说明
+
+### 回答范例
+
++   vue-router中两个重要组件`router-link`和`router-view`，分别起到路由导航作用和组件内容渲染作用
++   使用中router-link默认生成一个a标签，设置to属性定义跳转path。实际上也可以通过custom和插槽自定义最终的展现形式。router-view是要显示组件的占位组件，可以嵌套，对应路由配置的嵌套关系，配合name可以显示具名组件，起到更强的布局作用。
++   router-link组件内部根据custom属性判断如何渲染最终生成节点，内部提供导航方法navigate，用户点击之后实际调用的是该方法，此方法最终会修改响应式的路由变量，然后重新去routes匹配出数组结果，router-view则根据其所处深度deep在匹配数组结果中找到对应的路由并获取组件，最终将其渲染出来。
+
+### 知其所以然
+
++   RouterLink定义
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185")
+
++   RouterView定义
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44")
+
+## 43-Vue-router 除了 router-link 怎么实现跳转
+
+### 分析
+
+vue-router导航有两种方式：`声明式导航`和`编程方式导航`
+
+* * *
+
+### 体验
+
+声明式导航
+
+```ini
+<router-link to="/about">Go to About</router-link>
+```
+
+编程导航
+
+```php
+// literal string path
+router.push('/users/eduardo')
+​
+// object with path
+router.push({ path: '/users/eduardo' })
+​
+// named route with params to let the router build the url
+router.push({ name: 'user', params: { username: 'eduardo' } })
+```
+
+* * *
+
+### 思路
+
++   两种方式
++   分别阐述使用方式
++   区别和选择
++   原理说明
+
+* * *
+
+### 回答范例
+
++   vue-router导航有两种方式：`声明式导航`和`编程方式导航`
++   声明式导航方式使用`router-link`组件，添加to属性导航；编程方式导航更加灵活，可传递调用router.push()，并传递path字符串或者RouteLocationRaw对象，指定path、name、params等信息
++   如果页面中简单表示跳转链接，使用router-link最快捷，会渲染一个a标签；如果页面是个复杂的内容，比如商品信息，可以添加点击事件，使用编程式导航
++   实际上内部两者调用的导航函数是一样的
+
+* * *
+
+### 知其所以然
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L240-L241 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L240-L241")
+
+routerlink点击跳转，调用的是navigate方法
+
+![image-20220626173129790](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/015d1efe389c4f4391622876fd880b71~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+navigate内部依然调用的push
+
+## 47-在什么场景下会用到嵌套路由？
+
+### 分析
+
+应用的有些界面是由多层级组件组合而来的，这种情况下，url各部分通常对应某个嵌套的组件，vue-router中就可以使用嵌套路由表示这种关系：[router.vuejs.org/guide/essen…](https://router.vuejs.org/guide/essentials/nested-routes.html "https://router.vuejs.org/guide/essentials/nested-routes.html")
+
+![image-20220628071220515](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3da6683da0204acda653d94fdedfd9c3~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+### 体验
+
+定义嵌套路由，对应上图嵌套关系：
+
+```sql
+const routes = [
+  {
+    path: '/user/:id',
+    component: User,
+    children: [
+      {
+        // UserProfile 会被渲染在 User 组件中的 <router-view> 里
+        path: 'profile',
+        component: UserProfile,
+      },
+      {
+        // UserPosts 会被渲染在 User 组件中的 <router-view> 里
+        path: 'posts',
+        component: UserPosts,
+      },
+    ],
+  },
+]
+```
+
+* * *
+
+### 思路
+
++   概念和使用场景
++   使用方式
++   实现原理
+
+* * *
+
+### 回答范例
+
++   平时开发中，应用的有些界面是由多层级组件组合而来的，这种情况下，url各部分通常对应某个嵌套的组件，vue-router中可以使用嵌套路由表示这种关系
++   表现形式是在两个路由间切换时，它们有公用的视图内容。此时通常提取一个父组件，内部放上，从而形成物理上的嵌套，和逻辑上的嵌套对应起来
++   定义嵌套路由时使用`children`属性组织嵌套关系
++   原理上是在router-view组件内部判断当前router-view处于嵌套层级的深度，讲这个深度作为匹配组件数组matched的索引，获取对应渲染组件，渲染之
+
+* * *
+
+### 知其所以然
+
+router-view获取自己所在的深度：默认0，加1之后传给后代，同时根据深度获取匹配路由。
+
+![image-20220628074750827](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/edc6b0d7873640d5aa2cb73a9006a971~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+## 51-vue-router中如何保护路由？
+
+### 分析
+
+路由保护在应用开发过程中非常重要，几乎每个应用都要做各种路由权限管理，因此相当考察使用者基本功。
+
+* * *
+
+### 体验
+
+全局守卫：
+
+```javascript
+const router = createRouter({ ... })
+​
+router.beforeEach((to, from) => {
+  // ...
+  // 返回 false 以取消导航
+  return false
+})
+```
+
+路由独享守卫：
+
+```javascript
+const routes = [
+  {
+    path: '/users/:id',
+    component: UserDetails,
+    beforeEnter: (to, from) => {
+      // reject the navigation
+      return false
+    },
+  },
+]
+```
+
+组件内的守卫：
+
+```javascript
+const UserDetails = {
+  template: `...`,
+  beforeRouteEnter(to, from) {
+    // 在渲染该组件的对应路由被验证前调用
+  },
+  beforeRouteUpdate(to, from) {
+    // 在当前路由改变，但是该组件被复用时调用
+  },
+  beforeRouteLeave(to, from) {
+    // 在导航离开渲染该组件的对应路由时调用
+  },
+}
+```
+
+* * *
+
+### 思路
+
++   路由守卫的概念
++   路由守卫的使用
++   路由守卫的原理
+
+* * *
+
++   vue-router中保护路由的方法叫做路由守卫，主要用来通过跳转或取消的方式守卫导航。
++   路由守卫有三个级别：全局，路由独享，组件级。影响范围由大到小，例如全局的router.beforeEach()，可以注册一个全局前置守卫，每次路由导航都会经过这个守卫，因此在其内部可以加入控制逻辑决定用户是否可以导航到目标路由；在路由注册的时候可以加入单路由独享的守卫，例如beforeEnter，守卫只在进入路由时触发，因此只会影响这个路由，控制更精确；我们还可以为路由组件添加守卫配置，例如beforeRouteEnter，会在渲染该组件的对应路由被验证前调用，控制的范围更精确了。
++   用户的任何导航行为都会走navigate方法，内部有个guards队列按顺序执行用户注册的守卫钩子函数，如果没有通过验证逻辑则会取消原有的导航。
+
+* * *
+
+### 知其所以然
+
+runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函数，通过则继续下一个级别的守卫，不通过进入catch流程取消原本导航。
+
+![image-20220630193341500](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a70d8c83e3254b39800e9d646731039d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/packages/router/src/router.ts#L808-L809 "https://github1s.com/vuejs/router/blob/HEAD/packages/router/src/router.ts#L808-L809")
+
+
+
+
+## Vuex
+
+## 21 - 简单说一说你对vuex理解？
+
+![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cb128aee87e5424a83511deee98f1702~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+### 思路
+
+1.  给定义
+2.  必要性阐述
+3.  何时使用
+4.  拓展：一些个人思考、实践经验等
+
+* * *
+
+### 范例
+
+1.  Vuex 是一个专为 Vue.js 应用开发的**状态管理模式 + 库**。它采用集中式存储，管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化。
+2.  我们期待以一种简单的“单向数据流”的方式管理应用，即状态 -> 视图 -> 操作单向循环的方式。但当我们的应用遇到**多个组件共享状态**时，比如：多个视图依赖于同一状态或者来自不同视图的行为需要变更同一状态。此时单向数据流的简洁性很容易被破坏。因此，我们有必要把组件的共享状态抽取出来，以一个全局单例模式管理。通过定义和隔离状态管理中的各种概念并通过强制规则维持视图和状态间的独立性，我们的代码将会变得更结构化且易维护。这是vuex存在的必要性，它和react生态中的redux之类是一个概念。
+3.  Vuex 解决状态管理的同时引入了不少概念：例如state、mutation、action等，是否需要引入还需要根据应用的实际情况衡量一下：如果不打算开发大型单页应用，使用 Vuex 反而是繁琐冗余的，一个简单的 [store 模式](https://v3.cn.vuejs.org/guide/state-management.html#%E4%BB%8E%E9%9B%B6%E6%89%93%E9%80%A0%E7%AE%80%E5%8D%95%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86 "https://v3.cn.vuejs.org/guide/state-management.html#%E4%BB%8E%E9%9B%B6%E6%89%93%E9%80%A0%E7%AE%80%E5%8D%95%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86")就足够了。但是，如果要构建一个中大型单页应用，Vuex 基本是标配。
+4.  我在使用vuex过程中感受到一些blabla
+
+* * *
+
+### 可能的追问
+
+1.  vuex有什么缺点吗？你在开发过程中有遇到什么问题吗？
+2.  action和mutation的区别是什么？为什么要区分它们？
+
+* * *
+
+## 27-你有使用过vuex的module吗？
+
+这是基本应用能力考察，稍微上点规模的项目都要拆分vuex模块便于维护。
+
+* * *
+
+### 体验
+
+[vuex.vuejs.org/zh/guide/mo…](https://vuex.vuejs.org/zh/guide/modules.html "https://vuex.vuejs.org/zh/guide/modules.html")
+
+```php
+const moduleA = {
+  state: () => ({ ... }),
+  mutations: { ... },
+  actions: { ... },
+  getters: { ... }
+}
+const moduleB = {
+  state: () => ({ ... }),
+  mutations: { ... },
+  actions: { ... }
+}
+const store = createStore({
+  modules: {
+    a: moduleA,
+    b: moduleB
+  }
+})
+store.state.a // -> moduleA 的状态
+store.state.b // -> moduleB 的状态
+store.getters.c // -> moduleA里的getters
+store.commit('d') // -> 能同时触发子模块中同名mutation
+store.dispatch('e') // -> 能同时触发子模块中同名action
+```
+
+* * *
+
+### 思路
+
+0.  概念和必要性
+1.  怎么拆
+2.  使用细节
+3.  优缺点
+
+* * *
+
+### 范例
+
+0.  用过module，项目规模变大之后，单独一个store对象会过于庞大臃肿，通过模块方式可以拆分开来便于维护
+1.  可以按之前规则单独编写子模块代码，然后在主文件中通过`modules`选项组织起来：`createStore({modules:{...}})`
+2.  不过使用时要注意访问子模块状态时需要加上注册时模块名：`store.state.a.xxx`，但同时`getters`、`mutations`和`actions`又在全局空间中，使用方式和之前一样。如果要做到完全拆分，需要在子模块加上`namespace`选项，此时再访问它们就要加上命名空间前缀。
+3.  很显然，模块的方式可以拆分代码，但是缺点也很明显，就是使用起来比较繁琐复杂，容易出错。而且类型系统支持很差，不能给我们带来帮助。pinia显然在这方面有了很大改进，是时候切换过去了。
+
+* * *
+
+### 可能的追问
+
+0.  用过pinia吗？都做了哪些改善？
+
+* * *
+
 ## 38-如果让你从零开始写一个vuex，说说你的思路
 
 ### 思路分析
@@ -2993,307 +3434,6 @@ subscribe方式：
   })
 ```
 
-## 42-router-link和router-view是如何起作用的？
-
-### 分析
-
-vue-router中两个重要组件`router-link`和`router-view`，分别起到导航作用和内容渲染作用，但是回答如何生效还真有一定难度哪！
-
-### 思路
-
-+   两者作用
-+   阐述使用方式
-+   原理说明
-
-### 回答范例
-
-+   vue-router中两个重要组件`router-link`和`router-view`，分别起到路由导航作用和组件内容渲染作用
-+   使用中router-link默认生成一个a标签，设置to属性定义跳转path。实际上也可以通过custom和插槽自定义最终的展现形式。router-view是要显示组件的占位组件，可以嵌套，对应路由配置的嵌套关系，配合name可以显示具名组件，起到更强的布局作用。
-+   router-link组件内部根据custom属性判断如何渲染最终生成节点，内部提供导航方法navigate，用户点击之后实际调用的是该方法，此方法最终会修改响应式的路由变量，然后重新去routes匹配出数组结果，router-view则根据其所处深度deep在匹配数组结果中找到对应的路由并获取组件，最终将其渲染出来。
-
-### 知其所以然
-
-+   RouterLink定义
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185")
-
-+   RouterView定义
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44")
-
-## 43-Vue-router 除了 router-link 怎么实现跳转
-
-### 分析
-
-vue-router导航有两种方式：`声明式导航`和`编程方式导航`
-
-* * *
-
-### 体验
-
-声明式导航
-
-```ini
-<router-link to="/about">Go to About</router-link>
-```
-
-编程导航
-
-```php
-// literal string path
-router.push('/users/eduardo')
-​
-// object with path
-router.push({ path: '/users/eduardo' })
-​
-// named route with params to let the router build the url
-router.push({ name: 'user', params: { username: 'eduardo' } })
-```
-
-* * *
-
-### 思路
-
-+   两种方式
-+   分别阐述使用方式
-+   区别和选择
-+   原理说明
-
-* * *
-
-### 回答范例
-
-+   vue-router导航有两种方式：`声明式导航`和`编程方式导航`
-+   声明式导航方式使用`router-link`组件，添加to属性导航；编程方式导航更加灵活，可传递调用router.push()，并传递path字符串或者RouteLocationRaw对象，指定path、name、params等信息
-+   如果页面中简单表示跳转链接，使用router-link最快捷，会渲染一个a标签；如果页面是个复杂的内容，比如商品信息，可以添加点击事件，使用编程式导航
-+   实际上内部两者调用的导航函数是一样的
-
-* * *
-
-### 知其所以然
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L240-L241 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L240-L241")
-
-routerlink点击跳转，调用的是navigate方法
-
-![image-20220626173129790](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/015d1efe389c4f4391622876fd880b71~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-navigate内部依然调用的push
-
-## 44-Vue3.0 性能提升体现在哪些方面？
-
-### 分析
-
-vue3在设计时有几个目标：更小、更快、更友好，这些多数适合性能相关，因此可以围绕介绍。
-
-* * *
-
-### 思路
-
-+   总述和性能相关的新特性
-+   逐个说细节
-+   能说点原理更佳
-
-* * *
-
-### 回答范例
-
-+   我分别从代码、编译、打包三方面介绍vue3性能方面的提升
-+   代码层面性能优化主要体现在全新响应式API，基于Proxy实现，初始化时间和内存占用均大幅改进；
-+   编译层面做了更多编译优化处理，比如静态提升、动态标记、事件缓存，区块等，可以有效跳过大量diff过程；
-+   打包时更好的支持tree-shaking，因此整体体积更小，加载更快
-
-* * *
-
-### 体验
-
-通过playground体验编译优化：[sfc.vuejs.org](https://sfc.vuejs.org/ "https://sfc.vuejs.org")
-
-* * *
-
-### 知其所以然
-
-为什么基于Proxy更快了：初始化时懒处理，用户访问才做拦截处理，初始化更快：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/baseHandlers.ts#L136-L137 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/baseHandlers.ts#L136-L137")
-
-轻量的依赖关系保存：利用WeakMap、Map和Set保存响应式数据和副作用之间的依赖关系
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20")
-
-## 45-Vue3.0里为什么要用 Proxy 替代 defineProperty ？
-
-### 分析
-
-Vue3中最重大的更新之一就是响应式模块`reactivity`的重写。主要的修改就是`Proxy`替换`defineProperty`实现响应式。
-
-此变化主要是从性能方面考量。
-
-### 思路
-
-+   属性拦截的几种方式
-+   defineProperty的问题
-+   Proxy的优点
-+   其他考量
-
-### 回答范例
-
-+   JS中做属性拦截常见的方式有三：: [defineProperty](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty")，[getter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get")/[setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set") 和[Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy").
-+   Vue2中使用`defineProperty`的原因是，2013年时只能用这种方式。由于该API存在一些局限性，比如对于数组的拦截有问题，为此vue需要专门为数组响应式做一套实现。另外不能拦截那些新增、删除属性；最后`defineProperty`方案在初始化时需要深度递归遍历待处理的对象才能对它进行完全拦截，明显增加了初始化的时间。
-+   以上两点在Proxy出现之后迎刃而解，不仅可以对数组实现拦截，还能对Map、Set实现拦截；另外Proxy的拦截也是懒处理行为，如果用户没有访问嵌套对象，那么也不会实施拦截，这就让初始化的速度和内存占用都改善了。
-+   当然Proxy是有兼容性问题的，IE完全不支持，所以如果需要IE兼容就不合适
-
-### 知其所以然
-
-Proxy属性拦截的原理：利用get、set、deleteProperty这三个trap实现拦截
-
-```javascript
-function reactive(obj) {
-    return new Proxy(obj, {
-        get(target, key) {},
-        set(target, key, val) {},
-        deleteProperty(target, key){}
-    })
-}
-```
-
-Object.defineProperty属性拦截原理：利用get、set这两个trap实现拦截
-
-```vbnet
-function defineReactive(obj, key, val) {
-    Object.defineReactive(obj, key, {
-        get(key) {},
-        set(key, val) {}
-    })
-}
-```
-
-很容易看出两者的区别！
-
-* * *
-
-## 46-History模式和Hash模式有何区别？
-
-### 分析
-
-vue-router有3个模式，其中两个更为常用，那便是history和hash。
-
-两者差别主要在显示形式和部署上。
-
-* * *
-
-### 体验
-
-vue-router4.x中设置模式已经变化：
-
-```bash
-const router = createRouter({
-  history: createWebHashHistory(), // hash模式
-  history: createWebHistory(),     // history模式
-})
-```
-
-用起来一模一样
-
-```ini
-<router-link to="/about">Go to About</router-link>
-```
-
-区别只在url形式
-
-```ruby
-// hash
-// 浏览器里的形态：http://xx.com/#/about
-// history
-// 浏览器里的形态：http://xx.com/about
-```
-
-### 思路
-
-+   区别
-+   详细阐述
-+   实现
-
-* * *
-
-### 回答范例
-
-+   vue-router有3个模式，其中history和hash更为常用。两者差别主要在显示形式、seo和部署上。
-+   hash模式在地址栏显示的时候是已哈希的形式：#/xxx，这种方式使用和部署简单，但是不会被搜索引擎处理，seo有问题；history模式则建议用在大部分web项目上，但是它要求应用在部署时做特殊配置，服务器需要做回退处理，否则会出现刷新页面404的问题。
-+   底层实现上其实hash是一种特殊的history实现。
-
-* * *
-
-### 知其所以然
-
-hash是一种特殊的history实现：
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32 "https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32")
-
-* * *
-
-## 47-在什么场景下会用到嵌套路由？
-
-### 分析
-
-应用的有些界面是由多层级组件组合而来的，这种情况下，url各部分通常对应某个嵌套的组件，vue-router中就可以使用嵌套路由表示这种关系：[router.vuejs.org/guide/essen…](https://router.vuejs.org/guide/essentials/nested-routes.html "https://router.vuejs.org/guide/essentials/nested-routes.html")
-
-![image-20220628071220515](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3da6683da0204acda653d94fdedfd9c3~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-### 体验
-
-定义嵌套路由，对应上图嵌套关系：
-
-```sql
-const routes = [
-  {
-    path: '/user/:id',
-    component: User,
-    children: [
-      {
-        // UserProfile 会被渲染在 User 组件中的 <router-view> 里
-        path: 'profile',
-        component: UserProfile,
-      },
-      {
-        // UserPosts 会被渲染在 User 组件中的 <router-view> 里
-        path: 'posts',
-        component: UserPosts,
-      },
-    ],
-  },
-]
-```
-
-* * *
-
-### 思路
-
-+   概念和使用场景
-+   使用方式
-+   实现原理
-
-* * *
-
-### 回答范例
-
-+   平时开发中，应用的有些界面是由多层级组件组合而来的，这种情况下，url各部分通常对应某个嵌套的组件，vue-router中可以使用嵌套路由表示这种关系
-+   表现形式是在两个路由间切换时，它们有公用的视图内容。此时通常提取一个父组件，内部放上，从而形成物理上的嵌套，和逻辑上的嵌套对应起来
-+   定义嵌套路由时使用`children`属性组织嵌套关系
-+   原理上是在router-view组件内部判断当前router-view处于嵌套层级的深度，讲这个深度作为匹配组件数组matched的索引，获取对应渲染组件，渲染之
-
-* * *
-
-### 知其所以然
-
-router-view获取自己所在的深度：默认0，加1之后传给后代，同时根据深度获取匹配路由。
-
-![image-20220628074750827](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/edc6b0d7873640d5aa2cb73a9006a971~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
 ## 48-页面刷新后vuex的state数据丢失怎么解决？
 
 ### 分析
@@ -3420,138 +3560,5 @@ if (!isRoot && !hot) {
 > 源码地址：[github1s.com/vuejs/vuex/…](https://github1s.com/vuejs/vuex/blob/HEAD/src/store-util.js#L102-L115 "https://github1s.com/vuejs/vuex/blob/HEAD/src/store-util.js#L102-L115")
 
 * * *
-
-## 50-Composition API 与 Options API 有什么不同
-
-### 分析
-
-Vue3最重要更新之一就是Composition API，它具有一些列优点，其中不少是针对Options API暴露的一些问题量身打造。是Vue3推荐的写法，因此掌握好Composition API应用对掌握好Vue3至关重要。
-
-![image-20220629182639250](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8b7b4bfafa5c4507be726d273161c3c2~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-[vuejs.org/guide/extra…](https://vuejs.org/guide/extras/composition-api-faq.html "https://vuejs.org/guide/extras/composition-api-faq.html")
-
-* * *
-
-### 体验
-
-Composition API能更好的组织代码，下面这个代码用options api实现
-
-![image-20220629183203082](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a280d15533ad4481a6121064940eae1b~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-如果用composition api可以提取为useCount()，用于组合、复用
-
-![image-20220629184919471](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1aa01aeeff224815bef1356b773fae2d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-### 思路
-
-+   总述不同点
-+   composition api动机
-+   两者选择
-
-* * *
-
-### 回答范例
-
-+   `Composition API`是一组API，包括：Reactivity API、生命周期钩子、依赖注入，使用户可以通过导入函数方式编写vue组件。而`Options API`则通过声明组件选项的对象形式编写组件。
-+   `Composition API`最主要作用是能够简洁、高效复用逻辑。解决了过去`Options API`中`mixins`的各种缺点；另外`Composition API`具有更加敏捷的代码组织能力，很多用户喜欢`Options API`，认为所有东西都有固定位置的选项放置代码，但是单个组件增长过大之后这反而成为限制，一个逻辑关注点分散在组件各处，形成代码碎片，维护时需要反复横跳，`Composition API`则可以将它们有效组织在一起。最后`Composition API`拥有更好的类型推断，对ts支持更友好，`Options API`在设计之初并未考虑类型推断因素，虽然官方为此做了很多复杂的类型体操，确保用户可以在使用`Options API`时获得类型推断，然而还是没办法用在mixins和provide/inject上。
-+   Vue3首推`Composition API`，但是这会让我们在代码组织上多花点心思，因此在选择上，如果我们项目属于中低复杂度的场景，`Options API`仍是一个好选择。对于那些大型，高扩展，强维护的项目上，`Composition API`会获得更大收益。
-
-* * *
-
-### 可能的追问
-
-+   `Composition API`能否和`Options API`一起使用？
-
-* * *
-
-## 51-vue-router中如何保护路由？
-
-### 分析
-
-路由保护在应用开发过程中非常重要，几乎每个应用都要做各种路由权限管理，因此相当考察使用者基本功。
-
-* * *
-
-### 体验
-
-全局守卫：
-
-```javascript
-const router = createRouter({ ... })
-​
-router.beforeEach((to, from) => {
-  // ...
-  // 返回 false 以取消导航
-  return false
-})
-```
-
-路由独享守卫：
-
-```javascript
-const routes = [
-  {
-    path: '/users/:id',
-    component: UserDetails,
-    beforeEnter: (to, from) => {
-      // reject the navigation
-      return false
-    },
-  },
-]
-```
-
-组件内的守卫：
-
-```javascript
-const UserDetails = {
-  template: `...`,
-  beforeRouteEnter(to, from) {
-    // 在渲染该组件的对应路由被验证前调用
-  },
-  beforeRouteUpdate(to, from) {
-    // 在当前路由改变，但是该组件被复用时调用
-  },
-  beforeRouteLeave(to, from) {
-    // 在导航离开渲染该组件的对应路由时调用
-  },
-}
-```
-
-* * *
-
-### 思路
-
-+   路由守卫的概念
-+   路由守卫的使用
-+   路由守卫的原理
-
-* * *
-
-+   vue-router中保护路由的方法叫做路由守卫，主要用来通过跳转或取消的方式守卫导航。
-+   路由守卫有三个级别：全局，路由独享，组件级。影响范围由大到小，例如全局的router.beforeEach()，可以注册一个全局前置守卫，每次路由导航都会经过这个守卫，因此在其内部可以加入控制逻辑决定用户是否可以导航到目标路由；在路由注册的时候可以加入单路由独享的守卫，例如beforeEnter，守卫只在进入路由时触发，因此只会影响这个路由，控制更精确；我们还可以为路由组件添加守卫配置，例如beforeRouteEnter，会在渲染该组件的对应路由被验证前调用，控制的范围更精确了。
-+   用户的任何导航行为都会走navigate方法，内部有个guards队列按顺序执行用户注册的守卫钩子函数，如果没有通过验证逻辑则会取消原有的导航。
-
-* * *
-
-### 知其所以然
-
-runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函数，通过则继续下一个级别的守卫，不通过进入catch流程取消原本导航。
-
-![image-20220630193341500](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a70d8c83e3254b39800e9d646731039d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/packages/router/src/router.ts#L808-L809 "https://github1s.com/vuejs/router/blob/HEAD/packages/router/src/router.ts#L808-L809")
-
-
-## Vue2 API
-
-## Vue3 API
-
-## Vue Router
-
-## Vuex
 
 ## Pinia
