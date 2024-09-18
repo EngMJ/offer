@@ -92,16 +92,16 @@ export function genElement (el: ASTElement, state: CodegenState): string {
 
 * * *
 
-| 生命周期v2 | 生命周期v3 | 描述 | 
-| --- | --- | --- |
-| beforeCreate | beforeCreate | 组件实例被创建之初 |
-| created | created | 组件实例已经完全创建 |
-| beforeMount | beforeMount | 组件挂载之前 |
-| mounted | mounted | 组件挂载到实例上去之后 |
-| beforeUpdate | beforeUpdate | 组件数据发生变化，更新之前 |
-| updated | updated | 数据数据更新之后 |
-| beforeDestroy | **beforeUnmount** | 组件实例销毁之前 |
-| destroyed | **unmounted** | 组件实例销毁之后 |
+| 生命周期v2 | 生命周期v3 | 描述                              | 
+| --- | --- |---------------------------------|
+| beforeCreate | beforeCreate | 组件实例被创建之初                       |
+| created | created | 组件实例已经完全创建,各种数据可以使用，常用于异步数据获取   |
+| beforeMount | beforeMount | 组件挂载之前                          |
+| mounted | mounted | 组件挂载到实例后,dom已创建，可用于获取访问数据和dom元素 |
+| beforeUpdate | beforeUpdate | 组件数据发生变化更新之前,可用于获取更新前各种状态       |
+| updated | updated | 数据数据更新之后                        |
+| beforeDestroy | **beforeUnmount** | 组件实例销毁之前,可用于一些定时器或订阅的取消         |
+| destroyed | **unmounted** | 组件实例销毁之后,可用于一些定时器或订阅的取消                       |
 
 * * *
 
@@ -116,32 +116,21 @@ export function genElement (el: ASTElement, state: CodegenState): string {
 
 * * *
 
-3.[`Vue`生命周期流程图](https://gitee.com/57code/picgo/raw/master/lifecycle.cec11dcc.png "https://gitee.com/57code/picgo/raw/master/lifecycle.cec11dcc.png")：
+3.[`Vue`生命周期流程图](https://cn.vuejs.org/guide/essentials/lifecycle.html)：
 
-![Component lifecycle diagram](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/779f7121823d4118a5b6ad2aa4007c28~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+![Component lifecycle diagram](https://cn.vuejs.org/assets/lifecycle_zh-CN.W0MNXI0C.png)
 
 * * *
 
-4.结合实践：
+1. 数据请求在created和mouted的区别
 
-**beforeCreate**：通常用于插件开发中执行一些初始化任务
+    created是在组件实例一旦创建完成的时候立刻调用，这时候页面dom节点并未生成；mounted是在页面dom节点渲染完毕之后就立刻执行的。触发时机上created是比mounted要更早的，两者的相同点：都能拿到实例对象的属性和方法。 讨论这个问题本质就是触发的时机，放在mounted中的请求有可能导致页面闪动（因为此时页面dom结构已经生成），但如果在页面加载前完成请求，则不会出现此情况。建议对页面内容的改动放在created生命周期当中.
 
-**created**：组件初始化完毕，可以访问各种数据，获取接口数据等
+2. setup和created谁先执行？
+    Vue3中组合式 API 中的 setup() 钩子会在所有选项式 API 钩子之前调用，beforeCreate() 也不例外.
 
-**mounted**：dom已创建，可用于获取访问数据和dom元素；访问子组件等。
-
-**beforeUpdate**：此时`view`层还未更新，可用于获取更新前各种状态
-
-**updated**：完成`view`层的更新，更新后，所有状态已是最新
-
-**beforeunmount**：实例被销毁前调用，可用于一些定时器或订阅的取消
-
-**unmounted**：销毁一个实例。可清理它与其它实例的连接，解绑它的全部指令及事件监听器
-
-### 可能的追问
-
-1.  setup和created谁先执行？
-2.  setup中为什么没有beforeCreate和created？
+3. setup中为什么没有beforeCreate和created？
+   setup 函数最先执行,本身已经承担了初始化阶段的职责，因此 beforeCreate 和 created 钩子不再单独存在。
 
 * * *
 
