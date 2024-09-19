@@ -132,116 +132,158 @@ Vue生命周期总共可以分为8个阶段：**创建前后, 载入前后, 更�
 
 * * *
 
-## 04-能说一说双向绑定使用和原理吗？
+## 4. 能说一说双向绑定使用和原理吗？
 
-### 题目分析：
+**Vue2 双向绑定**
 
-双向绑定是`vue`的特色之一，开发中必然会用到的知识点，然而此题还问了实现原理，升级为深度考查。
+**使用方式:**
 
-* * *
+```html
+// 默认使用
+<input v-model="message">
 
-### 思路分析：
+// 自定义使用
+Vue.component('my-checkbox', {
+    model: {
+        prop: 'checked',  // 将 ':value' 改为 ':checked'
+        event: 'change'   // 将 '@input' 改为 '@change'
+    },
+    props: {
+        checked: Boolean
+    },
+    template: `
+        <input type="checkbox" :checked="checked" @change="$emit('change', $event.target.checked)">
+    `
+});
+    
+    // 使用
+ <my-checkbox v-model="isChecked"></my-checkbox>
+    
+ new Vue({
+     el: '#app',
+     data: {
+         isChecked: false
+     }
+});
 
-1.  给出双绑定义
-2.  双绑带来的好处
-3.  在哪使用双绑
-4.  使用方式、使用细节、vue3变化
-5.  原理实现描述
-
-* * *
-
-### 回答范例：
-
-1.  vue中双向绑定是一个指令`v-model`，可以绑定一个响应式数据到视图，同时视图中变化能改变该值。
-2.  `v-model`是语法糖，默认情况下相当于`:value`和`@input`。使用`v-model`可以减少大量繁琐的事件处理代码，提高开发效率。
-3.  通常在表单项上使用`v-model`，还可以在自定义组件上使用，表示某个值的输入和输出控制。
-4.  通过`<input v-model="xxx">`的方式将xxx的值绑定到表单元素value上；对于checkbox，可以使用`true-value`和false-value指定特殊的值，对于radio可以使用value指定特殊的值；对于select可以通过options元素的value设置特殊的值；还可以结合.lazy,.number,.trim对v-mode的行为做进一步限定；`v-model`用在自定义组件上时又会有很大不同，vue3中它类似于`sync`修饰符，最终展开的结果是modelValue属性和update:modelValue事件；vue3中我们甚至可以用参数形式指定多个不同的绑定，例如v-model:foo和v-model:bar，非常强大！
-5.  `v-model`是一个指令，它的神奇魔法实际上是vue的编译器完成的。我做过测试，包含`v-model`的模板，转换为渲染函数之后，实际上还是是value属性的绑定以及input事件监听，事件回调函数中会做相应变量更新操作。编译器根据表单元素的不同会展开不同的DOM属性和事件对，比如text类型的input和textarea会展开为value和input事件；checkbox和radio类型的input会展开为checked和change事件；select用value作为属性，用change作为事件。
-
-* * *
-
-### 可能的追问：
-
-1.  `v-model`和`sync`修饰符有什么区别
-2.  自定义组件使用`v-model`如果想要改变事件名或者属性名应该怎么做
-
-* * *
-
-### 知其所以然：
-
-测试代码，[test.html](https://juejin.cn/post/test.html "./test.html")
-
-观察输出的渲染函数：
-
-```js
-// <input type="text" v-model="foo">
-_c('input', { 
-  directives: [{ name: "model", rawName: "v-model", value: (foo), expression: "foo" }], 
-  attrs: { "type": "text" }, 
-  domProps: { "value": (foo) }, 
-  on: { 
-    "input": function ($event) { 
-      if ($event.target.composing) return; 
-      foo = $event.target.value 
-    } 
-  } 
-})
 ```
+- `v-model`是语法糖，默认情况下相当于`:value`和`@input`。
 
-* * *
+**底层原理**
 
-```js
-// <input type="checkbox" v-model="bar">
-_c('input', { 
-  directives: [{ name: "model", rawName: "v-model", value: (bar), expression: "bar" }], 
-  attrs: { "type": "checkbox" }, 
-  domProps: { 
-    "checked": Array.isArray(bar) ? _i(bar, null) > -1 : (bar) 
-  }, 
-  on: { 
-    "change": function ($event) { 
-      var $$a = bar, $$el = $event.target, $$c = $$el.checked ? (true) : (false); 
-      if (Array.isArray($$a)) { 
-        var $$v = null, $$i = _i($$a, $$v); 
-        if ($$el.checked) { $$i < 0 && (bar = $$a.concat([$$v])) } 
-        else { 
-          $$i > -1 && (bar = $$a.slice(0, $$i).concat($$a.slice($$i + 1))) } 
-      } else { 
-        bar = $$c 
-      } 
-    } 
-  } 
-})
-```
+Vue2 中的双向绑定是基于 **Object.defineProperty** 实现的。Vue2 通过`递归遍历data对象`的每一个属性，利用 `Object.defineProperty` 把每个属性转化为 getter 和 setter，从而实现数据的响应式。
 
-* * *
+- **getter**：用于收集依赖（即订阅者，通常是依赖该数据的组件或视图）。
+- **setter**：在数据变更时触发更新，通知所有订阅者进行视图更新。
 
-```js
-// <select v-model="baz">
-//     <option value="vue">vue</option>
-//     <option value="react">react</option>
-// </select>
-_c('select', { 
-  directives: [{ name: "model", rawName: "v-model", value: (baz), expression: "baz" }], 
-  on: { 
-    "change": function ($event) { 
-      var $$selectedVal = Array.prototype.filter.call(
-        $event.target.options, 
-        function (o) { return o.selected }
-      ).map(
-        function (o) { 
-          var val = "_value" in o ? o._value : o.value; 
-          return val 
+Vue2 响应式的局限：
+- 由于 `Object.defineProperty` 只能劫持对象的属性，因此对于新增的属性或数组的变化（如新增元素）无法自动检测到，必须通过 `Vue.set()` 或 `this.$set()` 手动添加响应式。
+
+
+**双向绑定更新流程:**
+1. new Vue()首先执行初始化，对data执行响应化处理，这个过程发生Observe中
+2. 同时对模板执行编译，找到其中动态绑定的数据，从data中获取并初始化视图，这个过程发生在Compile中
+3. 同时定义⼀个更新函数和Watcher，将来对应数据变化时Watcher会调用更新函数
+4. 由于data的某个key在⼀个视图中可能出现多次，所以每个key都需要⼀个管家Dep来管理多个Watcher
+5. 将来data中数据⼀旦发生变化，会首先找到对应的Dep，通知所有Watcher执行更新函数
+
+![](https://static.vue-js.com/e5369850-3ac9-11eb-85f6-6fac77c0c9b3.png)
+
+2. **Vue3 双向绑定**
+
+**使用方式:**
+
+```html
+// 默认使用
+<input v-model="message">
+
+// 自定义使用
+<template>
+    <input type="checkbox" :checked="checked" @change="$emit('update:checked', $event.target.checked)" />
+</template>
+
+<script>
+    export default {
+        props: {
+            checked: Boolean  // v-model:checked的绑定值
+        },
+        emits: ['update:checked'] // v-model:checked的绑定值的自定义事件
+    }
+</script>
+
+// 使用方法
+// Vue3 中可以直接使用 v-model:propName 语法，比如 v-model:checked，这样绑定的就是 checked 属性，并触发 update:checked 事件。
+<my-checkbox v-model:checked="isChecked"></my-checkbox>
+
+<script>
+    import MyCheckbox from './MyCheckbox.vue'
+
+    export default {
+        components: { MyCheckbox },
+        data() {
+            return {
+                isChecked: false
+            }
         }
-      ); 
-      baz = $event.target.multiple ? $$selectedVal : $$selectedVal[0] 
-    } 
-  } 
-}, [
-  _c('option', { attrs: { "value": "vue" } }, [_v("vue")]), _v(" "), 
-  _c('option', { attrs: { "value": "react" } }, [_v("react")])
-])
+    }
+</script>
+
+// 使用defineModel
+<!-- Child.vue -->
+<script setup>
+    // model代表父组件传入属性countModel
+    const model = defineModel()
+    // model.value可以直接操作父组件属性countModel
+    function update() {
+        model.value++
+    }
+</script>
+
+<template>
+    <div>Parent bound v-model is: {{ model }}</div>
+    <button @click="update">Increment</button>
+</template>
+
+<!-- Parent.vue -->
+<Child v-model="countModel" />
+
 ```
+- `v-model`是语法糖，默认情况下相当于`:modelValue`和`@update:modelValue`。
+
+**底层原理**
+
+Vue3 的响应式系统是基于 **Proxy** 实现的。与 Vue2 不同，Vue3 不再需要递归地遍历对象的每个属性，而是`通过 Proxy 对整个data对象进行拦截`，这样可以实现对对象新增属性和数组变化的自动响应式支持。
+
+- **Proxy** 拦截对对象的访问（如读取、修改、删除等），并相应地处理依赖收集和更新。
+- 相比于 Vue2 的 `Object.defineProperty`，`Proxy` 提供了更强大的功能，可以直接监听对象的结构变化（如新增属性或删除属性），从而更高效地实现双向绑定和响应式系统。
+
+
+**`v-model`和`sync`修饰符有什么区别:**
+1. 绑定的属性
+- `v-model` 默认绑定的是 `value` 属性（Vue2）或 `modelValue` 属性（Vue3），并监听 `input` 事件或 `update:modelValue` 事件。
+- `sync` 修饰符可以绑定任何属性，`prop` 名可以是任意的，不限于 `value` 或 `modelValue`。
+
+```js
+    // vue2 sync修饰符的使用方法:
+    // 不使用修饰符的原版
+    <text-document
+        v-bind:title="doc.title"
+        v-on:update:title="doc.title = $event"
+    ></text-document>
+    // 使用sync修饰符
+    <text-document v-bind:title.sync="doc.title"></text-document>
+```
+
+2. 绑定的事件
+- `v-model` 默认监听 `input` 事件（Vue2）或 `update:modelValue` 事件（Vue3）。
+- `sync` 修饰符会监听 `update:propName` 事件，`propName` 是自定义的属性名。
+
+3. 使用场景
+- `v-model` 适用于单一的双向绑定，通常用于输入框等需要绑定 `value` 的组件。
+- `sync` 适用于对多个 `prop` 进行双向绑定，特别是需要同时绑定多个属性时。
+
+4. Vue3 中 `sync` 的变化
+- 在 Vue3 中，`sync` 修饰符已被移除，但可以通过手动绑定 `update:propName` 的方式来实现类似的功能。
 
 * * *
 
