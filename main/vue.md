@@ -134,7 +134,7 @@ Vue生命周期总共可以分为8个阶段：**创建前后, 载入前后, 更�
 
 ## 4. 能说一说双向绑定使用和原理吗？
 
-**Vue2 双向绑定**
+### **1. Vue2 双向绑定**
 
 **使用方式:**
 
@@ -189,7 +189,7 @@ Vue2 响应式的局限：
 
 ![](https://static.vue-js.com/e5369850-3ac9-11eb-85f6-6fac77c0c9b3.png)
 
-2. **Vue3 双向绑定**
+### 2. **Vue3 双向绑定**
 
 **使用方式:**
 
@@ -258,7 +258,7 @@ Vue3 的响应式系统是基于 **Proxy** 实现的。与 Vue2 不同，Vue3 �
 - 相比于 Vue2 的 `Object.defineProperty`，`Proxy` 提供了更强大的功能，可以直接监听对象的结构变化（如新增属性或删除属性），从而更高效地实现双向绑定和响应式系统。
 
 
-**`v-model`和`sync`修饰符有什么区别:**
+### **`v-model`和`sync`修饰符有什么区别:**
 1. 绑定的属性
 - `v-model` 默认绑定的是 `value` 属性（Vue2）或 `modelValue` 属性（Vue3），并监听 `input` 事件或 `update:modelValue` 事件。
 - `sync` 修饰符可以绑定任何属性，`prop` 名可以是任意的，不限于 `value` 或 `modelValue`。
