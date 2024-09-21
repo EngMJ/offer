@@ -1,10 +1,5 @@
 # API参考
 
----
-title: API
-type: api
----
-
 ## 全局配置
 
 `Vue.config` 是一个对象，包含 Vue 的全局配置。可以在启动应用之前修改下列 property：
@@ -2755,7 +2750,7 @@ type: api
 
 如果你感觉已经掌握了这些知识，我们推荐你再回来把完整的组件指南，包括侧边栏中组件深入章节的所有页面读完。
 
-## 传入一个对象的所有 property
+### 传入一个对象的所有 property
 
 如果你想要将一个对象的所有 property 都作为 prop 传入，你可以使用不带参数的 `v-bind` (取代 `v-bind:prop-name`)。例如，对于一个给定的对象 `post`：
 
