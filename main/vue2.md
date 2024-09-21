@@ -30,7 +30,7 @@
 
 如果你感觉已经掌握了这些知识，我们推荐你再回来把完整的组件指南，包括侧边栏中组件深入章节的所有页面读完。
 
-### 传入一个对象的所有 property
+## 传入一个对象的所有 property
 
 如果你想要将一个对象的所有 property 都作为 prop 传入，你可以使用不带参数的 `v-bind` (取代 `v-bind:prop-name`)。例如，对于一个给定的对象 `post`：
 
@@ -76,7 +76,7 @@ const AsyncComponent = () => ({
 })
 ```
 
-### inheritAttrs
+## inheritAttrs
 `inheritAttrs` 用于控制子组件根元素是否自动继承不被显式声明的特性属性（HTML 特性或 `v-bind` 绑定）。
 默认情况下，子组件会继承父组件传递的所有属性，并应用到根元素上，而通过 `inheritAttrs: false` 可以阻止这种行为。
 当你不希望父组件传递的属性直接绑定到子组件的根元素时，可以使用 `inheritAttrs: false`，然后通过 `$attrs` 手动将这些属性应用到某些具体元素上。
@@ -116,7 +116,7 @@ components: {
 
 ```
 
-### 内联模板 inline-template
+## 内联模板 inline-template
 
 内联模板需要定义在 Vue 所属的 DOM 元素内.
 
