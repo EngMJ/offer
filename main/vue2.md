@@ -103,3 +103,69 @@ export default {
 1. **防止不必要的属性传递**：当不希望父组件的所有属性自动传递给子组件的根元素时，使用 `inheritAttrs: false`，避免属性污染。
 2. **多根元素组件**：如果一个组件有多个根元素，需要手动分配属性时会非常有用。
 3. 注意 inheritAttrs: false 选项**不会影响 style 和 class 的绑定**。
+
+### 组件之间的循环引用
+
+```js
+
+// A组件已经被B组件所引用,A组件直接注册循环组件B会报错,要使用异步组件进行注册
+// comA
+components: {
+    TreeFolderContents: () => import('comB')
+}
+
+```
+
+### 内联模板 inline-template
+
+内联模板需要定义在 Vue 所属的 DOM 元素内.
+
+```js
+// 不使用组件自身定义的内容, 直接使用 包裹的部分内容进行渲染显示
+<my-component inline-template>
+  <div>
+    <p>These are compiled as the component's own template.</p>
+    <p>Not parent's transclusion content.</p>
+  </div>
+</my-component>
+
+```
+
+### X-Template
+
+x-template 需要定义在 Vue 所属的 DOM 元素外。
+
+```js
+
+<!-- 定义模板 -->
+// <script type="text/x-template">：这段代码在 HTML 中定义了一个模板，id 用于唯一标识这个模板。
+<script type="text/x-template" id="my-template">
+  <div>
+    <h1>{{ title }}</h1>
+    <p>{{ message }}</p>
+  </div>
+</script>
+
+<!-- Vue 实例 -->
+<div id="app">
+  <my-component title="Hello Vue"></my-component>
+</div>
+
+<script>
+  Vue.component('my-component', {
+    template: '#my-template', // 在 JavaScript 中通过 Vue.component 注册一个组件，并使用 template: '#my-template' 引用之前定义的模板。
+    props: ['title'],
+    data() {
+      return {
+        message: 'This is a message from the component.'
+      };
+    }
+  });
+
+  new Vue({
+    el: '#app'
+  });
+</script>
+
+
+```
