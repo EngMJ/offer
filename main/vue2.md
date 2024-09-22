@@ -1210,16 +1210,30 @@
 
 - **详细**：
 
-改变纯文本插入分隔符。
+将插值表达式{{}}改变为自定义分隔符。
 
 - **示例**：
 
   ``` js
-  new Vue({
-    delimiters: ['${', '}']
-  })
-
-  // 分隔符变成了 ES6 模板字符串的风格
+  <div id="app">
+    <custom-component></custom-component>
+  </div>
+  
+  <script>
+    Vue.component('custom-component', {
+      template: `<div><% message %></div>`,
+      data() {
+        return {
+          message: 'Component with custom delimiters'
+        };
+      },
+      delimiters: ['<%', '%>']
+    });
+  
+    new Vue({
+      el: '#app'
+    });
+  </script>
   ```
 
 ### functional
@@ -1230,7 +1244,7 @@
 
   使组件无状态 (没有 `data`) 和无实例 (没有 `this` 上下文)。他们用一个简单的 `render` 函数返回虚拟节点使它们渲染的代价更小。
 
-- **参考**：[函数式组件](../guide/render-function.html#函数式组件)
+- **参考**：[函数式组件](https://v2.cn.vuejs.org/v2/guide/render-function.html#%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BB%84%E4%BB%B6)
 
 ### model
 
@@ -1290,6 +1304,8 @@
   默认情况下父作用域的不被认作 props 的 attribute 绑定 (attribute bindings) 将会“回退”且作为普通的 HTML attribute 应用在子组件的根元素上。当撰写包裹一个目标元素或另一个组件的组件时，这可能不会总是符合预期行为。通过设置 `inheritAttrs` 到 `false`，这些默认行为将会被去掉。而通过 (同样是 2.4 新增的) 实例 property `$attrs` 可以让这些 attribute 生效，且可以通过 `v-bind` 显性的绑定到非根元素上。
 
   注意：这个选项**不影响** `class` 和 `style` 绑定。
+
+- [inheritAttrs详解](#inheritAttrs详解)
 
 ### comments
 
@@ -1396,13 +1412,13 @@
 
 - **详细**：
 
-  用来访问被[插槽分发](../guide/components.html#通过插槽分发内容)的内容。每个[具名插槽](../guide/components-slots.html#具名插槽)有其相应的 property (例如：`v-slot:foo` 中的内容将会在 `vm.$slots.foo` 中被找到)。`default` property 包括了所有没有被包含在具名插槽中的节点，或 `v-slot:default` 的内容。
+  用来访问被插槽分发的内容。每个具名插槽有其相应的 property (例如：`v-slot:foo` 中的内容将会在 `vm.$slots.foo` 中被找到)。`default` property 包括了所有没有被包含在具名插槽中的节点，或 `v-slot:default` 的内容。
 
   请注意插槽**不是**响应性的。如果你需要一个组件可以在被传入的数据发生变化时重渲染，我们建议改变策略，依赖诸如 `props` 或 `data` 等响应性实例选项。
 
-  **注意：**`v-slot:foo` 在 2.6 以上的版本才支持。对于之前的版本，你可以使用[废弃了的语法](../guide/components-slots.html#废弃了的语法)。
+  **注意：**`v-slot:foo` 在 2.6 以上的版本才支持。对于之前的版本，你可以使用废弃了的语法slot-scope。
 
-  在使用[渲染函数](../guide/render-function.html)书写一个组件时，访问 `vm.$slots` 最有帮助。
+  在使用渲染函数render书写一个组件时，访问 `vm.$slots` 最有帮助。
 
 - **示例**：
 
@@ -1437,11 +1453,6 @@
   })
   ```
 
-- **参考**：
-    - [`<slot>` 组件](#slot)
-    - [通过插槽分发内容](../guide/components.html#通过插槽分发内容)
-    - [渲染函数 - 插槽](../guide/render-function.html#插槽)
-
 ### vm.$scopedSlots
 
 > 2.1.0 新增
@@ -1452,9 +1463,11 @@
 
 - **详细**：
 
-  用来访问[作用域插槽](../guide/components-slots.html#作用域插槽)。对于包括 `默认 slot` 在内的每一个插槽，该对象都包含一个返回相应 VNode 的函数。
+  用来访问作用域插槽值。
 
-`vm.$scopedSlots` 在使用[渲染函数](../guide/render-function.html)开发一个组件时特别有用。
+  对于包括 `默认 slot` 在内的每一个插槽，该对象都包含一个返回相应 VNode 的函数。
+
+  `vm.$scopedSlots` 在使用渲染函数开发一个组件时特别有用。
 
 **注意**：从 2.6.0 开始，这个 property 有两个变化：
 
@@ -1462,10 +1475,38 @@
 
 2. 所有的 `$slots` 现在都会作为函数暴露在 `$scopedSlots` 中。如果你在使用渲染函数，不论当前插槽是否带有作用域，我们都推荐始终通过 `$scopedSlots` 访问它们。这不仅仅使得在未来添加作用域变得简单，也可以让你最终轻松迁移到所有插槽都是函数的 Vue 3。
 
-- **参考**：
-    - [`<slot>` 组件](#slot)
-    - [作用域插槽](../guide/components-slots.html#作用域插槽)
-    - [渲染函数 - 插槽](../guide/render-function.html#插槽)
+- 示例: 
+```js
+  <template>
+    <div>
+      <child-component>
+        <!-- 插槽内容 -->
+        <template v-slot:default="slotProps">
+          <p>User name: {{ slotProps.user.name }}</p>
+          <p>User age: {{ slotProps.user.age }}</p>
+        </template>
+      </child-component>
+  
+      <!-- 使用 $scopedSlots 动态访问插槽内容 -->
+      <div>
+        <p v-if="$scopedSlots.default">
+          {{ $scopedSlots.default({ user: { name: 'Bob', age: 30 } }) }}
+        </p>
+      </div>
+    </div>
+  </template>
+  
+  <script>
+    import ChildComponent from './ChildComponent.vue';
+  
+    export default {
+      components: {
+        ChildComponent
+      }
+    };
+  </script>
+
+```
 
 ### vm.$refs
 
@@ -1477,9 +1518,7 @@
 
   一个对象，持有注册过 [`ref` attribute](#ref) 的所有 DOM 元素和组件实例。
 
-- **参考**：
-    - [子组件 ref](../guide/components-edge-cases.html#访问子组件实例或子元素)
-    - [特殊 attribute - ref](#ref)
+- **参考**： [ref用法](#ref)
 
 ### vm.$isServer
 
@@ -1491,8 +1530,6 @@
 
   当前 Vue 实例是否运行于服务器。
 
-- **参考**：[服务端渲染](../guide/ssr.html)
-
 ### vm.$attrs
 
 > 2.4.0 新增
@@ -1503,7 +1540,9 @@
 
 - **详细**：
 
-  包含了父作用域中不作为 prop 被识别 (且获取) 的 attribute 绑定 (`class` 和 `style` 除外)。当一个组件没有声明任何 prop 时，这里会包含所有父作用域的绑定 (`class` 和 `style` 除外)，并且可以通过 `v-bind="$attrs"` 传入内部组件——在创建高级别的组件时非常有用。
+  包含了父作用域中不作为 prop (自定义属性) 的 attribute 绑定 (`class` 和 `style` 除外)。
+  当一个组件没有声明任何 prop 时，这里会包含所有父作用域的绑定 (`class` 和 `style` 除外)，并且可以通过 `v-bind="$attrs"` 传入内部组件——在创建高级别的组件时非常有用。
+  配合inheritAttrs组件选项使用可以,控制组件的属性绑定逻辑.
 
 ### vm.$listeners
 
@@ -1516,6 +1555,40 @@
 - **详细**：
 
   包含了父作用域中的 (不含 `.native` 修饰器的) `v-on` 事件监听器。它可以通过 `v-on="$listeners"` 传入内部组件——在创建更高层次的组件时非常有用。
+
+- 示例:
+  ```vue
+  // 事件透传
+  <!-- 父组件 -->
+  <template>
+    <div>
+      <custom-button @click="handleClick"></custom-button>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    methods: {
+      handleClick() {
+        console.log('Button clicked');
+      }
+    }
+  };
+  </script>
+  
+  
+  <!-- 子组件 custom-button.vue -->
+  <template>
+    <button v-on="$listeners">Click Me</button> <!-- 将所有监听事件传递给 button -->
+  </template>
+  
+  <script>
+  export default {
+    // ...
+  };
+  </script>
+
+  ```
 
 ## 实例方法 / 数据
 
@@ -2808,7 +2881,7 @@ const AsyncComponent = () => ({
 })
 ```
 
-### inheritAttrs
+### inheritAttrs详解
 `inheritAttrs` 用于控制子组件根元素是否自动继承不被显式声明的特性属性（HTML 特性或 `v-bind` 绑定）。
 默认情况下，子组件会继承父组件传递的所有属性，并应用到根元素上，而通过 `inheritAttrs: false` 可以阻止这种行为。
 当你不希望父组件传递的属性直接绑定到子组件的根元素时，可以使用 `inheritAttrs: false`，然后通过 `$attrs` 手动将这些属性应用到某些具体元素上。
