@@ -183,35 +183,38 @@
 
   使用基础 Vue 构造器，创建一个“子类”。参数是一个包含组件选项的对象。
 
-  `data` 选项是特例，需要注意 - 在 `Vue.extend()` 中它必须是函数
+  `data` 选项是特例，需要注意 - 在 `Vue.extend()` 中它必须是函数,能够继承基础组件的内容.
+
+  合并逻辑与mixin一致,属性冲突能合并的合并,不能合并优先应用自身属性. 生命周期会优先执行mixin的内容,后续再执行组件内容.
 
   ``` html
-  <div id="mount-point"></div>
+  <div id="app"></div>
   ```
 
   ``` js
-  // 创建构造器
-  var Profile = Vue.extend({
-    template: '<p>{{firstName}} {{lastName}} aka {{alias}}</p>',
-    data: function () {
-      return {
-        firstName: 'Walter',
-        lastName: 'White',
-        alias: 'Heisenberg'
-      }
-    }
-  })
-  // 创建 Profile 实例，并挂载到一个元素上。
-  new Profile().$mount('#mount-point')
+  const BaseComponent = Vue.extend({
+   template: '<div>{{ message }}</div>',
+   data() {
+     return {
+       message: 'This is the base component'
+     };
+   }
+  });
+  
+  // 继承自 BaseComponent 的新组件
+  // 在上面的例子中，ExtendedComponent 继承了 BaseComponent，并覆盖了其 data 中的 message
+  const ExtendedComponent = BaseComponent.extend({
+   data() {
+    return {
+     message: 'This is the extended component'
+    };
+   }
+  });
+  
+  // 创建实例并挂载
+  new ExtendedComponent().$mount('#app');
+
   ```
-
-  结果如下：
-
-  ``` html
-  <p>Walter White aka Heisenberg</p>
-  ```
-
-- **参考**：[组件](../guide/components.html)
 
 ### Vue.nextTick( [callback, context] )
 
@@ -240,7 +243,6 @@
 
 > 2.1.0 起新增：如果没有提供回调且在支持 Promise 的环境中，则返回一个 Promise。请注意 Vue 不自带 Promise 的 polyfill，所以如果你的目标浏览器不原生支持 Promise (IE：你们都看我干嘛)，你得自己提供 polyfill。
 
-- **参考**：[异步更新队列](../guide/reactivity.html#异步更新队列)
 
 ### Vue.set( target, propertyName/index, value )
 
@@ -254,6 +256,10 @@
 - **用法**：
 
   向响应式对象中添加一个 property，并确保这个新 property 同样是响应式的，且触发视图更新。它必须用于向响应式对象上添加新 property，因为 Vue 无法探测普通的新增 property (比如 `this.myObject.newProperty = 'hi'`)
+
+  ```js
+    vue.set('已存在的data属性','键名', '值');
+  ```
 
   <p class="tip">注意对象不能是 Vue 实例，或者 Vue 实例的根数据对象。</p>
 
@@ -273,7 +279,6 @@
 
 <p class="tip">目标对象不能是一个 Vue 实例或 Vue 实例的根数据对象。</p>
 
-- **参考**：[深入响应式原理](../guide/reactivity.html)
 
 ### Vue.directive( id, [definition] )
 
@@ -287,15 +292,22 @@
 
   ``` js
   // 注册
+  // bingding对象包含以下属性
+  // name 指令名
+  // value 指令=后面的值, v-d=值
+  // expression 指令=后面的值的字符串名不是值, v-d=字符串名
+  // arg 指令的参数 v-d:参数
+  // modifiers 指令的修饰符 v-d.修饰符
   Vue.directive('my-directive', {
-    bind: function () {},
-    inserted: function () {},
-    update: function () {},
-    componentUpdated: function () {},
-    unbind: function () {}
+    bind: function (el,bingding,vnode) {}, // 当指令第一次绑定到元素时调用。可以在这里做一次性初始化工作
+    inserted: function (el,bingding,vnode) {}, // 当绑定的元素插入到 DOM 中时调用。
+    update: function (el,bingding,vnode) {},// 当组件的 VNode 更新时调用，但不保证子组件已经更新。
+    componentUpdated: function (el,bingding,vnode) {},// 当组件的 VNode 及其子 VNode 全部更新后调用。
+    unbind: function (el,bingding,vnode) {} // 当指令与元素解绑时调用。
   })
 
-  // 注册 (指令函数)
+  
+  // 简写注册 (指令函数)
   Vue.directive('my-directive', function () {
     // 这里将会被 `bind` 和 `update` 调用
   })
@@ -304,7 +316,7 @@
   var myDirective = Vue.directive('my-directive')
   ```
 
-- **参考**：[自定义指令](../guide/custom-directive.html)
+- **参考**：[自定义指令](https://v2.cn.vuejs.org/v2/guide/custom-directive.html)
 
 ### Vue.filter( id, [definition] )
 
@@ -319,14 +331,17 @@
   ``` js
   // 注册
   Vue.filter('my-filter', function (value) {
+    // ...
     // 返回处理后的值
+    return value;
   })
 
   // getter，返回已注册的过滤器
   var myFilter = Vue.filter('my-filter')
+  
+  // 使用
+  <input :value="data | filter"/>
   ```
-
-- **参考**：[过滤器](../guide/filters.html)
 
 ### Vue.component( id, [definition] )
 
@@ -349,7 +364,6 @@
   var MyComponent = Vue.component('my-component')
   ```
 
-- **参考**：[组件](../guide/components.html)
 
 ### Vue.use( plugin )
 
@@ -364,7 +378,6 @@
 
   当 install 方法被同一个插件多次调用，插件将只会被安装一次。
 
-- **参考**：[插件](../guide/plugins.html)
 
 ### Vue.mixin( mixin )
 
@@ -375,7 +388,30 @@
 
   全局注册一个混入，影响注册之后所有创建的每个 Vue 实例。插件作者可以使用混入，向组件注入自定义的行为。**不推荐在应用代码中使用**。
 
-- **参考**：[全局混入](../guide/mixins.html#全局混入)
+  属性冲突能合并的合并,不能合并优先应用自身属性. 生命周期会优先执行mixin的内容,后续再执行组件内容.
+
+  ```js
+  // 子组件mixins只影响自身
+  import sharedMixin from './sharedMixin.js';
+
+  export default {
+    mixins: [sharedMixin],
+    // 其他子组件逻辑
+  };
+  
+  // 全局mixin所有组件都会被影响
+  Vue.mixin({
+  created() {
+    // 所有组件的生命周期钩子
+  },
+  methods: {
+    sharedMethod() {
+      // 所有组件都可以调用这个方法
+    }
+  }
+  });
+
+  ```
 
 ### Vue.compile( template )
 
@@ -397,8 +433,6 @@
     staticRenderFns: res.staticRenderFns
   })
   ```
-
-- **参考**：[渲染函数](../guide/render-function.html)
 
 ### Vue.observable( object )
 
@@ -427,7 +461,6 @@
 
   <p class="tip">在 Vue 2.x 中，被传入的对象会直接被 `Vue.observable` 变更，所以如[这里展示的](../guide/instance.html#数据与方法)，它和被返回的对象是同一个对象。在 Vue 3.x 中，则会返回一个可响应的代理，而对源对象直接进行变更仍然是不可响应的。因此，为了向前兼容，我们推荐始终操作使用 `Vue.observable` 返回的对象，而不是传入源对象。</p>
 
-- **参考**：[深入响应式原理](../guide/reactivity.html)
 
 ### Vue.version
 
@@ -495,8 +528,6 @@
   data: vm => ({ a: vm.myProp })
   ```
 
-- **参考**：[深入响应式原理](../guide/reactivity.html)
-
 ### props
 
 - **类型**：`Array<string> | Object`
@@ -539,8 +570,6 @@
     }
   })
   ```
-
-- **参考**：[Props](../guide/components-props.html)
 
 ### propsData
 
@@ -612,7 +641,6 @@
   vm.aDouble // => 4
   ```
 
-- **参考**：[计算属性](../guide/computed.html)
 
 ### methods
 
@@ -639,7 +667,6 @@
   vm.a // 2
   ```
 
-- **参考**：[事件处理器](../guide/events.html)
 
 ### watch
 
@@ -698,7 +725,6 @@
 
   <p class="tip">注意，**不应该使用箭头函数来定义 watcher 函数** (例如 `searchQuery: newValue => this.updateAutocomplete(newValue)`)。理由是箭头函数绑定了父级作用域的上下文，所以 `this` 将不会按照期望指向 Vue 实例，`this.updateAutocomplete` 将是 undefined。</p>
 
-- **参考**：[实例方法 / 数据 - vm.$watch](#vm-watch)
 
 ## 选项 / DOM
 
@@ -720,9 +746,6 @@
 
   <p class="tip">如果 `render` 函数和 `template` property 都不存在，挂载 DOM 元素的 HTML 会被提取出来用作模板，此时，必须使用 Runtime + Compiler 构建的 Vue 库。</p>
 
-- **参考**：
-    - [生命周期图示](../guide/instance.html#生命周期图示)
-    - [运行时 + 编译器 vs. 只包含运行时](../guide/installation.html#运行时-编译器-vs-只包含运行时)
 
 ### template
 
@@ -738,9 +761,6 @@
 
 <p class="tip">如果 Vue 选项中包含渲染函数，该模板将被忽略。</p>
 
-- **参考**：
-    - [生命周期图示](../guide/instance.html#生命周期图示)
-    - [通过插槽分发内容](../guide/components.html#通过插槽分发内容)
 
 ### render
 
@@ -754,7 +774,7 @@
 
 <p class="tip">Vue 选项中的 `render` 函数若存在，则 Vue 构造函数不会从 `template` 选项或通过 `el` 选项指定的挂载元素中提取出的 HTML 模板编译渲染函数。</p>
 
-- **参考**：[渲染函数](../guide/render-function.html)
+- **参考**：[渲染函数](https://v2.cn.vuejs.org/v2/guide/render-function.html)
 
 ### renderError
 
@@ -781,8 +801,6 @@
   }).$mount('#app')
   ```
 
-- **参考**：[渲染函数](../guide/render-function.html)
-
 ## 选项 / 生命周期钩子
 
 <p class="tip">所有生命周期钩子的 `this` 上下文将自动绑定至实例中，因此你可以访问 data、computed 和 methods。这意味着**你不应该使用箭头函数来定义一个生命周期方法** (例如 `created: () => this.fetchTodos()`)。因为箭头函数绑定了父级上下文，所以 `this` 不会指向预期的组件实例，并且`this.fetchTodos` 将会是 undefined。</p>
@@ -795,7 +813,6 @@
 
   在实例初始化之后,进行数据侦听和事件/侦听器的配置之前同步调用。
 
-- **参考**：[生命周期图示](../guide/instance.html#生命周期图示)
 
 ### created
 
@@ -805,7 +822,6 @@
 
   在实例创建完成后被立即同步调用。在这一步中，实例已完成对选项的处理，意味着以下内容已被配置完毕：数据侦听、计算属性、方法、事件/侦听器的回调函数。然而，挂载阶段还没开始，且 `$el` property 目前尚不可用。
 
-- **参考**：[生命周期图示](../guide/instance.html#生命周期图示)
 
 ### beforeMount
 
@@ -817,7 +833,6 @@
 
   **该钩子在服务器端渲染期间不被调用。**
 
-- **参考**：[生命周期图示](../guide/instance.html#生命周期图示)
 
 ### mounted
 
@@ -839,7 +854,6 @@
 
   **该钩子在服务器端渲染期间不被调用。**
 
-- **参考**：[生命周期图示](../guide/instance.html#生命周期图示)
 
 ### beforeUpdate
 
@@ -851,7 +865,6 @@
 
   **该钩子在服务器端渲染期间不被调用，因为只有初次渲染会在服务器端进行。**
 
-- **参考**：[生命周期图示](../guide/instance.html#生命周期图示)
 
 ### updated
 
@@ -875,7 +888,6 @@
 
   **该钩子在服务器端渲染期间不被调用。**
 
-- **参考**：[生命周期图示](../guide/instance.html#生命周期图示)
 
 ### activated
 
@@ -887,10 +899,6 @@
 
   **该钩子在服务器端渲染期间不被调用。**
 
-- **参考**：
-    - [构建组件 - keep-alive](#keep-alive)
-    - [动态组件 - keep-alive](../guide/components-dynamic-async.html#在动态组件上使用-keep-alive)
-
 ### deactivated
 
 - **类型**：`Function`
@@ -900,10 +908,6 @@
   被 keep-alive 缓存的组件失活时调用。
 
   **该钩子在服务器端渲染期间不被调用。**
-
-- **参考**：
-    - [构建组件 - keep-alive](#keep-alive)
-    - [动态组件 - keep-alive](../guide/components-dynamic-async.html#在动态组件上使用-keep-alive)
 
 ### beforeDestroy
 
@@ -915,8 +919,6 @@
 
   **该钩子在服务器端渲染期间不被调用。**
 
-- **参考**：[生命周期图示](../guide/instance.html#生命周期图示)
-
 ### destroyed
 
 - **类型**：`Function`
@@ -926,8 +928,6 @@
   实例销毁后调用。该钩子被调用后，对应 Vue 实例的所有指令都被解绑，所有的事件监听器被移除，所有的子实例也都被销毁。
 
   **该钩子在服务器端渲染期间不被调用。**
-
-- **参考**：[生命周期图示](../guide/instance.html#生命周期图示)
 
 ### errorCaptured
 
@@ -961,7 +961,20 @@
 
 包含 Vue 实例可用指令的哈希表。
 
-- **参考**：[自定义指令](../guide/custom-directive.html)
+```js
+    {
+        // ...
+        directives: {
+            mydirective: {
+              bind: function (el,bingding,vnode) {}, // 当指令第一次绑定到元素时调用。可以在这里做一次性初始化工作
+              inserted: function (el,bingding,vnode) {}, // 当绑定的元素插入到 DOM 中时调用。
+              update: function (el,bingding,vnode) {},// 当组件的 VNode 更新时调用，但不保证子组件已经更新。
+              componentUpdated: function (el,bingding,vnode) {},// 当组件的 VNode 及其子 VNode 全部更新后调用。
+              unbind: function (el,bingding,vnode) {} // 当指令与元素解绑时调用。
+            }
+        }
+    }
+```
 
 ### filters
 
@@ -979,9 +992,7 @@
 
 - **详细**：
 
-包含 Vue 实例可用组件的哈希表。
-
-- **参考**：[组件](../guide/components.html)
+组件注册
 
 ## 选项 / 组合
 
@@ -1019,7 +1030,7 @@
   // => 2
   ```
 
-- **参考**：[混入](../guide/mixins.html)
+- **参考**：[minxin](#Vue.mixin)
 
 ### extends
 
@@ -1029,7 +1040,7 @@
 
   允许声明扩展另一个组件 (可以是一个简单的选项对象或构造函数)，而无需使用 `Vue.extend`。这主要是为了便于扩展单文件组件。
 
-  这和 `mixins` 类似。
+  合并逻辑与mixin一致,属性冲突能合并的合并,不能合并优先应用自身属性. 生命周期会优先执行mixin的内容,后续再执行组件内容.
 
 - **示例**：
 
@@ -1042,6 +1053,8 @@
     ...
   }
   ```
+  
+- **参考**：[Vue.extend](#Vue.extend)
 
 ### provide / inject
 
