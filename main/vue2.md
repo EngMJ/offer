@@ -1612,85 +1612,39 @@
 - **示例**：
 
   ``` js
-  // 键路径
-  vm.$watch('a.b.c', function (newVal, oldVal) {
-    // 做点什么
-  })
-
-  // 函数
-  vm.$watch(
-    function () {
-      // 表达式 `this.a + this.b` 每次得出一个不同的结果时
-      // 处理函数都会被调用。
-      // 这就像监听一个未被定义的计算属性
-      return this.a + this.b
+  <template>
+    <div>
+      <input v-model="user.name" placeholder="Enter name" />
+      <p>User name: {{ user.name }}</p>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    data() {
+      return {
+        user: {
+          name: ''
+        }
+      };
     },
-    function (newVal, oldVal) {
-      // 做点什么
+    mounted() {
+      // 返回值是取消监听函数, 调用可以取消监听
+      this.unwatch = this.$watch(
+        'user', // 监听 user 对象
+        (newValue) => {
+          console.log('User changed:', newValue);
+        },
+        { // 可选属性
+          deep: true, // 深度观察
+          immediate: true // 立即出发
+        }
+      );
     }
-  )
+  };
+  </script>
+
   ```
-
-  `vm.$watch` 返回一个取消观察函数，用来停止触发回调：
-
-  ``` js
-  var unwatch = vm.$watch('a', cb)
-  // 之后取消观察
-  unwatch()
-  ```
-
-- **选项：deep**
-
-  为了发现对象内部值的变化，可以在选项参数中指定 `deep: true`。注意监听数组的变更不需要这么做。
-
-  ``` js
-  vm.$watch('someObject', callback, {
-    deep: true
-  })
-  vm.someObject.nestedValue = 123
-  // callback is fired
-  ```
-
-- **选项：immediate**
-
-  在选项参数中指定 `immediate: true` 将立即以表达式的当前值触发回调：
-
-  ``` js
-  vm.$watch('a', callback, {
-    immediate: true
-  })
-  // 立即以 `a` 的当前值触发回调
-  ```
-
-  注意在带有 `immediate` 选项时，你不能在第一次回调时取消侦听给定的 property。
-
-  ``` js
-  // 这会导致报错
-  var unwatch = vm.$watch(
-    'value',
-    function () {
-      doSomething()
-      unwatch()
-    },
-    { immediate: true }
-  )
-  ```
-
-  如果你仍然希望在回调内部调用一个取消侦听的函数，你应该先检查其函数的可用性：
-
-  ``` js
-  var unwatch = vm.$watch(
-    'value',
-    function () {
-      doSomething()
-      if (unwatch) {
-        unwatch()
-      }
-    },
-    { immediate: true }
-  )
-  ```
-
 ### vm.$set( target, propertyName/index, value )
 
 - **参数**：
@@ -1938,9 +1892,6 @@
   document.getElementById('app').appendChild(component.$el)
   ```
 
-- **参考**：
-    - [生命周期图示](../guide/instance.html#生命周期图示)
-    - [服务端渲染](../guide/ssr.html)
 
 ### vm.$forceUpdate()
 
@@ -1982,7 +1933,6 @@
 
 - **参考**
     - [Vue.nextTick](#Vue-nextTick)
-    - [异步更新队列](../guide/reactivity.html#异步更新队列)
 
 ### vm.$destroy()
 
@@ -1993,8 +1943,6 @@
   触发 `beforeDestroy` 和 `destroyed` 的钩子。
 
   <p class="tip">在大多数场景中你不应该调用这个方法。最好使用 `v-if` 和 `v-for` 指令以数据驱动的方式控制子组件的生命周期。</p>
-
-- **参考**：[生命周期图示](../guide/instance.html#生命周期图示)
 
 ## 指令
 
@@ -2014,7 +1962,6 @@
   <span>{{msg}}</span>
   ```
 
-- **参考**：[数据绑定语法 - 插值](../guide/syntax.html#插值)
 
 ### v-html
 
@@ -2026,7 +1973,7 @@
 
   <p class="tip">在网站上动态渲染任意 HTML 是非常危险的，因为容易导致 [XSS 攻击](https://en.wikipedia.org/wiki/Cross-site_scripting)。只在可信内容上使用 `v-html`，**永不**用在用户提交的内容上。</p>
 
-  <p class="tip">在[单文件组件](../guide/single-file-components.html)里，`scoped` 的样式不会应用在 `v-html` 内部，因为那部分 HTML 没有被 Vue 的模板编译器处理。如果你希望针对 `v-html` 的内容设置带作用域的 CSS，你可以替换为 [CSS Modules](https://vue-loader.vuejs.org/en/features/css-modules.html) 或用一个额外的全局 `<style>` 元素手动设置类似 BEM 的作用域策略。</p>
+  <p class="tip">在单文件组件里，`scoped` 的样式不会应用在 `v-html` 内部，因为那部分 HTML 没有被 Vue 的模板编译器处理。如果你希望针对 `v-html` 的内容设置带作用域的 CSS，你可以替换为 [CSS Modules](https://vue-loader.vuejs.org/en/features/css-modules.html) 或用一个额外的全局 `style` 元素手动设置类似 BEM 的作用域策略。</p>
 
 - **示例**：
 
@@ -2034,19 +1981,15 @@
   <div v-html="html"></div>
   ```
 
-- **参考**：[数据绑定语法 - 插值](../guide/syntax.html#纯-HTML)
-
 ### v-show
 
 - **预期**：`any`
 
 - **用法**：
 
-  根据表达式之真假值，切换元素的 `display` CSS property。
+  根据表达式之真假值，切换元素的 `display` CSS property,真就是block假就是none。
 
   当条件变化时该指令触发过渡效果。
-
-- **参考**：[条件渲染 - v-show](../guide/conditional.html#v-show)
 
 ### v-if
 
@@ -2060,7 +2003,6 @@
 
   <p class="tip">当和 `v-if` 一起使用时，`v-for` 的优先级比 `v-if` 更高。详见[列表渲染教程](../guide/list.html#v-for-with-v-if)</p>
 
-- **参考**：[条件渲染 - v-if](../guide/conditional.html)
 
 ### v-else
 
@@ -2081,7 +2023,6 @@
   </div>
   ```
 
-- **参考**：[条件渲染 - v-else](../guide/conditional.html#v-else)
 
 ### v-else-if
 
@@ -2109,8 +2050,6 @@
     Not A/B/C
   </div>
   ```
-
-- **参考**：[条件渲染 - v-else-if](../guide/conditional.html#v-else-if)
 
 ### v-for
 
@@ -2146,11 +2085,6 @@
 
   <p class="tip">当和 `v-if` 一起使用时，`v-for` 的优先级比 `v-if` 更高。详见[列表渲染教程](../guide/list.html#v-for-with-v-if)</p>
 
-  `v-for` 的详细用法可以通过以下链接查看教程详细说明。
-
-- **参考**：
-    - [列表渲染](../guide/list.html)
-    - [key](../guide/list.html#key)
 
 ### v-on
 
@@ -2238,10 +2172,6 @@
   <my-component @click.native="onClick"></my-component>
   ```
 
-- **参考**：
-    - [事件处理器](../guide/events.html)
-    - [组件 - 自定义事件](../guide/components.html#监听子组件事件)
-
 ### v-bind
 
 - **缩写**：`:`
@@ -2306,6 +2236,14 @@
 
   <!-- XLink -->
   <svg><a :xlink:special="foo"></a></svg>
+  <!-- sync -->
+  // 不使用sync修饰符的原版
+  <text-document
+        v-bind:title="doc.title"
+        v-on:update:title="doc.title = $event"
+  ></text-document>
+  // 使用sync修饰符
+  <text-document v-bind:title.sync="doc.title"></text-document>
   ```
 
   `.camel` 修饰符允许在使用 DOM 模板时将 `v-bind` property 名称驼峰化，例如 SVG 的 `viewBox` property：
@@ -2316,10 +2254,6 @@
 
   在使用字符串模板或通过 `vue-loader`/`vueify` 编译时，无需使用 `.camel`。
 
-- **参考**：
-    - [Class 与 Style 绑定](../guide/class-and-style.html)
-    - [组件 - Props](../guide/components.html#通过-Prop-向子组件传递数据)
-    - [组件 - `.sync` 修饰符](../guide/components-custom-events.html#sync-修饰符)
 
 ### v-model
 
@@ -2332,29 +2266,25 @@
     - components
 
 - **修饰符**：
-    - [`.lazy`](../guide/forms.html#lazy) - 取代 `input` 监听 `change` 事件
-    - [`.number`](../guide/forms.html#number) - 输入字符串转为有效的数字
-    - [`.trim`](../guide/forms.html#trim) - 输入首尾空格过滤
+    - [`.lazy`] - 取代 `input` 监听 `change` 事件
+    - [`.number`] - 输入字符串转为有效的数字
+    - [`.trim`] - 输入首尾空格过滤
 
 - **用法**：
 
-  在表单控件或者组件上创建双向绑定。细节请看下面的教程链接。
-
-- **参考**：
-    - [表单控件绑定](../guide/forms.html)
-    - [组件 - 在输入组件上使用自定义事件](../guide/components-custom-events.html#将原生事件绑定到组件)
+  在表单控件或者组件上创建双向绑定。
 
 ### v-slot
 
 - **缩写**：`#`
 
-- **预期**：可放置在函数参数位置的 JavaScript 表达式 (在[支持的环境下](../guide/components-slots.html#解构插槽-Props)可使用解构)。可选，即只需要在为插槽传入 prop 的时候使用。
+- **预期**：可放置在函数参数位置的 JavaScript 表达式 (在es6下可使用解构)。可选，即只需要在为插槽传入 prop 的时候使用。
 
 - **参数**：插槽名 (可选，默认值是 `default`)
 
 - **限用于**
     - `<template>`
-    - [组件](../guide/components-slots.html#独占默认插槽的缩写语法) (对于一个单独的带 prop 的默认插槽)
+    - 组件对于一个单独的带 prop 的默认插槽
 
 - **用法**：
 
@@ -2391,11 +2321,6 @@
   </mouse-position>
   ```
 
-  更多细节请查阅以下链接。
-
-- **参考**：
-    - [组件 - 插槽](../guide/components-slots.html)
-    - [RFC-0001](https://github.com/vuejs/rfcs/blob/master/active-rfcs/0001-new-slot-syntax.md)
 
 ### v-pre
 
@@ -2459,10 +2384,6 @@
   </ul>
   ```
 
-- **参考**：
-    - [数据绑定语法- 插值](../guide/syntax.html#插值)
-    - [组件 - 对低开销的静态组件使用 `v-once`](../guide/components-edge-cases.html#通过-v-once-创建低开销的静态组件)
-
 ## 特殊 attribute
 
 ### key
@@ -2514,13 +2435,12 @@
 
   关于 ref 注册时间的重要说明：因为 ref 本身是作为渲染结果被创建的，在初始渲染的时候你不能访问它们 - 它们还不存在！`$refs` 也不是响应式的，因此你不应该试图用它在模板中做数据绑定。
 
-- **参考**：[子组件 ref](../guide/components-edge-cases.html#访问子组件实例或子元素)
 
 ### is
 
 - **预期**：`string | Object (组件的选项对象)`
 
-用于[动态组件](../guide/components.html#动态组件)且基于 [DOM 内模板的限制](../guide/components.html#解析-DOM-模板时的注意事项)来工作。
+用于动态组件。
 
 示例：
 
@@ -2535,13 +2455,8 @@
   </table>
   ```
 
-更多的使用细节，请移步至下面的链接。
 
-- **See also**：
-    - [动态组件](../guide/components.html#动态组件)
-    - [DOM 模板解析说明](../guide/components.html#解析-DOM-模板时的注意事项)
-
-### slot <sup style="color:#c92222">废弃</sup>
+### ~~slot~~ <sup style="color:#c92222">废弃</sup>
 
 **推荐 2.6.0 新增的 [v-slot](#v-slot)。**
 
@@ -2549,9 +2464,8 @@
 
   用于标记往哪个具名插槽中插入子组件内容。
 
-- **参考**：[具名插槽](../guide/components-slots.html#具名插槽)
 
-### slot-scope <sup style="color:#c92222">废弃</sup>
+### ~~slot-scope~~ <sup style="color:#c92222">废弃</sup>
 
 **推荐 2.6.0 新增的 [v-slot](#v-slot)。**
 
@@ -2563,9 +2477,8 @@
 
   此 attribute 不支持动态绑定。
 
-- **参考**：[作用域插槽](../guide/components-slots.html#作用域插槽)
 
-### scope <sup style="color:#c92222">移除</sup>
+### ~~scope~~ <sup style="color:#c92222">移除</sup>
 
 **被 2.5.0 新增的 [slot-scope](#slot-scope) 取代。推荐 2.6.0 新增的 [v-slot](#v-slot)。**
 
@@ -2594,8 +2507,6 @@
   <!-- 也能够渲染注册过的组件或 prop 传入的组件 -->
   <component :is="$options.components.child"></component>
   ```
-
-- **参考**：[动态组件](../guide/components.html#动态组件)
 
 ### transition
 
@@ -2665,7 +2576,6 @@
   }).$mount('#transition-demo')
   ```
 
-- **参考**：[过渡：进入，离开和列表](../guide/transitions.html)
 
 ### transition-group
 
@@ -2693,7 +2603,6 @@
   </transition-group>
   ```
 
-- **参考**：[过渡：进入，离开和列表](../guide/transitions.html)
 
 ### keep-alive
 
@@ -2773,7 +2682,6 @@
 
   <p class="tip">`<keep-alive>` 不会在函数式组件中正常工作，因为它们没有缓存实例。</p>
 
-- **参考**：[动态组件 - keep-alive](../guide/components-dynamic-async.html#在动态组件上使用-keep-alive)
 
 ### slot
 
@@ -2786,7 +2694,6 @@
 
   详细用法，请参考下面教程的链接。
 
-- **参考**：[通过插槽分发内容](../guide/components.html#通过插槽分发内容)
 
 ## VNode 接口
 
