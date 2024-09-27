@@ -1,11 +1,16 @@
+---
+editLink: false
+---
 
-### 枚举：NavigationFailureType %{#enumeration-navigationfailuretype}%
+[API 参考](../index.md) / NavigationFailureType
+
+# 枚举：NavigationFailureType %{#enumeration-navigationfailuretype}%
 
 为导航失败枚举所有可能的类型。可以传入 [isNavigationFailure](../index.md#isnavigationfailure) 以检查特定的失败情况。
 
-### 枚举成员 %{#Enumeration-Members}%
+## 枚举成员 %{#Enumeration-Members}%
 
-#### aborted %{#Enumeration-Members-aborted}%
+### aborted %{#Enumeration-Members-aborted}%
 
 • **aborted** = ``4``
 
@@ -13,7 +18,7 @@
 
 ___
 
-#### cancelled %{#Enumeration-Members-cancelled}%
+### cancelled %{#Enumeration-Members-cancelled}%
 
 • **cancelled** = ``8``
 
@@ -21,7 +26,7 @@ ___
 
 ___
 
-#### duplicated %{#Enumeration-Members-duplicated}%
+### duplicated %{#Enumeration-Members-duplicated}%
 
 • **duplicated** = ``16``
 
