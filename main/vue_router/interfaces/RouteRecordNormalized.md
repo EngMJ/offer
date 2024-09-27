@@ -8,15 +8,15 @@ editLink: false
 
 一条[路由记录](../index.md#routerecord)的规范化版本。
 
-## 继承关系 %{#Hierarchy}%
+## 继承关系 
 
 - **`RouteRecordNormalized`**
 
   ↳ [`RouteLocationMatched`](RouteLocationMatched.md)
 
-## 属性 %{#Properties}%
+## 属性 
 
-### aliasOf %{#Properties-aliasOf}%
+### aliasOf 
 
 • **aliasOf**: `undefined` \| [`RouteRecordNormalized`](RouteRecordNormalized.md)
 
@@ -24,7 +24,7 @@ editLink: false
 
 ___
 
-### beforeEnter %{#Properties-beforeEnter}%
+### beforeEnter 
 
 • **beforeEnter**: `undefined` \| [`NavigationGuardWithThis`](NavigationGuardWithThis.md)\<`undefined`\> \| [`NavigationGuardWithThis`](NavigationGuardWithThis.md)\<`undefined`\>[]
 
@@ -32,7 +32,7 @@ ___
 
 ___
 
-### children %{#Properties-children}%
+### children 
 
 • **children**: [`RouteRecordRaw`](../index.md#routerecordraw)[]
 
@@ -40,7 +40,7 @@ ___
 
 ___
 
-### components %{#Properties-components}%
+### components 
 
 • **components**: `undefined` \| ``null`` \| `Record`\<`string`, `RawRouteComponent`\>
 
@@ -48,7 +48,7 @@ ___
 
 ___
 
-### instances %{#Properties-instances}%
+### instances 
 
 • **instances**: `Record`\<`string`, `undefined` \| ``null`` \| `ComponentPublicInstance`\>
 
@@ -57,7 +57,7 @@ ___
 
 ___
 
-### meta %{#Properties-meta}%
+### meta 
 
 • **meta**: [`RouteMeta`](RouteMeta.md)
 
@@ -65,7 +65,7 @@ ___
 
 ___
 
-### name %{#Properties-name}%
+### name 
 
 • **name**: `undefined` \| [`RouteRecordName`](../index.md#routerecordname)
 
@@ -73,7 +73,7 @@ ___
 
 ___
 
-### path %{#Properties-path}%
+### path 
 
 • **path**: `string`
 
@@ -81,7 +81,7 @@ ___
 
 ___
 
-### props %{#Properties-props}%
+### props 
 
 • **props**: `Record`\<`string`, `_RouteRecordProps`\>
 
@@ -89,7 +89,7 @@ ___
 
 ___
 
-### redirect %{#Properties-redirect}%
+### redirect 
 
 • **redirect**: `undefined` \| `RouteRecordRedirectOption`
 

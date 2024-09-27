@@ -6,14 +6,14 @@ editLink: false
 
 # 接口：RouterViewProps
 
-## 属性 %{#Properties}%
+## 属性 
 
-### name %{#Properties-name}%
+### name 
 
 • `可选` **name**: `string`
 
 ___
 
-### route %{#Properties-route}%
+### route 
 
 • `可选` **route**: [`RouteLocationNormalized`](RouteLocationNormalized.md)

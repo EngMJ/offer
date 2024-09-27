@@ -8,9 +8,9 @@ editLink: false
 
 对所有导航方法通用的选项。
 
-## 属性 %{#Properties}%
+## 属性 
 
-### force %{#Properties-force}%
+### force 
 
 • `可选` **force**: `boolean`
 
@@ -18,7 +18,7 @@ editLink: false
 
 ___
 
-### replace %{#Properties-replace}%
+### replace 
 
 • `可选` **replace**: `boolean`
 
@@ -26,7 +26,7 @@ ___
 
 ___
 
-### state %{#Properties-state}%
+### state 
 
 • `可选` **state**: [`HistoryState`](HistoryState.md)
 

@@ -4,17 +4,17 @@ editLink: false
 
 [API 参考](../index.md) / NavigationGuard
 
-# 接口：NavigationGuard %{#interface-navigationguard}%
+# 接口：NavigationGuard 
 
 导航守卫。详情可查阅[导航守卫](/zh/guide/advanced/navigation-guards.md)。
 
-## 可调用函数 %{#Callable}%
+## 可调用函数 
 
-### NavigationGuard %{#Callable-NavigationGuard}%
+### NavigationGuard 
 
 ▸ **NavigationGuard**(`to`, `from`, `next`): `NavigationGuardReturn` \| `Promise`\<`NavigationGuardReturn`\>
 
-#### 参数 %{#Callable-NavigationGuard-Parameters}%
+#### 参数 
 
 | 名称 | 类型 |
 | :------ | :------ |
@@ -22,6 +22,6 @@ editLink: false
 | `from` | [`RouteLocationNormalized`](RouteLocationNormalized.md) |
 | `next` | [`NavigationGuardNext`](NavigationGuardNext.md) |
 
-#### 返回值 %{#Callable-NavigationGuard-Returns}%
+#### 返回值 
 
 `NavigationGuardReturn` \| `Promise`\<`NavigationGuardReturn`\>

@@ -21,7 +21,7 @@ declare module 'vue-router' {
  }
 ```
 
-## 继承关系 %{#Hierarchy}%
+## 继承关系 
 
 - `Record`\<`string` \| `number` \| `symbol`, `unknown`\>
 

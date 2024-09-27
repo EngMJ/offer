@@ -4,29 +4,29 @@ editLink: false
 
 [API 参考](../index.md) / NavigationFailure
 
-# 接口：NavigationFailure %{#interface-navigationfailure}%
+# 接口：NavigationFailure 
 
 Error 类型的扩展，包含导航失败的额外信息。
 
-## 继承关系 %{#Hierarchy}%
+## 继承关系 
 
 - `Error`
 
   ↳ **`NavigationFailure`**
 
-## 属性 %{#Properties}%
+## 属性 
 
-### cause %{#Properties-cause}%
+### cause 
 
 • `可选` **cause**: `unknown`
 
-#### 继承自 %{#Properties-cause-Inherited-from}%
+#### 继承自 
 
 Error.cause
 
 ___
 
-### from %{#Properties-from}%
+### from 
 
 • **from**: [`RouteLocationNormalized`](RouteLocationNormalized.md)
 
@@ -34,37 +34,37 @@ ___
 
 ___
 
-### message %{#Properties-message}%
+### message 
 
 • **message**: `string`
 
-#### 继承自 %{#Properties-message-Inherited-from}%
+#### 继承自 
 
 Error.message
 
 ___
 
-### name %{#Properties-name}%
+### name 
 
 • **name**: `string`
 
-#### 继承自 %{#Properties-name-Inherited-from}%
+#### 继承自 
 
 Error.name
 
 ___
 
-### stack %{#Properties-stack}%
+### stack 
 
 • `可选` **stack**: `string`
 
-#### 继承自 %{#Properties-stack-Inherited-from}%
+#### 继承自 
 
 Error.stack
 
 ___
 
-### to %{#Properties-to}%
+### to 
 
 • **to**: [`RouteLocationNormalized`](RouteLocationNormalized.md)
 
@@ -72,7 +72,7 @@ ___
 
 ___
 
-### type %{#Properties-type}%
+### type 
 
 • **type**: `NAVIGATION_ABORTED` \| `NAVIGATION_CANCELLED` \| `NAVIGATION_DUPLICATED`
 

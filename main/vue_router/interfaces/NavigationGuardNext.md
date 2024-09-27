@@ -4,70 +4,70 @@ editLink: false
 
 [API 参考](../index.md) / NavigationGuardNext
 
-# 接口：NavigationGuardNext %{#interface-navigationguardnext}%
+# 接口：NavigationGuardNext 
 
-## 可调用函数 %{#Callable}%
+## 可调用函数 
 
-### NavigationGuardNext %{#Callable-NavigationGuardNext}%
+### NavigationGuardNext 
 
 ▸ **NavigationGuardNext**(): `void`
 
-#### 返回值 %{#Callable-NavigationGuardNext-Returns}%
+#### 返回值 
 
 `void`
 
-### NavigationGuardNext %{#Callable-NavigationGuardNext_1}%
+### NavigationGuardNext 
 
 ▸ **NavigationGuardNext**(`error`): `void`
 
-#### 参数 %{#Callable-NavigationGuardNext-Parameters}%
+#### 参数 
 
 | 名称 | 类型 |
 | :------ | :------ |
 | `error` | `Error` |
 
-#### 返回值 %{#Callable-NavigationGuardNext-Returns_1}%
+#### 返回值 
 
 `void`
 
-### NavigationGuardNext %{#Callable-NavigationGuardNext_2}%
+### NavigationGuardNext 
 
 ▸ **NavigationGuardNext**(`location`): `void`
 
-#### 参数 %{#Callable-NavigationGuardNext-Parameters_1}%
+#### 参数 
 
 | 名称 | 类型 |
 | :------ | :------ |
 | `location` | [`RouteLocationRaw`](../index.md#routelocationraw) |
 
-#### 返回值 %{#Callable-NavigationGuardNext-Returns_2}%
+#### 返回值 
 
 `void`
 
-### NavigationGuardNext %{#Callable-NavigationGuardNext_3}%
+### NavigationGuardNext 
 
 ▸ **NavigationGuardNext**(`valid`): `void`
 
-#### 参数 %{#Callable-NavigationGuardNext-Parameters_2}%
+#### 参数 
 
 | 名称 | 类型 |
 | :------ | :------ |
 | `valid` | `undefined` \| `boolean` |
 
-#### 返回值 %{#Callable-NavigationGuardNext-Returns_3}%
+#### 返回值 
 
 `void`
 
-### NavigationGuardNext %{#Callable-NavigationGuardNext_4}%
+### NavigationGuardNext 
 
 ▸ **NavigationGuardNext**(`cb`): `void`
 
-#### 参数 %{#Callable-NavigationGuardNext-Parameters_3}%
+#### 参数 
 
 | 名称 | 类型 |
 | :------ | :------ |
 | `cb` | `NavigationGuardNextCallback` |
 
-#### 返回值 %{#Callable-NavigationGuardNext-Returns_4}%
+#### 返回值 
 
 `void`

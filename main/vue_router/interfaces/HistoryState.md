@@ -4,10 +4,10 @@ editLink: false
 
 [API 参考](../index.md) / HistoryState
 
-# 接口：HistoryState %{#interface-historystate}%
+# 接口：HistoryState 
 
 允许的 HTML history.state
 
-## 可索引成员 %{#Indexable}%
+## 可索引成员 
 
 ▪ [x: `number`]: `HistoryStateValue`

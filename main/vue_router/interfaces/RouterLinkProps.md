@@ -6,15 +6,15 @@ editLink: false
 
 # 接口：RouterLinkProps
 
-## 继承关系 %{#Hierarchy}%
+## 继承关系 
 
 - `RouterLinkOptions`
 
   ↳ **`RouterLinkProps`**
 
-## 属性 %{#Properties}%
+## 属性 
 
-### activeClass %{#Properties-activeClass}%
+### activeClass 
 
 • `可选` **activeClass**: `string`
 
@@ -22,7 +22,7 @@ editLink: false
 
 ___
 
-### ariaCurrentValue %{#Properties-ariaCurrentValue}%
+### ariaCurrentValue 
 
 • `可选` **ariaCurrentValue**: ``"location"`` \| ``"time"`` \| ``"page"`` \| ``"step"`` \| ``"date"`` \| ``"true"`` \| ``"false"``
 
@@ -34,7 +34,7 @@ ___
 
 ___
 
-### custom %{#Properties-custom}%
+### custom 
 
 • `可选` **custom**: `boolean`
 
@@ -42,7 +42,7 @@ RouterLink 是否应该将其内容包裹在一个 `a` 标签里。用于通过 
 
 ___
 
-### exactActiveClass %{#Properties-exactActiveClass}%
+### exactActiveClass 
 
 • `可选` **exactActiveClass**: `string`
 
@@ -50,24 +50,24 @@ ___
 
 ___
 
-### replace %{#Properties-replace}%
+### replace 
 
 • `可选` **replace**: `boolean`
 
 调用 `router.replace` 以替换 `router.push`。
 
-#### 继承自 %{#Properties-replace-Inherited-from}%
+#### 继承自 
 
 RouterLinkOptions.replace
 
 ___
 
-### to %{#Properties-to}%
+### to 
 
 • **to**: [`RouteLocationRaw`](../index.md#routelocationraw)
 
 当点击该链接时应该进入的路由地址。
 
-#### 继承自 %{#Properties-to-Inherited-from}%
+#### 继承自 
 
 RouterLinkOptions.to

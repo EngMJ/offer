@@ -4,19 +4,19 @@ editLink: false
 
 [API 参考](../index.md) / RouterOptions
 
-# 接口：RouterOptions %{#interface-routeroptions}%
+# 接口：RouterOptions 
 
 用来初始化一个 [Router](Router.md) 实例的选项。
 
-## 继承关系 %{#Hierarchy}%
+## 继承关系 
 
 - [`PathParserOptions`](../index.md#pathparseroptions)
 
   ↳ **`RouterOptions`**
 
-## 属性 %{#Properties}%
+## 属性 
 
-### end %{#Properties-end}%
+### end 
 
 • `可选` **end**: `boolean`
 
@@ -26,13 +26,13 @@ editLink: false
 
 `true`
 
-#### 继承自 %{#Properties-end-Inherited-from}%
+#### 继承自 
 
 PathParserOptions.end
 
 ___
 
-### history %{#Properties-history}%
+### history 
 
 • **history**: [`RouterHistory`](RouterHistory.md)
 
@@ -49,7 +49,7 @@ createRouter({
 
 ___
 
-### linkActiveClass %{#Properties-linkActiveClass}%
+### linkActiveClass 
 
 • `可选` **linkActiveClass**: `string`
 
@@ -57,7 +57,7 @@ ___
 
 ___
 
-### linkExactActiveClass %{#Properties-linkExactActiveClass}%
+### linkExactActiveClass 
 
 • `可选` **linkExactActiveClass**: `string`
 
@@ -65,23 +65,23 @@ ___
 
 ___
 
-### parseQuery %{#Properties-parseQuery}%
+### parseQuery 
 
 • `可选` **parseQuery**: (`search`: `string`) => [`LocationQuery`](../index.md#locationquery)
 
-#### 类型声明 %{#Properties-parseQuery-Type-declaration}%
+#### 类型声明 
 
 ▸ (`search`): [`LocationQuery`](../index.md#locationquery)
 
 解析查询的自定义实现。请查阅其相关内容 [RouterOptions.stringifyQuery](RouterOptions.md#stringifyquery)。
 
-##### 参数 %{#Properties-parseQuery-Type-declaration-Parameters}%
+##### 参数 
 
 | 名称 | 类型 |
 | :------ | :------ |
 | `search` | `string` |
 
-##### 返回值 %{#Properties-parseQuery-Type-declaration-Returns}%
+##### 返回值 
 
 [`LocationQuery`](../index.md#locationquery)
 
@@ -101,7 +101,7 @@ createRouter({
 
 ___
 
-### routes %{#Properties-routes}%
+### routes 
 
 • **routes**: 只读 [`RouteRecordRaw`](../index.md#routerecordraw)[]
 
@@ -109,7 +109,7 @@ ___
 
 ___
 
-### scrollBehavior %{#Properties-scrollBehavior}%
+### scrollBehavior 
 
 • `可选` **scrollBehavior**: [`RouterScrollBehavior`](RouterScrollBehavior.md)
 
@@ -126,7 +126,7 @@ function scrollBehavior(to, from, savedPosition) {
 
 ___
 
-### sensitive %{#Properties-sensitive}%
+### sensitive 
 
 • `可选` **sensitive**: `boolean`
 
@@ -136,13 +136,13 @@ ___
 
 `false`
 
-#### 继承自 %{#Properties-sensitive-Inherited-from}%
+#### 继承自 
 
 PathParserOptions.sensitive
 
 ___
 
-### strict %{#Properties-strict}%
+### strict 
 
 • `可选` **strict**: `boolean`
 
@@ -152,28 +152,28 @@ ___
 
 `false`
 
-#### 继承自 %{#Properties-strict-Inherited-from}%
+#### 继承自 
 
 PathParserOptions.strict
 
 ___
 
-### stringifyQuery %{#Properties-stringifyQuery}%
+### stringifyQuery 
 
 • `可选` **stringifyQuery**: (`query`: [`LocationQueryRaw`](../index.md#locationqueryraw)) => `string`
 
-#### 类型声明 %{#Properties-stringifyQuery-Type-declaration}%
+#### 类型声明 
 
 ▸ (`query`): `string`
 
 对查询对象进行字符串化的自定义实现。该实现不应该前置 `?`。[parseQuery](RouterOptions.md#parsequery) 对应处理查询解析。
 
-##### Parameters %{#Properties-stringifyQuery-Type-declaration-Parameters}%
+##### Parameters 
 
 | 名称 | 类型 |
 | :------ | :------ |
 | `query` | [`LocationQueryRaw`](../index.md#locationqueryraw) |
 
-##### 返回值 %{#Properties-stringifyQuery-Type-declaration-Returns}%
+##### 返回值 
 
 `string`

@@ -8,13 +8,13 @@ editLink: false
 
 可以被传递给 `createRouter` 的 `scrollBehavior` 选项的类型。
 
-## 可调用函数 %{#Callable}%
+## 可调用函数 
 
-### RouterScrollBehavior %{#Callable-RouterScrollBehavior}%
+### RouterScrollBehavior 
 
 ▸ **RouterScrollBehavior**(`to`, `from`, `savedPosition`): `Awaitable`\<``false`` \| `void` \| `ScrollPosition`\>
 
-#### 参数 %{#Callable-RouterScrollBehavior-Parameters}%
+#### 参数 
 
 | 名称 | 类型 | 描述 |
 | :------ | :------ | :------ |
@@ -22,6 +22,6 @@ editLink: false
 | `from` | [`RouteLocationNormalizedLoaded`](RouteLocationNormalizedLoaded.md) | 我们要离开的路由地址 |
 | `savedPosition` | ``null`` \| `_ScrollPositionNormalized` | 要保存的页面位置，如果不存在则是 `null` |
 
-#### 返回值 %{#Callable-RouterScrollBehavior-Returns}%
+#### 返回值 
 
 `Awaitable`\<``false`` \| `void` \| `ScrollPosition`\>
