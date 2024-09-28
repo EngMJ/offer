@@ -2,7 +2,222 @@
 
 ## 创建路由
 
-## 路由规则
+### 浏览历史模式
+
++ createWebHistory 浏览器环境
++ createWebHashHistory 浏览器环境 hash模式
++ createMemoryHistory 服务端渲染环境
+
+**参数:**
+
++ base 字符串基础路径
+
+**示例:**
+
+```js
+
+// 基于 https://example.com/folder
+createWebHashHistory() // 给出一个 `https://example.com/folder#` 的 URL
+createWebHashHistory('/folder/') // 给出一个 `https://example.com/folder/#` 的 URL
+// 如果其基础位置提供了 `#`，则不会被 `createWebHashHistory` 添加
+createWebHashHistory('/folder/#/app/') // 给出一个 `https://example.com/folder/#/app/` 的 URL
+// 你应该避免这样做，因为它改变了原始的 URL 且破坏了复制 URL 的工作
+createWebHashHistory('/other-folder/') // 给出一个 `https://example.com/other-folder/#` 的 URL
+
+// 基于 file:///usr/etc/folder/index.html
+// 对于没有 `host` 的位置，该 base 会被忽略
+createWebHashHistory('/iAmIgnored') // 给出一个 `file:///usr/etc/folder/index.html#` 的 URL
+
+```
+
+### createRouter
+
+创建 Router 实例
+
+**示例:**
+
+```javascript
+import { createRouter, createWebHistory } from 'vue-router';
+
+const routes = [
+    { path: '/', component: Home },
+    { path: '/about', component: About },
+];
+
+const router = createRouter({
+    history: createWebHistory(), // createWebHistory浏览器环境/createWebHashHistory浏览器hash/createMemoryHistory服务端渲染环境
+    // history: createWebHistory('/基础路径/'), // 为路由设置基础路径，如果应用部署在子路径下非常有用。
+    routes,
+    scrollBehavior(to, from, savedPosition) { // 路由切换浏览器滚动控制
+        return savedPosition || { top: 0 };
+    },
+    strict: true, // 启用严格模式禁止匹配尾部斜线。例如，路由 /users 将匹配 /users、/users/、甚至 /Users/
+    sensitive: true, // 区分大小写
+    end: true, // 路由完全匹配
+    linkActiveClass: 'active-link', // 自定义全局激活链接类名
+    linkExactActiveClass: 'exact-active-link', // 自定义全局精确激活链接类名
+    parseQuery: (query) => { // 自定义全局解析查询参数的函数
+        return query;
+    },
+    stringifyQuery: (query) => { // 自定义全局查询参数序列化为字符串的函数
+        return query;
+    },
+});
+```
+
+## routes 路由规则
+
+**示例:**
+
+```js
+
+import { createRouter, createWebHistory } from 'vue-router';
+import Home from '../views/Home.vue';
+import About from '../views/About.vue';
+import UserProfile from '../views/UserProfile.vue';
+import Parent from '../views/Parent.vue';
+import Child from '../views/Child.vue';
+import GrandChild from '../views/GrandChild.vue';
+import Dashboard from '../views/Dashboard.vue';
+import NotFound from '../views/NotFound.vue';
+import Settings from '../views/Settings.vue';
+import Search from '../views/Search.vue';
+
+const routes = [
+    // 1. 基本路由配置
+    { path: '/', component: Home },
+    
+    // 2. 动态路由参数 匹配 /user/任意
+    { path: '/user/:id', component: UserProfile },
+    // /:orderId -> 仅匹配数字
+    { path: '/:orderId(\\d+)', component: UserProfile },
+
+    // 3. 嵌套路由
+    {
+        path: '/parent',
+        component: Parent,
+        children: [
+            { path: 'child', component: Child },
+            {
+                path: 'child/grandchild',
+                component: GrandChild, // 嵌套的孙子路由
+            },
+        ],
+    },
+
+    // 4. 路由重定向
+    { path: '/home', redirect: '/' },
+    /*
+    // 命名的路由重定向
+    { path: '/home', redirect: { name: 'homepage' } }
+    // 函数重定向
+    {
+        path: '/home',
+        redirect: to => {
+          // 该函数接收目标路由作为参数
+          // 相对位置 不以`/`开头或 { path: 'profile'}
+          return 'profile'
+          // return { path: '/search', query: { q: to.params.searchText } }
+        },
+    }
+    * */
+
+    // 5. 命名路由
+    { path: '/about', component: About, name: 'about' },
+    /*
+    // 使用 name 替代 path 进行导航
+    <router-link :to="{ name: 'profile', params: { username: 'erina' } }">
+        User profile
+    </router-link>
+    */
+
+    // 6. 路由守卫
+    {
+        path: '/dashboard',
+        component: Dashboard,
+        meta: { requiresAuth: true }, // 需要身份验证
+    },
+
+    // 7. 使用懒加载
+    {
+        path: '/settings',
+        component: () => import(/* webpackChunkName: "settings" */ '../views/Settings.vue'),
+    },
+
+    // 8. 404 页面处理
+    { path: '/:catchAll(.*)', component: NotFound }, // 捕获所有未匹配的路由
+
+    // 9. 区分大小写与禁止尾部/匹配
+    {
+        path: '/search',
+        component: Search,
+        sensitive: true, // 区分大小写
+        strict: true, // 禁止尾部/匹配
+    },
+    // 10. 命名视图 渲染对应的具名routerView
+    {
+        path: '/',
+        components: {
+            default: Home,
+            // LeftSidebar: LeftSidebar 的缩写
+            LeftSidebar,
+            // 它们与 `<router-view>` 上的 `name` 属性匹配
+            RightSidebar,
+        },
+    },
+    /*
+    * <router-view class="view left-sidebar" name="LeftSidebar" />
+      <router-view class="view main-content" />
+      <router-view class="view right-sidebar" name="RightSidebar" />
+    * */
+    // 11. 别名
+    {
+        path: '/users',
+        component: UsersLayout,
+        children: [
+            // 为这 3 个 URL 呈现 UserList
+            // - /users
+            // - /users/list
+            // - /people
+            { path: '', component: UserList, alias: ['/people', 'list'] },
+        ],
+    },
+    // 12. props
+    // 将:id作为props传递给组件
+    { path: '/user/:id', component: User, props: true },
+    // 控制具名routerView是否接受路由props
+    {
+        path: '/user/:id',
+        components: { default: User, sidebar: Sidebar },
+        props: { default: true, sidebar: false }
+    },
+    // 函数动态控制传递的路由props
+    {
+        path: '/search',
+        component: SearchUser,
+        props: route => ({ query: route.query.q })
+    }
+];
+
+// 创建路由实例
+const router = createRouter({
+    history: createWebHistory(), // 使用 HTML5 History 模式
+    routes, // 路由配置
+});
+
+// 示例：全局路由守卫
+router.beforeEach((to, from, next) => {
+    if (to.meta.requiresAuth && !isAuthenticated) {
+        next({ name: 'login' }); // 重定向到登录页面
+    } else {
+        next(); // 继续导航
+    }
+});
+
+// 导出路由实例
+export default router;
+
+```
 
 ## 组件 
 
@@ -158,7 +373,7 @@ if (router.currentRoute.value.redirectedFrom) {
 }
 ```
 
-### START\_LOCATION 
+## START\_LOCATION 
 
 路由器的初始路由位置。可以在导航守卫中使用来区分初始导航。
 
@@ -193,231 +408,7 @@ router.beforeEach((to, from) => {
 
 
 
-## 函数 
-
-### createMemoryHistory 
-
-▸ **createMemoryHistory**(`base?`): [`RouterHistory`](interfaces/RouterHistory.md)
-
-创建一个基于内存的历史。该历史的主要目的是为了处理服务端渲染。它从一个不存在的特殊位置开始。用户可以通过调用 `router.push` 或 `router.replace` 将该位置替换成起始位置。
-
-#### 参数 
-
-| 名称 | 类型 | 默认值 | 描述 |
-| :------ | :------ | :------ | :------ |
-| `base` | `string` | `''` | 所有 URL 的基础位置，默认为 '/' |
-
-#### 返回值 
-
-[`RouterHistory`](interfaces/RouterHistory.md)
-
-一个历史对象，可以传递给路由器构造函数。
-
-___
-
-### createRouter 
-
-▸ **createRouter**(`options`): [`Router`](interfaces/Router.md)
-
-创建一个可以被 Vue 应用使用的 Router 实例。
-
-#### 参数 
-
-[RouterOptions](interfaces/RouterOptions.md) |
-
-以下是关于 `createRouter` 可用选项的所有示例：
-
-### 1. `history`
-
-指定路由的历史模式，可以是 `createWebHistory`、`createWebHashHistory` 或 `createMemoryHistory`。
-
-```javascript
-import { createRouter, createWebHistory } from 'vue-router';
-
-const router = createRouter({
-  history: createWebHistory(), // 使用 HTML5 History 模式
-  routes,
-});
-```
-
-### 2. `routes`
-
-定义路由数组，每个路由包含路径和组件。
-
-```javascript
-const routes = [
-  { path: '/', component: Home },
-  { path: '/about', component: About },
-];
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-});
-```
-
-### 3. `scrollBehavior`
-
-定义路由导航时的滚动行为。可以返回一个位置对象或 `null`。
-
-```javascript
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-  scrollBehavior(to, from, savedPosition) {
-    return savedPosition || { top: 0 };
-  },
-});
-```
-
-### 4. `strict`
-
-设置为 `true` 时，启用严格模式以检测未定义的路由。
-
-```javascript
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-  strict: true, // 启用严格模式
-});
-```
-
-### 5. `hash`
-
-如果使用 `createWebHashHistory`，可通过此选项设置哈希选项。
-
-```javascript
-import { createRouter, createWebHashHistory } from 'vue-router';
-
-const router = createRouter({
-  history: createWebHashHistory(),
-  routes,
-  hash: true, // 适用于哈希模式
-});
-```
-
-### 6. `base`
-
-为路由设置基础路径，如果应用部署在子路径下非常有用。
-
-```javascript
-const router = createRouter({
-  history: createWebHistory('/my-app/'), // 基础路径
-  routes,
-});
-```
-
-### 7. `linkActiveClass`
-
-自定义激活链接的 CSS 类名，默认为 `router-link-active`。
-
-```javascript
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-  linkActiveClass: 'active-link', // 自定义激活链接类名
-});
-```
-
-### 8. `linkExactActiveClass`
-
-自定义精确激活链接的 CSS 类名，默认为 `router-link-exact-active`。
-
-```javascript
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-  linkExactActiveClass: 'exact-active-link', // 自定义精确激活链接类名
-});
-```
-
-### 9. `parseQuery`
-
-自定义解析查询参数的函数。
-
-```javascript
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-  parseQuery: (query) => {
-    // 自定义解析逻辑
-    return query;
-  },
-});
-```
-
-### 10. `stringifyQuery`
-
-自定义将查询参数序列化为字符串的函数。
-
-```javascript
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-  stringifyQuery: (query) => {
-    // 自定义序列化逻辑
-    return query;
-  },
-});
-```
-
-### 总结
-
-以上是 `createRouter` 的所有选项示例，包括历史模式、路由配置、滚动行为等。如果还有其他主题或具体功能想要了解，请告诉我！
-
-___
-
-### createWebHashHistory 
-
-▸ **createWebHashHistory**(`base?`): [`RouterHistory`](interfaces/RouterHistory.md)
-
-创建一个 hash 模式的历史。在没有主机的 web 应用 (如 `file://`) 或无法通过配置服务器来处理任意 URL 的时候非常有用。
-
-#### 参数 
-
-| 名称 | 类型 | 描述 |
-| :------ | :------ | :------ |
-| `base?` | `string` | 可选提供的基础位置。默认为 `location.pathname + location.search`。如果在 `head` 中有一个 `<base>` 标签，它的值会因此被忽略，**但注意它会影响所有 history.pushState() 的调用**，这意味着如果你使用一个 `<base>` 标签，它的 `href` 值**必须与这个参数匹配** (忽略 `#` 后的任何东西)。 |
-
-#### 返回值 
-
-[`RouterHistory`](interfaces/RouterHistory.md)
-
-**示例**
-
-```js
-// 基于 https://example.com/folder
-createWebHashHistory() // 给出一个 `https://example.com/folder#` 的 URL
-createWebHashHistory('/folder/') // 给出一个 `https://example.com/folder/#` 的 URL
-// 如果其基础位置提供了 `#`，则不会被 `createWebHashHistory` 添加
-createWebHashHistory('/folder/#/app/') // 给出一个 `https://example.com/folder/#/app/` 的 URL
-// 你应该避免这样做，因为它改变了原始的 URL 且破坏了复制 URL 的工作
-createWebHashHistory('/other-folder/') // 给出一个 `https://example.com/other-folder/#` 的 URL
-
-// 基于 file:///usr/etc/folder/index.html
-// 对于没有 `host` 的位置，该 base 会被忽略
-createWebHashHistory('/iAmIgnored') // 给出一个 `file:///usr/etc/folder/index.html#` 的 URL
-```
-
-___
-
-### createWebHistory 
-
-▸ **createWebHistory**(`base?`): [`RouterHistory`](interfaces/RouterHistory.md)
-
-创建一个 HTML5 历史。对于单页应用来说这是最常见的历史。
-
-#### 参数 
-
-| 名称 | 类型 |
-| :------ | :------ |
-| `base?` | `string` |
-
-#### 返回值 
-
-[`RouterHistory`](interfaces/RouterHistory.md)
-
-___
+## 函数
 
 ### isNavigationFailure 
 
