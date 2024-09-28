@@ -65,7 +65,7 @@ const router = createRouter({
 });
 ```
 
-## routes 路由规则
+### routes 路由规则
 
 **示例:**
 
@@ -315,7 +315,157 @@ ___
 
 ## useRoute
 
+**示例:**
+
+```vue
+
+<template>
+  <div>
+    <h1>User Profile</h1>
+    <p>User ID: {{ userId }}</p> <!-- 显示用户 ID -->
+    <p>Search Query: {{ searchQuery }}</p> <!-- 显示查询参数 -->
+    <p>Requires Auth: {{ requiresAuth }}</p> <!-- 显示元信息 -->
+    <button @click="goToSettings">Go to Settings</button> <!-- 导航到设置 -->
+  </div>
+</template>
+
+<script>
+import { ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+export default {
+  setup() {
+    const route = useRoute(); // 获取当前路由
+    const router = useRouter(); // 获取路由实例
+
+    console.log('Path:', route.path); // 当前路径
+    console.log('Name:', route.name); // 当前路由名称
+    console.log('Params:', route.params); // 动态参数
+    console.log('Query:', route.query); // 查询参数
+    console.log('Hash:', route.hash); // 哈希
+    console.log('Meta:', route.meta); // 元信息
+    console.log('Matched:', route.matched); // 匹配记录
+    console.log('Redirected From:', route.redirectedFrom); // 重定向来源
+    console.log('Full Path:', route.fullPath); // 完整路径
+
+    // 监听用户 ID 路由变化
+    watch(
+      () => route.params.id,
+      (newId) => {
+        userId.value = newId; // 更新用户 ID
+      }
+    );
+
+    // 监听查询参数变化
+    watch(
+      () => route.query.q,
+      (newQuery) => {
+        searchQuery.value = newQuery; // 更新查询参数
+      }
+    );
+
+    // 导航到设置页面
+    const goToSettings = () => {
+      router.push({ path: '/settings' }); // 导航到设置页面
+    };
+
+    return {
+      userId,
+      searchQuery,
+      requiresAuth,
+      goToSettings,
+    };
+  },
+};
+</script>
+
+
+```
+
 ## useRouter
+
+```vue
+
+<template>
+  <div>
+    <h1>User Profile</h1>
+    <button @click="goHome">Go Home</button> <!-- 导航到主页 -->
+    <button @click="goToProfile">Go to Profile</button> <!-- 导航到个人资料 -->
+    <button @click="replaceToSettings">Replace with Settings</button> <!-- 替换为设置 -->
+    <button @click="goBack">Go Back</button> <!-- 后退一页 -->
+    <button @click="goForward">Go Forward</button> <!-- 前进一步 -->
+    <h2>All Routes</h2>
+    <pre>{{ allRoutes }}</pre> <!-- 打印所有路由 -->
+  </div>
+</template>
+
+<script>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+export default {
+  setup() {
+    const router = useRouter(); // 获取路由实例
+    const allRoutes = ref(router.getRoutes()); // 获取所有已定义的路由
+
+    // 导航到主页
+    const goHome = () => {
+      router.push('/'); // 导航到主页
+    };
+
+    // 导航到用户个人资料
+    const goToProfile = () => {
+      router.push({ path: '/user/123', query:{}, params:{}, replace: false }); // 导航到用户 ID 为 123 的个人资料
+    };
+
+    // 替换当前路由为设置页面
+    const replaceToSettings = () => {
+      router.replace('/settings'); // 替换当前路由
+    };
+
+    // 后退一页
+    const goBack = () => {
+      // router.back()  效果同下
+      router.go(-1); // 返回上一页
+    };
+
+    // 前进一步
+    const goForward = () => {
+      // router.forward()  效果同下
+      router.go(1); // 前进一步
+    };
+    
+    // 添加路由
+    router.addRoute({ path: '/about', name: 'about', component: About })
+    
+    // 通过路由name添加子路由
+    router.addRoute('admin', { path: 'settings', component: AdminSettings })
+    
+    // 删除路由
+    router.removeRoute('about')
+
+    // 获取路由规则完整列表
+    router.getRoutes()
+    
+    // 检查路由是否存在,有则返回true,否则false
+    router.hasRoute('路由名称')
+    
+    // isReady
+
+    return {
+      goHome,
+      goToProfile,
+      replaceToSettings,
+      goBack,
+      goForward,
+      allRoutes,
+    };
+  },
+};
+</script>
+
+
+```
 
 ## 组合式API中的模板仍可使用 $router 和 $route
 
