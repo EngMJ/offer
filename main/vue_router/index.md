@@ -30,6 +30,8 @@ createWebHashHistory('/iAmIgnored') // 给出一个 `file:///usr/etc/folder/inde
 
 ```
 
+---
+
 ### createRouter
 
 创建 Router 实例
@@ -64,6 +66,8 @@ const router = createRouter({
     },
 });
 ```
+
+---
 
 ### routes 路由规则
 
@@ -219,6 +223,8 @@ export default router;
 
 ```
 
+---
+
 ## 组件 
 
 ### RouterLink 
@@ -241,11 +247,11 @@ export default router;
     // 自定义准确路径的高亮类名
     <RouterLink to="/about" exactActiveClass="active-link">About</RouterLink>
     // 路由插槽
-    <RouterLink to="/about" v-slot="{ isActive, isExactActive }">
+    <RouterLink to="/about" v-slot="{route, href, isActive, isExactActive, navigat}">
       <span :class="{ active: isActive, exact: isExactActive }">About</span>
     </RouterLink>
     // custom 使RouterLink不渲染成a标签,形成自定义组件
-    <RouterLink to="/about" custom v-slot="{ navigate, isActive, isExactActive }">
+    <RouterLink to="/about" custom v-slot="{route, href, isActive, isExactActive, navigat}">
       <button :class="{ active: isActive, exact: isExactActive }" @click="navigate">
         Go to About
       </button>
@@ -286,7 +292,7 @@ ___
     <transition name="fade">
       <RouterView />
     </transition>
-    <RouterView v-slot="{ Component }">
+    <RouterView v-slot="{ Component, Route }">
       <keep-alive>
         <component :is="Component" />
       </keep-alive>
@@ -295,6 +301,7 @@ ___
 </template>
 ```
 
+---
 
 ## 导航守卫
 
@@ -458,6 +465,52 @@ router.afterEach((to, from, failure) => {
 - 11.触发 DOM 更新。
 - 12.调用 beforeRouteEnter 守卫中传给 next 的回调函数，创建好的组件实例会作为回调函数的参数传入。
 
+___
+
+## useLink
+
+获取routerLink组件中信息,进行自定义封装.
+
+**示例:**
+
+```js
+// useLink 解析值与routerLink插槽作用域值完全一致
+// <router-link v-slot="{route, href, isActive, isExactActive, navigat}">
+//     {{href}}
+// </router-link>
+
+<script setup>
+import { RouterLink, useLink } from 'vue-router'
+import { computed } from 'vue'
+
+const props = defineProps({
+  // 如果使用 TypeScript，请添加 @ts-ignore
+  ...RouterLink.props,
+  inactiveClass: String,
+}）
+
+const {
+  // 解析出来的路由对象
+  route,
+  // 用在链接里的 href
+  href,
+  // 布尔类型的 ref 标识链接是否匹配当前路由
+  isActive,
+  // 布尔类型的 ref 标识链接是否严格匹配当前路由
+  isExactActive,
+  // 导航至该链接的函数
+  navigate
+} = useLink(props)
+
+const isExternalLink = computed(
+  () => typeof props.to === 'string' && props.to.startsWith('http')
+)
+</script>
+
+```
+
+---
+
 ## useRoute
 
 **示例:**
@@ -526,6 +579,8 @@ export default {
 
 
 ```
+
+---
 
 ## useRouter
 
@@ -665,7 +720,11 @@ export default {
 
 ```
 
+---
+
 ## 组合式API中的模板仍可使用 $router 和 $route
+
+---
 
 ## 检测导航故障
 
@@ -718,9 +777,11 @@ router.afterEach((to, from, failure) => {
 
 ```
 
+---
+
 ## 检测重定向
 
-当在导航守卫中返回一个新的位置时，我们会触发一个新的导航，覆盖正在进行的导航。与其他返回值不同的是，重定向不会阻止导航，**而是创建一个新的导航**。因此，通过读取路由地址中的 `redirectedFrom` 属性，对其进行不同的检查：
+重定向的导航覆盖正在进行的导航,重定向不会阻止原导航，**而是创建一个新的导航**。通过读取路由中 `redirectedFrom` 属性进行检查：
 
 ```js
 await router.push('/my-profile')
@@ -728,6 +789,8 @@ if (router.currentRoute.value.redirectedFrom) {
   // redirectedFrom 是解析出的路由地址，就像导航守卫中的 to和 from
 }
 ```
+
+---
 
 ## START\_LOCATION 
 
@@ -757,164 +820,55 @@ router.beforeEach((to, from) => {
 })
 ```
 
+---
 
+## loadRouteLocation
 
-
-
-
-
-
-## 函数
-
-### isNavigationFailure 
-
-▸ **isNavigationFailure**(`error`, `type?`): error is NavigationRedirectError
-
-检查一个对象是否是 [NavigationFailure](interfaces/NavigationFailure.md)。
-
-#### 参数 
-
-| 名称 | 类型 | 描述 |
-| :------ | :------ | :------ |
-| `error` | `any` | 可能的 [NavigationFailure](interfaces/NavigationFailure.md) |
-| `type?` | `NAVIGATION_GUARD_REDIRECT` | 可选的待检查类型 |
-
-#### 返回值 
-
-error is NavigationRedirectError
-
-**示例**
+**作用:**
++ 异步组件预加载：确保目标路由的异步组件加载完成，避免懒加载带来的延迟问题。
++ 提前执行守卫逻辑：在导航之前执行路由守卫，确保所有的钩子已经完成。
 
 ```js
-import { isNavigationFailure, NavigationFailureType } from 'vue-router'
+import { createRouter, createWebHistory, loadRouteLocation } from 'vue-router';
 
-router.afterEach((to, from, failure) => {
-  // 任何类型的导航失败
-  if (isNavigationFailure(failure)) {
-    // ...
-  }
-  // 重复的导航
-  if (isNavigationFailure(failure, NavigationFailureType.duplicated)) {
-    // ...
-  }
-  // 中止或取消的导航
-  if (isNavigationFailure(failure, NavigationFailureType.aborted | NavigationFailureType.canceled)) {
-    // ...
-  }
-})
+// 异步组件
+const AsyncComponent = () => import('./components/AsyncComponent.vue');
+
+const routes = [
+  {
+    path: '/async',
+    component: AsyncComponent,
+    beforeEnter: (to, from, next) => {
+      // 模拟延迟的守卫
+      setTimeout(() => {
+        next();
+      }, 1000);
+    }
+  },
+];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+});
+
+const app = Vue.createApp({});
+
+// 在导航之前手动预加载路由
+const targetLocation = router.resolve({ path: '/async' });
+
+// 参数为一个route对象, 返回值一个promise, 在其中运行的逻辑可以确保为路由完全加载后运行
+loadRouteLocation(targetLocation).then(() => {
+  // 所有的异步组件和守卫已经加载完成
+  console.log('Route fully loaded');
+  
+  // 现在可以导航
+  router.push(targetLocation.fullPath);
+});
+
+app.use(router);
+app.mount('#app');
+
+
 ```
 
-▸ **isNavigationFailure**(`error`, `type?`): error is NavigationFailure
-
-#### 参数 
-
-| 名称 | 类型 |
-| :------ | :------ |
-| `error` | `any` |
-| `type?` | `ErrorTypes` \| [`NavigationFailureType`](enums/NavigationFailureType.md) |
-
-#### 返回值 
-
-error is NavigationFailure
-
-___
-
-### loadRouteLocation 
-
-▸ **loadRouteLocation**(`route`): `Promise`\<[`RouteLocationNormalizedLoaded`](interfaces/RouteLocationNormalizedLoaded.md)\>
-
-确保路由被加载，所以它可以作为一个 prop 传递给 `<RouterView>`。
-
-#### 参数 
-
-| 名称 | 类型 | 描述 |
-| :------ | :------ | :------ |
-| `route` | [`RouteLocationNormalized`](interfaces/RouteLocationNormalized.md) | 解析要加载的路由 |
-
-#### 返回值 
-
-`Promise`\<[`RouteLocationNormalizedLoaded`](interfaces/RouteLocationNormalizedLoaded.md)\>
-
-___
-
-### onBeforeRouteLeave 
-
-▸ **onBeforeRouteLeave**(`leaveGuard`): `void`
-
-添加一个导航守卫，不论当前位置的组件何时离开都会触发。类似于 beforeRouteLeave，但可以在任意组件中使用。当组件被卸载时，该守卫会被移除。
-
-#### 参数 
-
-| 名称 | 类型 | 描述 |
-| :------ | :------ | :------ |
-| `leaveGuard` | [`NavigationGuard`](interfaces/NavigationGuard.md) | [NavigationGuard](interfaces/NavigationGuard.md) |
-
-#### 返回值 
-
-`void`
-
-___
-
-### onBeforeRouteUpdate 
-
-▸ **onBeforeRouteUpdate**(`updateGuard`): `void`
-
-添加一个导航守卫，不论当前位置何时被更新都会触发。类似于 beforeRouteUpdate，但可以在任何组件中使用。当组件被卸载时，该守卫会被移除。
-
-#### 参数 
-
-| 名称 | 类型 | 描述 |
-| :------ | :------ | :------ |
-| `updateGuard` | [`NavigationGuard`](interfaces/NavigationGuard.md) | [NavigationGuard](interfaces/NavigationGuard.md) |
-
-#### 返回值 
-
-`void`
-
-___
-
-### useLink 
-
-▸ **useLink**(`props`): `Object`
-
-#### 参数 
-
-| 名称 | 类型 |
-| :------ | :------ |
-| `props` | `VueUseOptions`\<`RouterLinkOptions`\> |
-
-#### 返回值 
-
-`Object`
-
-| 名称 | 类型 |
-| :------ | :------ |
-| `href` | `ComputedRef<string\>` |
-| `isActive` | `ComputedRef`\<`boolean`\> |
-| `isExactActive` | `ComputedRef`\<`boolean`\> |
-| `navigate` | (`e`: `MouseEvent`) => `Promise`\<`void` \| [`NavigationFailure`](interfaces/NavigationFailure.md)\> |
-| `route` | `ComputedRef`\<[`RouteLocation`](interfaces/RouteLocation.md) & { `href`: `string`  }\> |
-
-___
-
-### useRoute 
-
-▸ **useRoute**(): [`RouteLocationNormalizedLoaded`](interfaces/RouteLocationNormalizedLoaded.md)
-
-返回当前的路由地址。相当于在模板中使用 `$route`。
-
-#### 返回值 
-
-[`RouteLocationNormalizedLoaded`](interfaces/RouteLocationNormalizedLoaded.md)
-
-___
-
-### useRouter 
-
-▸ **useRouter**(): [`Router`](interfaces/Router.md)
-
-返回路由器实例。相当于在模板中使用 `$router`。
-
-#### 返回值 
-
-[`Router`](interfaces/Router.md)
