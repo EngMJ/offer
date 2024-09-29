@@ -300,18 +300,163 @@ ___
 
 **路由导航流程:**
 
-- 导航被触发。
-- 在失活的组件里调用 beforeRouteLeave 守卫。
-- 调用全局的 beforeEach 守卫。
-- 在重用的组件里调用 beforeRouteUpdate 守卫(2.2+)。
-- 在路由配置里调用 beforeEnter。
-- 解析异步路由组件。
-- 在被激活的组件里调用 beforeRouteEnter。
-- 调用全局的 beforeResolve 守卫(2.5+)。
-- 导航被确认。
-- 调用全局的 afterEach 钩子。
-- 触发 DOM 更新。
-- 调用 beforeRouteEnter 守卫中传给 next 的回调函数，创建好的组件实例会作为回调函数的参数传入。
+- 1.导航被触发。
+- 2.在失活的组件里调用 beforeRouteLeave 守卫。
+```js
+// 选项式
+<script>
+export default {
+  beforeRouteLeave(to, from, next) {
+    // 在导航离开渲染该组件的对应路由时调用
+    // 与 `beforeRouteUpdate` 一样，它可以访问组件实例 `this`
+    // 调用next,或返回路由信息或false,false 则停止导航
+    return false;
+  },
+}
+</script>
+```
+
+```js
+// 组合式
+<script setup>
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
+import { ref } from 'vue'
+
+// 与 beforeRouteLeave 相同，无法访问 `this`
+onBeforeRouteLeave((to, from, next) => {
+  const answer = window.confirm(
+    'Do you really want to leave? you have unsaved changes!'
+  )
+  // 调用next,或返回路由信息或false,false 则停止导航
+  // 取消导航并停留在同一页面上
+  if (!answer) return false
+})
+</script>
+
+```
+
+- 3.调用全局的 beforeEach 守卫。
+```js
+// 当一个导航触发时，全局前置守卫按照创建顺序调用
+router.beforeEach((to, from, next) => {
+  // 调用next,或返回路由信息或false,false 则停止导航
+  next()
+})
+
+```
+
+- 4.在重用的组件里调用 beforeRouteUpdate 守卫(2.2+)。
+```js
+// 选项式
+<script>
+export default {
+    beforeRouteUpdate(to, from, next) {
+    // 在当前路由改变，但是该组件被复用时调用
+    // 举例来说，对于一个带有动态参数的路径 `/users/:id`，在 `/users/1` 和 `/users/2` 之间跳转的时候，
+    // 由于会渲染同样的 `UserDetails` 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+    // 因为在这种情况发生的时候，组件已经挂载好了，导航守卫可以访问组件实例 `this`
+    // 调用next,或返回路由信息或false,false 则停止导航
+    next()
+    },
+}
+</script>
+```
+
+```js
+// 组合式
+<script setup>
+    import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
+    import { ref } from 'vue'
+    
+    const userData = ref()
+
+    // 与 beforeRouteUpdate 相同，无法访问 `this`
+    onBeforeRouteUpdate(async (to, from, next) => {
+        //仅当 id 更改时才获取用户，例如仅 query 或 hash 值已更改
+        if (to.params.id !== from.params.id) {
+            userData.value = await fetchUser(to.params.id)
+        }
+        // 调用next,或返回路由信息或false,false 则停止导航
+        next()
+    })
+</script>
+
+```
+
+- 5.在路由配置里调用 beforeEnter。 守卫只在进入路由时触发,不会在 params、query 或 hash 改变时触发.
+```js
+// 当beforeEnter返回值为false时停止导航,否则需要返回对应路由信息
+function removeQueryParams(to) {
+    if (Object.keys(to.query).length)
+        return { path: to.path, query: {}, hash: to.hash }
+}
+
+function removeHash(to) {
+    if (to.hash) return { path: to.path, query: to.query, hash: '' }
+}
+
+const routes = [
+    {
+        path: '/users/:id',
+        component: UserDetails,
+        beforeEnter: [removeQueryParams, removeHash], // 数组方式,按顺序调用
+        // 函数方式
+        // beforeEnter: (to, from, next) => {
+        //     // 调用next,或返回路由信息或false,false 则停止导航
+        //     return false
+        // },
+    }
+]
+
+```
+
+- 6.解析异步路由组件。
+- 7.在被激活的组件里调用 beforeRouteEnter。 (组合式api中不存在)
+```js
+// 选项式
+<script>
+export default {
+  beforeRouteEnter(to, from, next) {
+    // 在渲染该组件的对应路由被验证前调用
+    // 不能获取组件实例 `this` ！
+    // 因为当守卫执行时，组件实例还没被创建！
+    // 调用next,或返回路由信息或false,false 则停止导航
+    next()
+  },
+}
+</script>
+```
+- 8.调用全局的 beforeResolve 守卫(2.5+)。 解析守卫刚好会在导航被确认之前、所有组件内守卫和异步路由组件被解析之后调用
+```js
+// router.beforeResolve 是获取数据或执行任何其他操作（如果用户无法进入页面时你希望避免执行的操作）的理想位置
+router.beforeResolve(async (to, from, nenxt) => {
+  if (to.meta.requiresCamera) {
+    try {
+      await askForCameraPermission()
+    } catch (error) {
+      if (error instanceof NotAllowedError) {
+        // ... 处理错误，然后取消导航
+        return false
+      } else {
+        // 意料之外的错误，取消导航并把错误传给全局处理器
+        throw error
+      }
+    }
+  }
+})
+```
+
+- 9.导航被确认。
+- 10.调用全局的 afterEach 钩子。导航完成后触发,不会接受 next 函数也不会改变导航本身
+```js
+// 用于分析、更改页面标题、错误处理等
+router.afterEach((to, from, failure) => {
+  if (!failure) sendToAnalytics(to.fullPath)
+})
+```
+
+- 11.触发 DOM 更新。
+- 12.调用 beforeRouteEnter 守卫中传给 next 的回调函数，创建好的组件实例会作为回调函数的参数传入。
 
 ## useRoute
 
