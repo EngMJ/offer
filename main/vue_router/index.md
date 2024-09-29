@@ -669,7 +669,7 @@ export default {
 
 ## 检测导航故障
 
-如果导航被阻止，导致用户停留在同一个页面上，由 `router.push` 返回的 `Promise` 的解析值将是 _Navigation Failure_。否则，它将是一个 _falsy_ 值(通常是 `undefined`)。这样我们就可以区分我们导航是否离开了当前位置：
++ `router.push`导航故障,根据其`Promise`返回值是否为undefined或导航错误对象进行判断
 
 ```js
 const navigationResult = await router.push('/my-profile')
@@ -682,7 +682,7 @@ if (navigationResult) {
 }
 ```
 
-_Navigation Failure_ 是带有一些额外属性的 `Error` 实例，这些属性为我们提供了足够的信息，让我们知道哪些导航被阻止了以及为什么被阻止了。要检查导航结果的性质，请使用 `isNavigationFailure` 函数：
++ 使用 `isNavigationFailure` 函数判断当前导航错误是`NavigationFailureType`中哪些类型
 
 ```js
 import { NavigationFailureType, isNavigationFailure } from 'vue-router'
@@ -696,16 +696,24 @@ if (isNavigationFailure(failure, NavigationFailureType.aborted)) {
 }
 ```
 
-- tip 如果你忽略第二个参数： `isNavigationFailure(failure)`，那么就只会检查这个 `failure` 是不是一个 _Navigation Failure_。
-
-全局导航错误处理
++ 全局导航错误处理
 
 ```js
 
 router.afterEach((to, from, failure) => {
-  if (failure) {
-    sendToAnalytics(to, from, failure)
-  }
+    // 任何类型的导航失败
+    // 忽略第二个参数： `isNavigationFailure(failure)`，那么就只会检查这个 `failure` 是不是一个 _Navigation Failure_。
+    if (isNavigationFailure(failure)) {
+        // ...
+    }
+    // 重复的导航
+    if (isNavigationFailure(failure, NavigationFailureType.duplicated)) {
+        // ...
+    }
+    // 中止或取消的导航
+    if (isNavigationFailure(failure, NavigationFailureType.aborted | NavigationFailureType.canceled)) {
+        // ...
+    }
 })
 
 ```
