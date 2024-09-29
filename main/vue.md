@@ -2743,7 +2743,7 @@ function defineReactive(obj, key, val) {
 
 # Vue Router
 
-参考: [vue router](vue_router/index.md)
+参考: [vue router](vue_router.md)
 
 ## 1 - 怎么定义动态路由？怎么获取传过来的动态参数？
 
