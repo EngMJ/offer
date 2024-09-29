@@ -400,7 +400,7 @@ export default {
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 export default {
@@ -450,8 +450,61 @@ export default {
     // 检查路由是否存在,有则返回true,否则false
     router.hasRoute('路由名称')
     
-    // isReady
+    // isReady 判断初始导航是否准备好
+    const navigate = async () => {
+      try {
+        await router.isReady(); // 等待路由准备好,在服务端渲染中确认服务端和客户端输出一致的时候非常有用
+        await router.push({ path: '/user/123' });
+      } catch (err) {
+          console.log(err)
+      }
+    };
+    // resolve 将输入路由字符串分类转化为对象形式
+    const path = '/user/123?q=test'; // 要解析的路径
+    const routeInfo = router.resolve(path); // 使用 router.resolve 解析路径
+    console.log(info.route); // 输出路由对象
+    console.log(info.href); // 输出完整的 URL,根据resolve的第二参数是否输入,没有输出就用当前路由路径拼接
+    console.log(info.isResolved); // 输出是否成功解析
+    console.log(info.params); // 输出动态路由参数
+    console.log(info.query); // 输出查询参数
 
+    // onError 全局错误处理
+    onMounted(() => {
+      // 在组件挂载时设置全局错误处理器
+      // 捕获同步和异步被抛出的错误、在任何导航守卫中返回或传入 next 的错误、解析渲染路由的异步组件时发生的错误
+      router.onError((err) => {
+        console.log(err)
+      });
+    });
+    
+    // 导航守卫
+    // 每次导航之前执行。返回一个用来移除该钩子的函数
+    const removeBeforeEach = router.beforeEach((to, from, next) => {
+      // 可写可不写,不写要返回路由对象进行导航
+      next()
+    })
+    // 每次导航将要被解析之前。返回一个用来移除该钩子的函数
+    const removebeforeResolve = router.beforeResolve((to, from, next) => {
+      // 可写可不写,不写要返回路由对象进行导航
+      next()
+    })
+    // 每次导航之后被执行。返回一个用来移除该钩子的函数
+    const removeAfterEach = router.afterEach((to, from, failure) => {
+        // 判断导航失败原因
+      if (isNavigationFailure(failure)) {
+        console.log('failed navigation', failure)
+      }
+    })
+    
+    // currentRoute 当前路由对象,相当于 $route
+    console.log(router.currentRoute)
+    
+    // listening 允许关闭历史事件的监听器。这是一个为微前端提供的底层 API。
+    router.listening = false;
+    
+    // options 返回createRouter的原始创建选项
+    console.log(router.options)
+    
     return {
       goHome,
       goToProfile,
