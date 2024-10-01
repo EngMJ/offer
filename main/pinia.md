@@ -38,6 +38,98 @@ new Vue({
 
 ```
 
+## 订阅
+
+### 1.state订阅:
+
+```js
+<script setup>
+import { useCounterStore } from './stores/counter'
+import { watch } from 'vue'
+
+// 获取 store 实例
+const store = useCounterStore()
+
+// 1. 使用 $subscribe 订阅变化
+store.$subscribe((mutation, state) => {
+   // import { MutationType } from 'pinia'
+   // 返回 'direct' | 'patch object' | 'patch function', 可与MutationType对比
+   console.log(mutation.type)
+   
+   // 返回state对应的key值
+   console.log(mutation.storeId) 
+        
+   // 在mutation.type === 'patch object'时,返回$patch的参数对象
+   console.log(mutation.payload)
+
+   // 每当状态发生变化时，将整个 state 持久化到本地存储。
+   localStorage.setItem('key', JSON.stringify(state))
+        
+   // 输出变化后的状态
+   console.log('Current state:', state)
+
+})
+
+// 此订阅器即便在组件卸载之后仍会被保留
+store.$subscribe(callback, { detached: true })
+
+   
+   
+// 2. 使用watch 订阅变化
+watch(
+   pinia.state,
+   (state) => {
+   // 每当状态发生变化时，将整个 state 持久化到本地存储。
+   localStorage.setItem('piniaState', JSON.stringify(state))
+   },
+   { deep: true }
+)
+</script>
+
+
+```
+
+### 2.action订阅:
+
+```js
+
+<script setup>
+import { useCounterStore } from './stores/counter'
+
+// 获取 store 实例
+const store = useCounterStore()
+
+// 1. 使用 $onAction 订阅action变化
+// 在所有 action 调用前调用
+const unsubscribe = store.$onAction(({ name, store, args, after, onError }) => {
+   // name action 方法名
+   // store store 实例
+   // args 传递给 action 的参数数组
+   // after  在 action 执行完后的回调
+   // onError action 抛出错误回调
+   console.log(`Action "${name}" was called with args:`, args)
+   
+   // 在 action 成功完成后调用
+   after((result) => {
+        console.log(`Action "${name}" finished successfully with result:`, result)
+   })
+   
+   // 在 action 发生错误时调用
+   onError((error) => {
+        console.error(`Action "${name}" failed with error:`, error)
+   })
+})
+   
+// 手动删除监听器
+unsubscribe()
+
+// 2. 此订阅器即便在组件卸载之后仍会被保留
+someStore.$onAction(callback, true)
+   
+</script>
+
+```
+
 ## 插件示例
 
 
