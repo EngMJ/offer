@@ -130,7 +130,110 @@ someStore.$onAction(callback, true)
 
 ```
 
-## 插件示例
+## pinia.use 插件示例
+
+插件的调用逻辑是每个 store 被创建时，注册的插件会被调用一次.插件可以通过 store.$id 来区分不同的 store.
+
+**插件使用场景:**
++ 日志记录：可为不同的 store 记录不同的日志内容，或只针对特定 store 进行日志记录。
++ 性能监控：可为特定的 store 添加性能监控逻辑，计算 action 执行时间等。
++ 错误处理：可为特定的 store 添加错误处理逻辑，捕捉 action 中的错误并进行特定处理。
++ 共享逻辑：可为不同的 store 添加不同的共享逻辑，例如同步到不同的 API、与外部服务的集成等
+
+```js
+// main.js
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import { loggerPlugin } from './plugins/logger'
+import App from './App.vue'
+
+const app = createApp(App)
+
+const pinia = createPinia()
+
+// 使用插件
+pinia.use(loggerPlugin)
+
+app.use(pinia)
+app.mount('#app')
+
+```
+
+```js
+// plugins/logger.js
+import { toRef, ref, markRaw } from 'vue'
+import { router } from './router'
+
+export function actionLoggerPlugin({ pinia, store, app, options }) {
+   // 参数:
+   // pinia：Pinia 的根实例
+   // app：Vue 应用实例（可选）
+   // store：当前正在创建的 store 实例。
+   // options：defineStore的配置选项，包括 id, state, getters, actions 等
+   // defineStore( 'search', {//...}, { //插件自定义选项,将被一个插件读取})
+   
+  // 1. 修改action
+  // 保存原始 actions
+  const originalActions = { ...store.$actions }
+  // 遍历所有 actions，并为每个 action 添加逻辑
+  Object.keys(originalActions).forEach((actionName) => {
+    const originalAction = store[actionName]
+
+    store[actionName] = async function (...args) {
+
+      try {
+        // 获取原始结果
+        const result = await originalAction.apply(this, args)
+        // 添加信息收集/错误处理
+        // ...
+        return result
+      } catch (error) {
+        console.error(`Action "${actionName}" failed with error:`, error)
+        throw error
+      }
+    }
+  })
+
+   
+   // 2. store 修改响应式state
+   store.reactiveNumber = ref(2);
+  
+   // 3. store修改state
+   // store.number = 2;
+  
+   // 4. 添加响应式state
+   // 在 `$state` 上设置变量，允许它在 SSR 期间被序列化。
+   store.$state.hasError = ref(false)
+   // 使用toRef共享一个state
+   store.hasError = toRef(store.$state, 'hasError')
+   
+   // 5. store添加方法
+   store.log = function () {
+      console.log(`State of store "${store.$id}":`, store.$state)
+   }
+
+   // 6. 添加外部实例或非响应式的简单值,使用markRaw节约性能
+   store.router = markRaw(router)
+   
+   // 7. 插件中使用 store.$subscribe 和 store.$onAction
+   store.$subscribe(() => {
+      // 响应 store 变化
+   })
+   store.$onAction(() => {
+      // 响应 store actions
+   })
+   
+   // 8. 返回对象添加自定义属性添加到 store 中
+   return {
+      customMethod() { // 添加方法
+         console.log(`This is a custom method for store "${store.$id}"`)
+      },
+      number: 1 // 添加修改自定义属性, 非响应式
+   }
+}
+
+
+```
 
 
 ## 选项式 API Store 示例
