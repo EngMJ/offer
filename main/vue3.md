@@ -99,10 +99,64 @@ console.log(proxy.nested === raw) // false
 </template>
 ```
 
-#### ref解包
+### ref解包
 
 就是自动添加 .value 把被包含的值取出来.
 
+1. 在 reactive 对象中自动解包 
 
+作为响应式对象的属性被访问或修改时自动解包,就像一个普通的属性.
+只有当嵌套在一个深层响应式对象内时，才会发生 ref 解包。当其作为浅层响应式对象shallowReactive的属性被访问时不会解包
+
+```js
+const count = ref(0)
+const state = reactive({
+  count
+})
+
+// 自动解包
+console.log(state.count) // 0
+state.count = 1
+console.log(count.value) // 1
+
+// 将新 ref 赋值给已有 ref 的属性，那么它会替换掉旧的 ref
+const otherCount = ref(2)
+state.count = otherCount
+console.log(state.count) // 2
+// 原始 ref 现在已经和 state.count 失去联系
+console.log(count.value) // 1
+
+```
+
+
+2. 在reactive的数组或集合中不会解包
+
+
+```js
+const books = reactive([ref('Vue 3 Guide')])
+// 这里需要 .value
+console.log(books[0].value)
+
+const map = reactive(new Map([['count', ref(0)]]))
+// 这里需要 .value
+console.log(map.get('count').value)
+```
+
+3. 在模板中顶级的 ref 属性自动解包
+
+
+```js
+// 顶级属性 count object id
+const count = ref(0)
+const object = { id: ref(1) }
+const { id } = object
+
+// 模板中
+{{ object.id + 1 }} // 不会解包,object.id不是顶级属性且为表达式,会解析失败报错[object Object]1
+{{ count + 1 }} // 自动解包,输出2
+{{ id + 1 }} // 自动解包,输出2
+{{ object.id }} // 自动解包,object.id 是文本插值的最终计算值不是表达式
+
+```
 
 
