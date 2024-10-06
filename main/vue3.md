@@ -144,7 +144,6 @@ console.log(map.get('count').value)
 
 3. 在模板中顶级的 ref 属性自动解包
 
-
 ```js
 // 顶级属性 count object id
 const count = ref(0)
@@ -159,4 +158,53 @@ const { id } = object
 
 ```
 
+
+### computed 计算属性
+
+1. 计算属性方法根据响应值是否变化而触发.
+2. 已计算值形成缓存,当最终缓存值相同值,不会触发计算属性方法.
+3. 不建议在计算属性方法内放副作用操作及修改响应式值,不能直接修改计算属性返回值,要修改就显示声明可修改的get/set.
+
+```vue
+<script setup>
+import { reactive, computed } from 'vue'
+
+const author = reactive({
+  name: 'John Doe',
+  books: [
+    'Vue 2 - Advanced Guide',
+    'Vue 3 - Basic Guide',
+    'Vue 4 - The Mystery'
+  ]
+})
+
+// 1. 计算属性返回是一个 ref, 在模板中也会自动解包
+const publishedBooksMessage = computed(() => {
+  return author.books.length > 0 ? 'Yes' : 'No'
+})
+
+
+// 2. 可修改的计算属性
+const firstName = ref('John')
+const lastName = ref('Doe')
+
+const fullName = computed({
+   // getter
+   get() {
+      return firstName.value + ' ' + lastName.value
+   },
+   // setter
+   set(newValue) {
+      // 注意：我们这里使用的是解构赋值语法
+      [firstName.value, lastName.value] = newValue.split(' ')
+   }
+})
+</script>
+
+<template>
+  <p>Has published books:</p>
+  <span>{{ publishedBooksMessage }}</span>
+</template>
+
+```
 
