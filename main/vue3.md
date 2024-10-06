@@ -1,14 +1,14 @@
 # Vue3.5.11 API 参考
 
-### 插值表达式内受限的全局访问
+## 插值表达式内受限的全局访问
 - 模板中的表达式访问到有限的全局对象。会暴露常用内置全局对象，如 Math 和 Date。
 
 - 没有显式包含在列表中的全局对象将不能在模板内表达式中访问，可以在 app.config.globalProperties 全局显式添加。
 
-### script setup
+## script setup
 组件中`<script setup>` 中的顶层的导入、声明的变量和函数可在模板中直接使用。
 
-### reactive
+## reactive
 
 声明响应式状态使对象本身具有响应性, 只接受对象类型. reactive() 返回的是一个原始对象的 Proxy，它和原始对象是不相等的.
 使用shallowReactive() API 可以选择退出深层响应性.
@@ -65,7 +65,7 @@ console.log(proxy.nested === raw) // false
    callSomeFunction(state.count)
    ```
 
-### ref
+## ref
 组合式api推荐声明响应式状态方式,将值包装在特殊对象内实现响应式监听.包装对象能够将所有类型值转换为响应式,并能更好保持监听.
 使用shallowRef实现浅相应.
 
@@ -99,7 +99,7 @@ console.log(proxy.nested === raw) // false
 </template>
 ```
 
-### ref解包
+## ref解包
 
 就是自动添加 .value 把被包含的值取出来.
 
@@ -159,7 +159,7 @@ const { id } = object
 ```
 
 
-### computed 计算属性
+## computed 计算属性
 
 1. 计算属性方法根据响应值是否变化而触发.
 2. 已计算值形成缓存,当最终缓存值相同值,不会触发计算属性方法.
@@ -208,3 +208,24 @@ const fullName = computed({
 
 ```
 
+## Class 与 Style 绑定
+1. :class 和 :style 都可以接受字符串/对象/数组 值
+2. :style 会自动添加浏览器特殊css前缀
+
+```vue
+<template>
+   // class="active", 对象参数
+   <div :class="{ active: true }"></div>
+   // class="a b", 数组参数
+   <div :class="['a', 'b']"></div>
+   // class="a b", 三元表达式
+   <div :class="[true ? 'a' : '', 'b']"></div>
+   // 组件使用class会直接继承到根元素, 也可以使用$attrs.class 自定义使用的地方
+   <MyComponent :class="{ active: isActive }" />
+   // style对象值
+   <div :style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
+   // style数组会将属性合并
+   <div :style="{ display: ['-webkit-box', '-ms-flexbox', 'flex'] }"></div>
+</template>
+
+```
