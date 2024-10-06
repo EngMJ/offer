@@ -155,7 +155,7 @@ const { id } = object
 {{ object.id + 1 }} // 不会解包,object.id不是顶级属性且为表达式,会解析失败报错[object Object]1
 {{ count + 1 }} // 自动解包,输出2
 {{ id + 1 }} // 自动解包,输出2
-{{ object.id }} // 自动解包,object.id 是文本插值的最终计算值不是表达式
+{{ object.id }} // 自动解包,object.id 是文本插值的最终计算值不是表达式, 输出 1
 
 ```
 
