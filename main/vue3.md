@@ -448,3 +448,16 @@ import { ref } from 'vue'
 </template>
 
 ```
+
+## 生命周期
+
+**流程图:**
+
+![](https://cn.vuejs.org/assets/lifecycle_zh-CN.W0MNXI0C.png)
+
+```vue
+<script setup>
+import { onBeforeMount,onMounted,onBeforeUpdate,onUpdated,onBeforeUnmount,onUnmounted,onActivated,onDeactivated,onErrorCaptured,onRenderTracked,onRenderTriggered,onServerPrefetch,onServerPrefetch } from 'vue'
+
+</script>
+```
