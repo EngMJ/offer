@@ -387,3 +387,64 @@ const fullName = computed({
    </div>
 </template>
 ```
+### v-model
+
+双向绑定:
+1. 文本类型的 `<input>` 和 `<textarea>` 元素会绑定 `value` property 并侦听 `input 事件`
+2. `<input type="checkbox">` 和 `<input type="radio">` 会绑定 `checked` property 并侦听 `change 事件`
+3. `<select>` 会绑定 `value` property 并侦听 `change 事件`。
+
+
+```vue
+<script setup>
+import { ref } from 'vue'
+</script>
+
+<template>
+   <div>
+      // 1. 普通使用
+      <input v-model="text">
+      // 本质是以下语法的语法糖
+      <input :value="text" @input="event => text = event.target.value">
+
+      // 2. radio 使用与值绑定
+      <input type="radio" id="one" value="One" v-model="picked" />
+      // 被选中时pick值为first
+      <input type="radio" v-model="pick" :value="first" />
+
+      // 3. checkbox 使用与值绑定
+      <input type="checkbox" id="checkbox" v-model="checked" />
+      // true-value 和 false-value 和 v-model 配套使用。 toggle 值会在选中时被设为 'yes'，取消选择时设为 'no'
+      <input
+              type="checkbox"
+              v-model="toggle"
+              true-value="yes"
+              false-value="no" />
+
+      <textarea v-model="text"></textarea>
+
+      // 4. select 使用与值绑定
+      <select v-model="selected">
+         <option disabled value="">Please select one</option>
+         <option>A</option>
+         <option>B</option>
+         <option>C</option>
+      </select>
+      // 被选中时selected值为{ number: 123 }
+      <select v-model="selected">
+         <!-- 内联对象字面量 -->
+         <option :value="{ number: 123 }">123</option>
+      </select>
+
+      <!--5. .lazy 修饰符来改为在每次 change 事件后更新数据 -->
+      <input v-model.lazy="msg" />
+      
+      // 6. .number 用户输入自动转换为数字
+      <input v-model.number="age" />
+      
+      // 7. .trim 自动去除用户输入内容中两端的空格
+      <input v-model.trim="msg" />
+   </div>
+</template>
+
+```
