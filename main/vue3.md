@@ -8,6 +8,13 @@
 ## script setup
 组件中`<script setup>` 中的顶层的导入、声明的变量和函数可在模板中直接使用。
 
+## 响应式值改变触发监听
+
+以下改变可触发监听:
+1. 数组 下标修改,push/pop/shift/unshift/splice/sort/reverse,重新赋值
+2. 对象 key修改, 重新赋值
+3. 原始类型 重新赋值
+
 ## reactive
 
 声明响应式状态使对象本身具有响应性, 只接受对象类型. reactive() 返回的是一个原始对象的 Proxy，它和原始对象是不相等的.
@@ -228,4 +235,155 @@ const fullName = computed({
    <div :style="{ display: ['-webkit-box', '-ms-flexbox', 'flex'] }"></div>
 </template>
 
+```
+
+## 指令
+
+### v-show
+
+场景: 显示隐藏经常切换
+原理: 修改元素display值,开销低
+
+### v-if
+场景: 显示隐藏不经常切换
+原理: 根据值决定是否渲染元素,开销高
+
+注意: v-if与v-for不能一起使用, vue3版本 v-if优先于 v-for执行.
+
+```vue
+// 可作用于template, v-show不可作用于template
+<template v-if="true">
+  <h1>Title</h1>
+  <p>Paragraph 1</p>
+  <p>Paragraph 2</p>
+</template>
+```
+
+### v-lese
+前面需要有v-if块,否则不能使用
+
+### v-if-else
+前面需要有v-if或v-if-else块,否则不能使用
+
+### v-for
+
+```vue
+<template>
+   // 1. 数组值
+   <div v-for="item in items" :key="item.id">
+      {{ item.message }}
+   </div>
+   // 解构
+   <div v-for="{ message } in items" :key="item.id">
+      {{ message }}
+   </div>
+   // 解构
+   <div v-for="({ message }, index) in items" :key="item.id">
+      {{ message }} {{ index }}
+   </div>
+   // 父级作用域
+   <div v-for="item in items" :key="item.id">
+     <span v-for="childItem in item.children">
+       {{ item.message }} {{ childItem }}
+     </span>
+   </div>
+   
+   // 2. of语法
+   <div v-for="item of items" :key="item.id"></div>
+   
+   // 3. 对象值
+   <div v-for="(value, key, index) in myObject" :key="value.id">
+      {{ index }}. {{ key }}: {{ value }}
+   </div>
+   
+   // 4. 数值
+   <div v-for="item in 10" :key="item">
+</template>
+```
+
+### v-on
+
+```vue
+<script setup>
+   import { ref } from 'vue'
+   const name = ref('Vue.js')
+
+   function greet(event) {
+      // `event` 是 DOM 原生事件
+      alert(`Hello ${name.value}!`)
+      if (event) {
+         alert(event.target.tagName)
+      }
+   }
+   
+   function say(message) {
+      alert(message)
+   }
+
+   function warn(message, event) {
+      // 这里可以访问原生事件
+      if (event) {
+         event.preventDefault()
+      }
+      alert(message)
+   }
+</script>
+
+<template>
+   <div>
+      <button @click="greet">Greet</button>
+      
+      <button @click="say('hello')">Say hello</button>
+      
+      <!-- 使用特殊的 $event 变量 -->
+      <button @click="warn('Form cannot be submitted yet.', $event)">
+         Submit
+      </button>
+
+      <!-- 使用内联箭头函数 -->
+      <button @click="(event) => warn('Form cannot be submitted yet.', event)">
+         Submit
+      </button>
+
+      <!-- 停止事件冒泡 -->
+      <a @click.stop="doThis"></a>
+
+      <!-- 阻止默认行为 -->
+      <form @submit.prevent="onSubmit"></form>
+
+      <!-- 停止冒泡和默认行为 -->
+      <a @click.stop.prevent="doThat"></a>
+
+      <!-- 也可以只有修饰符 -->
+      <form @submit.prevent></form>
+
+      <!-- 事件来自元素本身 -->
+      <div @click.self="doThat">...</div>
+
+      <!-- 添加事件监听器时，使用 `capture` 捕获模式 -->
+      <!-- 内部元素触发的事件，在被内部元素处理前，先被外部处理 -->
+      <div @click.capture="doThis">...</div>
+
+      <!-- 点击事件最多被触发一次 -->
+      <a @click.once="doThis"></a>
+
+      <!-- 滚动事件的默认行为 (scrolling) 将立即发生而非等待 `onScroll` 完成 -->
+      <!-- 立即触发,不会等待事件结束 -->
+      <div @scroll.passive="onScroll">...</div>
+
+      <!-- 键盘修饰符  KeyboardEvent.key中的值作为修饰符,需要转为 kebab-case 形式 -->
+      <input @keyup.enter="submit" />
+      <input @keyup.page-down="onPageDown" />
+      <!-- Alt + Enter -->
+      <input @keyup.alt.enter="clear" />
+      <!-- Ctrl + 点击 -->
+      <div @click.ctrl="doSomething">Do something</div>
+
+      <!-- exact 精确按键修饰符 -->
+      <!-- 仅当按下 Ctrl 且未按任何其他键时才会触发 -->
+      <button @click.ctrl.exact="onCtrlClick">A</button>
+      <!-- 仅当没有按下任何系统按键时触发 -->
+      <button @click.exact="onClick">A</button>
+   </div>
+</template>
 ```
