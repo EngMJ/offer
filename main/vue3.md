@@ -436,7 +436,7 @@ import { ref } from 'vue'
          <option :value="{ number: 123 }">123</option>
       </select>
 
-      <!--5. .lazy 修饰符来改为在每次 change 事件后更新数据 -->
+      // 5. .lazy 修饰符来改为在每次 change 事件后更新数据
       <input v-model.lazy="msg" />
       
       // 6. .number 用户输入自动转换为数字
@@ -458,6 +458,87 @@ import { ref } from 'vue'
 ```vue
 <script setup>
 import { onBeforeMount,onMounted,onBeforeUpdate,onUpdated,onBeforeUnmount,onUnmounted,onActivated,onDeactivated,onErrorCaptured,onRenderTracked,onRenderTriggered,onServerPrefetch,onServerPrefetch } from 'vue'
+// 在组件被挂载之前被调用, DOM节点还未创建
+onBeforeMount(()=>{
+    // ...
+})
 
+// 在组件挂载完成后执行,完成以下两步
+// 1. 所有同步子组件都已经被挂载 (不包含异步组件或 <Suspense> 树内的组件)
+// 2. 自身的 DOM 树已经创建完成并插入了父容器中
+onMounted(() => {
+    // 通常用于访问/操作DOM 
+})
+
+// 在组件响应式状态变更而更新其 DOM 树之前调用
+onBeforeUpdate(()=>{
+    // 用来在 Vue 更新 DOM 之前访问 DOM 状态
+})
+
+// 在组件的响应式状态变更而更新 DOM 树之后调用
+onUpdated(() => {
+   // 访问更新后的 DOM
+})
+
+// 在组件实例被卸载之前调用,组件实例依然还保有全部的功能
+onBeforeUnmount(()=>{
+    // ...
+})
+
+// 组件实例被卸载之后调用
+onUnmounted(() => {
+    // 清除定时器/订阅等
+})
+
+// 组件实例是 <KeepAlive> 缓存树的一部分，当组件被插入到 DOM 中时调用
+// 服务器端渲染期间不会被调用
+onActivated(()=>{
+})
+
+// 组件实例是 <KeepAlive> 缓存树的一部分，当组件从 DOM 中被移除时调用
+// 服务器端渲染期间不会被调用
+onDeactivated(()=>{
+})
+
+// 在捕获了后代组件传递的错误时调用
+// 捕获以下错误:
+// 组件渲染
+// 事件处理器
+// 生命周期钩子
+// setup() 函数
+// 侦听器
+// 自定义指令钩子
+// 过渡钩子
+onErrorCaptured((err, instance, info)=>{
+   // err 错误对象
+   // instance 触发该错误组件实例
+   // info 错误信息
+    
+   // 错误传递方式:
+   // 1. 正常错误将逐层传递onErrorCaptured,最终到达全局错误处理app.config.errorHandler
+   // 2. 返回false将不再向上传递错误
+   // 3. 当onErrorCaptured出现错误,将直接传递给全局错误处理app.config.errorHandler
+   
+   // 返回false,就停止向上传递错误
+    return false;
+})
+
+// 当组件渲染过程中追踪到响应式依赖时调用
+// 仅在开发模式下可用，且在服务器端渲染期间不会被调用
+onRenderTracked(()=>{
+})
+
+// 仅在开发模式下可用，且在服务器端渲染期间不会被调用
+// 当响应式依赖的变更触发了组件渲染时调用
+onRenderTriggered(()=>{
+})
+
+// 在组件实例在服务器上被渲染之前调用
+// 钩子如果返回了一个 Promise，服务端渲染会在渲染该组件前等待该 Promise 完成
+onServerPrefetch(async()=>{
+   // 主要用于渲染前,数据获取等
+   data.value = await fetchOnServer(/* ... */)
+})
+   
 </script>
 ```
