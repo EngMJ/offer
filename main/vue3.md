@@ -459,6 +459,7 @@ import { ref } from 'vue'
 <script setup>
 import { onBeforeMount,onMounted,onBeforeUpdate,onUpdated,onBeforeUnmount,onUnmounted,onActivated,onDeactivated,onErrorCaptured,onRenderTracked,onRenderTriggered,onServerPrefetch,onServerPrefetch } from 'vue'
 // 在组件被挂载之前被调用, DOM节点还未创建
+// 在服务器端渲染期间不会被调用
 onBeforeMount(()=>{
     // ...
 })
@@ -466,26 +467,31 @@ onBeforeMount(()=>{
 // 在组件挂载完成后执行,完成以下两步
 // 1. 所有同步子组件都已经被挂载 (不包含异步组件或 <Suspense> 树内的组件)
 // 2. 自身的 DOM 树已经创建完成并插入了父容器中
+// 在服务器端渲染期间不会被调用
 onMounted(() => {
     // 通常用于访问/操作DOM 
 })
 
 // 在组件响应式状态变更而更新其 DOM 树之前调用
+// 在服务器端渲染期间不会被调用
 onBeforeUpdate(()=>{
     // 用来在 Vue 更新 DOM 之前访问 DOM 状态
 })
 
 // 在组件的响应式状态变更而更新 DOM 树之后调用
+// 在服务器端渲染期间不会被调用
 onUpdated(() => {
    // 访问更新后的 DOM
 })
 
 // 在组件实例被卸载之前调用,组件实例依然还保有全部的功能
+// 在服务器端渲染期间不会被调用
 onBeforeUnmount(()=>{
     // ...
 })
 
 // 组件实例被卸载之后调用
+// 在服务器端渲染期间不会被调用
 onUnmounted(() => {
     // 清除定时器/订阅等
 })
@@ -528,8 +534,8 @@ onErrorCaptured((err, instance, info)=>{
 onRenderTracked(()=>{
 })
 
-// 仅在开发模式下可用，且在服务器端渲染期间不会被调用
 // 当响应式依赖的变更触发了组件渲染时调用
+// 仅在开发模式下可用，且在服务器端渲染期间不会被调用
 onRenderTriggered(()=>{
 })
 
