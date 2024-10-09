@@ -710,9 +710,69 @@ setTimeout(() => {
 unwatch()
    
 </script>
+```
+
+## ref属性 & useTemplateRef
+
++ 获取DOM/组件实例
++ 组件挂载后才能访问引用
++ useTemplateRef 3.5+版本才可使用
+
+```vue
+<script setup>
+import { useTemplateRef, onMounted, ref } from 'vue'
+
+// 1. 普通使用
+// 第一个参数必须与模板中的 ref 值匹配
+const input = useTemplateRef('my-input')
+const input1 = ref(null)
+onMounted(() => {
+  input.value.focus()
+   setTimeout(()=>{
+      input1.value.focus()
+   }, 500)
+})
+
+// 2. v-for中使用
+const list = ref([
+   /* ... */
+])
+const itemRefs = useTemplateRef('items')
+const itemRefs1 = ref([])
+   
+// 3. 回调获取DOM
+function getRef (el) {
+    // el 为获取的对应元素的DOM
+}
+
+// 4. 组件实例获取
+// 获取选项式组件ref可获得完全控制权
+// 获取<script setup> 的组件,只能获取到其组件通过 defineExpose 所暴露的内容
+const childRef = useTemplateRef('child')
+const childRef1 = ref(null)
+   
+</script>
 
 <template>
+   <div>
+      <input ref="my-input" />
+      <input :ref="input1" />
+      
+      <ul>
+         <li v-for="item in list" ref="items">
+            {{ item }}
+         </li>
+      </ul>
+      <ul>
+         <li v-for="item in list" :ref="itemRefs1">
+            {{ item }}
+         </li>
+      </ul>
 
+      <input :ref="getRef">
+
+      <Child ref="child" />
+      <Child :ref="childRef1" />
+   </div>
 </template>
-
 ```
