@@ -904,3 +904,61 @@ defineProps({
 // parent.vue
 <child :foo="123"></child>
 ```
+
+## 组件事件
+
+```vue
+// child.vue
+<!--选项式api-->
+<!--<script>-->
+<!--   export default {-->
+<!--      emits: ['inFocus', 'submit'],-->
+<!--      setup(props, ctx) {-->
+<!--         ctx.emit('submit')-->
+<!--      }-->
+<!--   }-->
+<!--</script>-->
+
+<script setup>
+import { ref, defineEmits } from 'vue'
+// 1. 数组使用
+const emit = defineEmits(['inFocus', 'submit'])
+function buttonClick() {
+   emit('submit')
+}
+
+// 2. 对象使用 & 事件校验
+const emit1 = defineEmits({
+   // 没有校验
+   click: null,
+
+   // 校验 submit 事件
+   submit: ({ email, password }) => {
+      if (email && password) {
+         return true // 触发事件
+      } else {
+         console.warn('Invalid submit event payload!')
+         return false // 阻止触发事件
+      }
+   }
+})
+function submitForm(email, password) {
+   emit1('submit', { email, password })
+}
+</script>
+
+<template>
+   <div>
+      <!--   模板中通过$emit 触发事件   -->
+      <button @click="$emit('someEvent', '参数')">Click Me</button>
+   </div>
+</template>
+
+```
+
+```vue
+// parent.vue
+<template>
+   <child @someEvent="hanldeFun" v-on:submit="()=>{}"></child>
+</template>
+```
