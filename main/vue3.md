@@ -793,3 +793,114 @@ defineExpose({
 })
 </script>
 ```
+## 组件注册
+1. 全局注册 app.component('MyComponent', MyComponent)
+2. 局部注册
+```vue
+// 组合式
+<script setup>
+// 引入即注册
+import ComponentA from './ComponentA.vue'
+</script>
+
+// 选项式
+export default {
+components: {
+    ComponentA
+},
+}
+```
+
+## props
+特性: props只读不可修改.
+
+```vue
+// child.vue
+<script setup>
+// 1. 值使用
+const props = defineProps(['foo'])
+console.log(props.foo)
+
+// 2. 响应式解构 3.5+版本有效, 以往版本解构会变常量失去响应式
+const { foo } = defineProps(['foo'])
+// 错误用法 watch(foo, /* ... */)
+watch(() => foo, /* ... */)
+watchEffect(() => {
+   // 在 3.5 之前只运行一次
+   // 在 3.5+ 中在 "foo" prop 变化时重新执行
+   console.log(foo)
+})
+
+
+class Person {
+   constructor(firstName, lastName) {
+      this.firstName = firstName
+      this.lastName = lastName
+   }
+}
+
+// 3. 类型限制
+// 声明 default 值，无论 prop 是未被传递还是显式指明的 undefined，都会改为 default 值
+defineProps({
+   // 基础类型检查
+   // （给出 `null` 和 `undefined` 值则会跳过任何类型检查）
+   propA: Number,
+   // Boolean 类型的未传递 prop 将被转换为 false。设置 default 修改默认行为
+   propBoolean: Boolean,
+   // 多种可能的类型
+   // 允许多种类型时，Boolean 的转换规则也将被应用
+   propB: [String, Number,Boolean,Array,Object,Date,Function,Symbol,Error],
+   // 必传，且为 String 类型
+   propC: {
+      type: String,
+      required: true
+   },
+   // 必传但可为 null 的字符串
+   propD: {
+      type: [String, null],
+      required: true
+   },
+   // Number 类型的默认值
+   propE: {
+      type: Number,
+      default: 100
+   },
+   // 对象类型的默认值
+   propF: {
+      type: Object,
+      // 对象或数组的默认值
+      // 必须从一个工厂函数返回。
+      // 该函数接收组件所接收到的原始 prop 作为参数。
+      default(rawProps) {
+         return { message: 'hello' }
+      }
+   },
+   // 自定义类型校验函数
+   // 在 3.4+ 中完整的 props 作为第二个参数传入
+   propG: {
+      validator(value, props) {
+         // The value must match one of these strings
+         return ['success', 'warning', 'danger'].includes(value)
+      }
+   },
+   // 函数类型的默认值
+   propH: {
+      type: Function,
+      // 不像对象或数组的默认，这不是一个
+      // 工厂函数。这会是一个用来作为默认值的函数
+      default() {
+         return 'Default function'
+      }
+   },
+   // 类检测, 会通过 instanceof Person 来校验 author prop 的值是否是 Person 类的一个实例
+   author: Person
+})
+
+</script>
+
+```
+
+```vue
+// parent.vue
+<child :foo="123"></child>
+```
