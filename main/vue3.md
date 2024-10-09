@@ -750,6 +750,7 @@ function getRef (el) {
 // 获取<script setup> 的组件,只能获取到其组件通过 defineExpose 所暴露的内容
 const childRef = useTemplateRef('child')
 const childRef1 = ref(null)
+// 得到的实例类型为 { a: number, b: number } (ref 都会自动解包，和一般的实例一样)
    
 </script>
 
@@ -775,4 +776,20 @@ const childRef1 = ref(null)
       <Child :ref="childRef1" />
    </div>
 </template>
+```
+
+```vue
+// Child.vue
+// ref属性得到的实例类型为 { a: number, b: number } (ref 都会自动解包，和一般的实例一样)
+<script setup>
+import { ref } from 'vue'
+
+const a = 1
+const b = ref(2)
+
+defineExpose({
+  a,
+  b
+})
+</script>
 ```
