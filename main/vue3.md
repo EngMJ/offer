@@ -457,7 +457,22 @@ import { ref } from 'vue'
 
 ```vue
 <script setup>
-import { onBeforeMount,onMounted,onBeforeUpdate,onUpdated,onBeforeUnmount,onUnmounted,onActivated,onDeactivated,onErrorCaptured,onRenderTracked,onRenderTriggered,onServerPrefetch,onServerPrefetch } from 'vue'
+import { 
+   onBeforeMount,
+   onMounted,
+   onBeforeUpdate,
+   onUpdated,
+   onBeforeUnmount,
+   onUnmounted,
+   onActivated,
+   onDeactivated,
+   onErrorCaptured,
+   onRenderTracked,
+   onRenderTriggered,
+   onServerPrefetch,
+   onServerPrefetch 
+} from 'vue'
+
 // 在组件被挂载之前被调用, DOM节点还未创建
 // 在服务器端渲染期间不会被调用
 onBeforeMount(()=>{
@@ -547,4 +562,157 @@ onServerPrefetch(async()=>{
 })
    
 </script>
+```
+
+## watch & watchEffect & watchPostEffect & watchSyncEffect & onWatcherCleanup
+
+```vue
+<script setup>
+import { ref, watch, watchEffect, watchPostEffect, watchSyncEffect,onWatcherCleanup } from 'vue'
+
+// 1. watch 仅在数据源确实改变时才会触发回调
+// 监听方式:
+const y = ref(0)
+const x = ref(0)
+const obj = reactive({ count: 0 })
+// 单个 ref
+watch(x, (newX) => {
+   console.log(`x is ${newX}`)
+})
+
+// getter 函数
+watch(
+        () => x.value + y.value,
+        (sum) => {
+           console.log(`sum of x + y is: ${sum}`)
+        }
+)
+watch(
+        () => obj.count,
+        (count) => {
+           console.log(`Count is: ${count}`)
+        }
+)
+// 错误，因为 watch() 得到的参数是一个 number
+// watch(obj.count, (count) => {
+//    console.log(`Count is: ${count}`)
+// })
+
+
+// 多个来源组成的数组
+watch([x, () => y.value], ([newX, newY]) => {
+   console.log(`x is ${newX} and y is ${newY}`)
+})
+   
+// 2. watch 深度监听 deep ,在3.5+版本中值可为数字,代表监听到第几层
+// 不以getter 函数形式监听的对象,默认深度监听
+watch(
+        obj,
+        (newValue, oldValue) => {
+        }
+)
+// 也可明文声明deep
+watch(
+        obj,
+        (newValue, oldValue) => {
+        },
+        { deep: true }
+)
+
+// 3. watch 即时触发
+watch(
+        obj,
+        (newValue, oldValue) => {
+           // 立即执行，且当 `obj` 改变时再次执行
+        },
+        { immediate: true }
+)
+
+// 4. watch 一次性监听
+watch(
+        obj,
+        (newValue, oldValue) => {
+           // 当 `obj` 变化时，仅触发一次
+        },
+        { once: true }
+)
+
+// 5. onWatcherCleanup 3.5+版本,侦听器失效并准备重新运行时会被调用
+// 必须在 watchEffect 或 watch 函数中同步执行期间调用,不能在异步函数的 await 语句之后调用它
+watch(x, (newx) => {
+   onWatcherCleanup(() => {
+      // 终止过期请求等逻辑
+   })
+})
+
+// 6. onCleanup 没有以上同步语法限制,在异步逻辑中也可以使用
+watch(x, (newId, oldId, onCleanup) => {
+   // ...
+   onCleanup(() => {
+      // 清理逻辑
+   })
+})
+
+watchEffect((onCleanup) => {
+   // ...
+   onCleanup(() => {
+      // 清理逻辑
+   })
+})
+
+// 7. 访问更新后的DOM flush & watchPostEffect
+// 设置flush为post可以在回调中访问到更新后的DOM
+watch(x, callback, {
+   flush: 'post'
+})
+watchEffect(callback, {
+   flush: 'post'
+})
+// 在 Vue 更新后执行
+watchPostEffect(() => {
+    // ...
+})
+
+// 8. 同步侦听 flush & watchSyncEffect
+// 同步侦听器不会进行批处理，每当检测到响应式数据发生变化时就会触发. 注意性能
+watch(source, callback, {
+   flush: 'sync'
+})
+
+watchEffect(callback, {
+   flush: 'sync'
+})
+
+watchSyncEffect(() => {
+   /* 在响应式数据变化时同步执行 */
+})
+
+// 9. watchEffect 无需写明监听对象,自动监听同步代码中被使用的响应式值
+// 执行机制:
+// 回调会立即执行，不需要指定 immediate: true
+// 仅会在其同步执行期间，才追踪依赖。在使用异步回调时，只有在第一个 await 正常工作前访问到的属性才会被追踪
+watchEffect(async () => {
+   const response = await fetch(
+           `https://xxxx/${y.value}`
+   )
+   x.value = await response.json()
+})
+
+// 10. 停止监听器
+// 组件卸载,会自动停止
+watchEffect(() => {})
+// 组件卸载,异步监听器不会自动卸载,不与组件绑定
+let unwatch = null;
+setTimeout(() => {
+   unwatch = watchEffect(() => {})
+}, 100)
+// 需手动卸载
+unwatch()
+   
+</script>
+
+<template>
+
+</template>
+
 ```
