@@ -448,7 +448,7 @@ import { ref } from 'vue'
 </template>
 
 ```
-## 组件V-model & defineModel 3.4+
+### 组件V-model & defineModel 3.4+
 
 + defineModel() 返回一个ref,可以直接使用在子组件v-model中与父组件的值相互绑定
 + defineModel() 返回值的 .value 和父组件的 v-model 的值同步,模板中使用会自动解包
@@ -943,7 +943,7 @@ components: {
 }
 ```
 
-## props
+## 组件props
 特性: props只读不可修改.
 
 ```vue
@@ -1095,3 +1095,44 @@ function submitForm(email, password) {
 </template>
 ```
 
+## 组件属性透传
+透传的 attribute 会自动被添加到组件根元素上.
++ 透传 class 和 style 的合并到根元素
++ v-on 监听器继承,事件会被添加到根元素
++ 根元素是组件也依然继续向下透传给子组件. 如果props或事件被本组件声明过,就不会透传给子组件.
++ 多个根节点的组件不会自动透传属性,通过$attrs进行自定义设置.
+```vue
+<header>...</header>
+<main v-bind="$attrs">...</main>
+<footer>...</footer>
+```
+
++ `<script setup>` 中使用 useAttrs() API 来访问一个组件的所有透传 attribute
+```vue
+<script setup>
+   import { useAttrs } from 'vue'
+   const attrs = useAttrs()
+</script>
+```
++ 禁止属性透传 inheritAttrs & defineOptions 3.3+
+```vue
+// 选项式
+<script >
+   export default {
+      inheritAttrs: false
+   }
+</script>
+
+// 组合式
+<script setup>
+defineOptions({
+  inheritAttrs: false
+})
+// ...setup 逻辑
+</script>
+
+<template>
+   // $attrs 对象包含了除组件所声明的 props 和 emits 之外的所有其他 attribute
+   <span>Fallthrough attribute: {{ $attrs }}</span>
+</template>
+```
