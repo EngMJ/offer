@@ -448,6 +448,138 @@ import { ref } from 'vue'
 </template>
 
 ```
+## 组件V-model & defineModel 3.4+
+
++ defineModel() 返回一个ref,可以直接使用在子组件v-model中与父组件的值相互绑定
++ defineModel() 返回值的 .value 和父组件的 v-model 的值同步,模板中使用会自动解包
+
+```vue
+// parent.vue
+
+<script setup>
+import { ref } from 'vue'
+let countModel = ref();
+</script>
+
+<template>
+   // 1. 默认使用
+   <Child v-model="countModel" />
+   
+   // 2. 底层使用
+   <Child :modelValue="countModel" @update:modelValue="$event => (countModel = $event)"/>
+   
+   // 3. 必填与默认值
+   <Child v-model="" />
+   
+   // 4. v-model参数使用
+   <Child v-model:title="countModel" />
+   
+   // 5. 多个v-model参数使用
+   <Child v-model:first-name="first" v-model:last-name="last"/>
+   
+   // 6. 修饰符使用
+   <Child v-model.test="countModel" v-model:last-name.uppercase="last" />
+</template>
+
+```
+
+```vue
+// child.vue
+<!-- Child.vue -->
+<script setup>
+   import { defineModel, defineProps, defineEmits } from 'vue'
+   // 1. 默认使用
+   const model = defineModel()
+   function update() {
+      model.value++
+   }
+   
+   // 2.底层使用
+   const props = defineProps(['modelValue'])
+   const emit = defineEmits(['update:modelValue'])
+   
+   // 3. 必填与默认值
+   // 使 v-model 必填/默认值
+   // 注意: 设置默认值后,父组件如不传参,子组件会自动使用默认值,导致父子组件数据不一致
+   const model1 = defineModel({ required: true, default: 0 })
+
+   // 4. v-model参数使用
+   const title = defineModel('title')
+   const title = defineModel('title', { required: true })
+   // defineModel 不能使用的版本写法
+   defineProps({ title: { required: true }})
+   defineEmits(['update:title'])
+   
+   // 5. 多个v-model参数使用
+   const firstName = defineModel('firstName')
+   const lastName = defineModel('lastName')
+   
+   // 6. 修饰符使用
+   const [model, modifiers] = defineModel()
+   console.log(modifiers) // { test: true }
+   const [lastName, lastNameModifiers] = defineModel('lastName')
+   console.log(lastNameModifiers) // { uppercase: true }
+   
+   // 不适用defineModel的版本使用
+   const props = defineProps({
+      modelValue: String,
+      modifiers: { default: ()=>{} },
+      lastName: String,
+      lastNameModifiers: { default: () => ({}) }
+   })
+   defineEmits(['update:modelValue', 'update:lastName'])
+   
+   // 7. defineModel get/set使用
+   // 用于对model值的存储与显示逻辑深度加工/控制
+   const [model, modifiers] = defineModel({
+      set(value) { // 修改存储值
+          // value是用户输入的值
+         
+         // 函数内可以访问modifiers对象
+         if (modifiers.capitalize) {
+            return value.charAt(0).toUpperCase() + value.slice(1)
+         }
+         
+         // 返回值为需要存储和传递给get的值
+         return value
+      },
+      get(value) { // 获取显示值
+          // value 是通过set函数返回的值
+         
+         // 返回值作为显示的值
+          return value
+      }
+   })
+
+
+</script>
+
+<template>
+   // 1. 默认使用
+   <div>自动解包model值: {{ model }}</div>
+   <button @click="update">Increment</button>
+   <input type="text" v-model="model">
+   
+   // 2. 底层使用
+   <input :value="modelValue" @input="emit('update:modelValue', $event.target.value)"/>
+   
+   // 3. 必填与默认值
+   <input type="text" v-model="model1">
+   
+   // 4. v-model参数使用
+   <input type="text" v-model="title" />
+   <input type="text" :value="title" @input="$emit('update:title', $event.target.value)"/>
+   
+   // 5. 多个v-model的使用
+   <input type="text" v-model="firstName" />
+   <input type="text" v-model="lastName" />
+   
+   // 6. 修饰符使用
+   <input type="text" v-model="model">
+   <input type="text" v-model="lastName">
+</template>
+
+```
 
 ## 生命周期
 
@@ -962,3 +1094,4 @@ function submitForm(email, password) {
    <child @someEvent="hanldeFun" v-on:submit="()=>{}"></child>
 </template>
 ```
+
