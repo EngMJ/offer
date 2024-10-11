@@ -1254,6 +1254,7 @@ app.provide(/* 注入名 */ 'message', /* 值 */ 'hello!')
 
 ## 异步组件
 在组件被使用时才会加载,节约开销.
+
 使用() => import('....')利于打包工具的代码分割.
 
 ```vue
@@ -1283,4 +1284,55 @@ const AsyncComp = defineAsyncComponent({
 })
    
 </script>
+```
+
+## 组合式函数 & toValue
++ 外部js中封装vue实例函数/属性,要使用 useName 作为命名. 类似react Hooks的自定义钩子函数 
+
++ 组合式函数使用限制:
+1. DOM操作等副作用,服务端渲染要在onMounted()中操作.需在onUnmounted() 时清理副作用避免内存泄露.
+2. 组合式函数只能在 `<script setup>` 或 setup() 钩子中被调用. 才能将生命周期钩子/计算属性/监听器注册到组件,否则会内存泄漏.
+
++ 替代mixin,mixin缺点:
+1. 不清晰的数据来源
+2. 命名空间冲突
+3. 隐式的跨 mixin 交流,多个 mixin 依赖相同属性会相互影响.
+
+```js
+// useFetch.js
+import { ref, watchEffect, toValue } from 'vue'
+
+export function useFetch(url) {
+   const data = ref(null)
+   const error = ref(null)
+
+   const fetchData = () => {
+      data.value = null
+      error.value = null
+      
+      // toValue 3.3+版本能使用, 类似一个map,如果参数是 ref，它会返回 ref 的值；参数是函数，会调用函数并返回其返回值。否则，它会原样返回参数。
+      fetch(toValue(url))
+              .then((res) => res.json())
+              .then((json) => (data.value = json))
+              .catch((err) => (error.value = err))
+   }
+
+   watchEffect(() => {
+      // 会立即运行，并且会跟踪 toValue(url), 其值为响应式则监听,否则只运行一次. 
+      fetchData()
+   })
+
+   return { data, error }
+}
+```
+
+
+```js
+const url = ref('/initial-url')
+// 传递响应式参数
+const { data, error } = useFetch(url)
+const { data, error } = useFetch(() => `/posts/${props.id}`)
+
+// 这将会重新触发 fetch
+url.value = '/new-url'
 ```
