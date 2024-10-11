@@ -988,7 +988,7 @@ unwatch()
 </script>
 ```
 
-## ref属性 & useTemplateRef
+## 属性ref & useTemplateRef
 
 + 获取DOM/组件实例
 + 组件挂载后才能访问引用
