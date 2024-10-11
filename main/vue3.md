@@ -448,7 +448,7 @@ import { ref } from 'vue'
 </template>
 
 ```
-### 组件V-model & defineModel 3.4+
+### 组件v-model & defineModel 3.4+
 
 + defineModel() 返回一个ref,可以直接使用在子组件v-model中与父组件的值相互绑定
 + defineModel() 返回值的 .value 和父组件的 v-model 的值同步,模板中使用会自动解包
@@ -580,6 +580,150 @@ let countModel = ref();
 </template>
 
 ```
+### v-slot & 插槽 <slot> 
+
+```vue
+// child.vue
+<script setup>
+   import { ref } from 'vue'
+   let count = ref(0)
+   let arg = ref({a:1})
+</script>
+
+<template>
+   <div class="container">
+      <header>
+         <slot name="header"></slot>
+      </header>
+      <main>
+         <slot></slot>
+      </main>
+      <footer>
+         <slot name="footer"></slot>
+      </footer>
+      
+      // 作用域插槽
+      <slot name="data" :arg="arg" :count="count"></slot>
+   </div>
+</template>
+
+```
+
+```vue
+// parent.vue
+<template>
+    <child>
+       // 1. 使用插槽
+       <template v-slot:header>
+          <!-- header 插槽的内容放这里 -->
+       </template>
+       <template v-slot:default> // 默认插槽 也可不写v-slot:default
+          <!-- header 插槽的内容放这里 -->
+       </template>
+       <template #footer> // v-slot简写
+          <!-- footer 插槽的内容放这里 -->
+       </template>
+       
+       // 2. 条件插槽 $slots 包含所有插槽对象
+       <div v-if="$slots.header" class="card-header">
+          <slot name="header" />
+       </div>
+       <div v-if="$slots.default" class="card-content">
+          <slot />
+       </div>
+       <div v-if="$slots.footer" class="card-footer">
+          <slot name="footer" />
+       </div>
+       
+       // 3. 动态插槽
+       <template v-slot:[dynamicSlotName]>
+          ...
+       </template>
+       <!-- 缩写为 -->
+       <template #[dynamicSlotName]>
+          ...
+       </template>
+       
+       // 4. 作用域插槽 获取子组件传递过来的数据
+       <template #data="slotData">
+          <div>{{slotData.arg.a}}</div> // 1
+          <div>{{slotData.count}}</div> // 0
+       </template>
+    </child>
+</template>
+
+```
+
+
+## 自定义指令
+
++ 注意:
+1. 不推荐在组件上使用自定义指令,因为可能是多个根节点
+2. 指令回调中除了 el 外，其他参数都是只读的
+
+```vue
+// 组合式写法
+<script setup>
+import { ref } from 'vue'
+// 完整自定义指令
+const vDirective = {
+   // 在绑定元素的 attribute 前
+   // 或事件监听器应用前调用
+   created(el, binding, vnode) {
+   },
+   // 在元素被插入到 DOM 前调用
+   beforeMount(el, binding, vnode) {},
+   // 在绑定元素的父组件
+   // 及他自己的所有子节点都挂载完成后调用
+   mounted(el, binding, vnode) {},
+   // 绑定元素的父组件更新前调用
+   beforeUpdate(el, binding, vnode, prevVnode) {},
+   // 在绑定元素的父组件
+   // 及他自己的所有子节点都更新后调用
+   updated(el, binding, vnode, prevVnode) {
+      // el: 元素DOM
+      // binding: { arg: 'foo', modifiers: { bar: true },value: 'baz 的值',oldValue: '上一次更新时 baz 的值', instance: '使用该指令的组件实例', dir: '指令的定义对象'} 
+      // vnode: 代表绑定元素的底层 VNode
+      // prevVnode：代表之前的渲染中指令所绑定元素的 VNode
+   },
+   // 绑定元素的父组件卸载前调用
+   beforeUnmount(el, binding, vnode) {},
+   // 绑定元素的父组件卸载后调用
+   unmounted(el, binding, vnode) {}
+}
+</script>
+
+<template>
+   <div v-directive:foo.bar="baz"> </div>
+</template>
+```
+
+```vue
+// 选项式写法 directives
+export default {
+   setup() {
+        /*...*/
+   },
+   directives: {
+      // 在模板中启用 v-focus
+      focus: {
+      /* ... */
+      }
+   }
+}
+```
+
+```js
+// 全局注册指令
+// 简写 回调会在 `mounted` 和 `updated` 时都调用
+app.directive('color', (el, binding) => {
+  el.style.color = binding.value
+})
+
+// 使用 
+<div v-color="color"></div>
+```
+
 
 ## 生命周期
 
@@ -1137,80 +1281,6 @@ defineOptions({
 </template>
 ```
 
-## 插槽 <slot> & v-slot
-
-```vue
-// child.vue
-<script setup>
-   import { ref } from 'vue'
-   let count = ref(0)
-   let arg = ref({a:1})
-</script>
-
-<template>
-   <div class="container">
-      <header>
-         <slot name="header"></slot>
-      </header>
-      <main>
-         <slot></slot>
-      </main>
-      <footer>
-         <slot name="footer"></slot>
-      </footer>
-      
-      // 作用域插槽
-      <slot name="data" :arg="arg" :count="count"></slot>
-   </div>
-</template>
-
-```
-
-```vue
-// parent.vue
-<template>
-    <child>
-       // 1. 使用插槽
-       <template v-slot:header>
-          <!-- header 插槽的内容放这里 -->
-       </template>
-       <template v-slot:default> // 默认插槽 也可不写v-slot:default
-          <!-- header 插槽的内容放这里 -->
-       </template>
-       <template #footer> // v-slot简写
-          <!-- footer 插槽的内容放这里 -->
-       </template>
-       
-       // 2. 条件插槽 $slots 包含所有插槽对象
-       <div v-if="$slots.header" class="card-header">
-          <slot name="header" />
-       </div>
-       <div v-if="$slots.default" class="card-content">
-          <slot />
-       </div>
-       <div v-if="$slots.footer" class="card-footer">
-          <slot name="footer" />
-       </div>
-       
-       // 3. 动态插槽
-       <template v-slot:[dynamicSlotName]>
-          ...
-       </template>
-       <!-- 缩写为 -->
-       <template #[dynamicSlotName]>
-          ...
-       </template>
-       
-       // 4. 作用域插槽 获取子组件传递过来的数据
-       <template #data="slotData">
-          <div>{{slotData.arg.a}}</div> // 1
-          <div>{{slotData.count}}</div> // 0
-       </template>
-    </child>
-</template>
-
-```
-
 ## 依赖注入
 后代组件跨层级通信
 
@@ -1336,3 +1406,4 @@ const { data, error } = useFetch(() => `/posts/${props.id}`)
 // 这将会重新触发 fetch
 url.value = '/new-url'
 ```
+
