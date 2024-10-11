@@ -1210,3 +1210,50 @@ defineOptions({
 </template>
 
 ```
+
+## 依赖注入
+后代组件跨层级通信
+
+
+```vue
+// 祖先组件
+<script setup>
+import { ref, provide, readonly } from 'vue'
+
+let value = ref(0)
+let value1 = ref(0)
+provide(/* 注入名 */ 'keyName', /* 值 */ value)
+provide(/* 注入名 */ 'key', /* 值 */ {data: readonly(value)})
+
+</script>
+
+```
+
+```vue
+// 后代组件
+import { inject } from 'vue'
+
+// 正常使用
+const message = inject('keyName')
+const { data } = inject('keyName')
+
+// 默认值设置
+const value = inject('keyName', '默认值')
+
+// 函数/类默认值写法 避免多余调用
+const value = inject('keyName', () => new ExpensiveClass(), true)
+
+```
+
+```js
+// 全局注入 使用app实例
+import { createApp } from 'vue'
+const app = createApp({})
+app.provide(/* 注入名 */ 'message', /* 值 */ 'hello!')
+```
+
+## 异步组件
+
+```vue
+
+```
