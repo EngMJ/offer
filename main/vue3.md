@@ -1136,3 +1136,77 @@ defineOptions({
    <span>Fallthrough attribute: {{ $attrs }}</span>
 </template>
 ```
+
+## 插槽 <slot> & v-slot
+
+```vue
+// child.vue
+<script setup>
+   import { ref } from 'vue'
+   let count = ref(0)
+   let arg = ref({a:1})
+</script>
+
+<template>
+   <div class="container">
+      <header>
+         <slot name="header"></slot>
+      </header>
+      <main>
+         <slot></slot>
+      </main>
+      <footer>
+         <slot name="footer"></slot>
+      </footer>
+      
+      // 作用域插槽
+      <slot name="data" :arg="arg" :count="count"></slot>
+   </div>
+</template>
+
+```
+
+```vue
+// parent.vue
+<template>
+    <child>
+       // 1. 使用插槽
+       <template v-slot:header>
+          <!-- header 插槽的内容放这里 -->
+       </template>
+       <template v-slot:default> // 默认插槽 也可不写v-slot:default
+          <!-- header 插槽的内容放这里 -->
+       </template>
+       <template #footer> // v-slot简写
+          <!-- footer 插槽的内容放这里 -->
+       </template>
+       
+       // 2. 条件插槽 $slots 包含所有插槽对象
+       <div v-if="$slots.header" class="card-header">
+          <slot name="header" />
+       </div>
+       <div v-if="$slots.default" class="card-content">
+          <slot />
+       </div>
+       <div v-if="$slots.footer" class="card-footer">
+          <slot name="footer" />
+       </div>
+       
+       // 3. 动态插槽
+       <template v-slot:[dynamicSlotName]>
+          ...
+       </template>
+       <!-- 缩写为 -->
+       <template #[dynamicSlotName]>
+          ...
+       </template>
+       
+       // 4. 作用域插槽 获取子组件传递过来的数据
+       <template #data="slotData">
+          <div>{{slotData.arg.a}}</div> // 1
+          <div>{{slotData.count}}</div> // 0
+       </template>
+    </child>
+</template>
+
+```
