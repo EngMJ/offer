@@ -1253,7 +1253,34 @@ app.provide(/* 注入名 */ 'message', /* 值 */ 'hello!')
 ```
 
 ## 异步组件
+在组件被使用时才会加载,节约开销.
+使用() => import('....')利于打包工具的代码分割.
 
 ```vue
+<script setup>
+import { ref, defineAsyncComponent } from 'vue'
+import LoadingComponent from 'LoadingComponent.vue'
+import ErrorComponent from 'ErrorComponent.vue'
 
+// 简写异步组件
+const AsyncComp = defineAsyncComponent(() => import('./AsyncComp.vue'))
+
+// 完整版
+const AsyncComp = defineAsyncComponent({
+   // 加载函数
+   loader: () => import('./AsyncComp.vue'),
+
+   // 加载异步组件时使用的组件
+   loadingComponent: LoadingComponent,
+   // 展示加载组件前的延迟时间，默认为 200ms
+   delay: 200,
+
+   // 加载失败后展示的组件
+   errorComponent: ErrorComponent,
+   // 如果提供了一个 timeout 时间限制，并超时了
+   // 也会显示这里配置的报错组件，默认值是：Infinity
+   timeout: 3000
+})
+   
+</script>
 ```
