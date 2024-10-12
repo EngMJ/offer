@@ -1713,14 +1713,95 @@ function onEnter(el, done) {
 ```
 
 ### Suspense
+触发依赖:
+1. 带有异步 setup() 钩子的组件。这也包含了使用 <script setup> 时有顶层 await 表达式的组件。
+2. 异步组件。
 
+```vue
+<script setup>
+import { ref } from 'vue'
+const res = await fetch(...)
+</script>
 
+<template>
+<!--   1. 使用-->
+<!--   pending 事件是在进入挂起状态时触发。-->
+<!--   resolve 事件是在 default 插槽完成获取新内容时触发。-->
+<!--   fallback 事件则是在 fallback 插槽的内容显示时触发-->
+   <Suspense @pending @resolve @fallback>
+      <!-- 具有深层异步依赖的组件 -->
+      <Dashboard />
+
+      <!-- 在 #fallback 插槽中显示 “正在加载中” -->
+      <template #fallback>
+         Loading...
+      </template>
+   </Suspense>
+
+<!--   2. 嵌套使用 suspensible 让父子组件同步使用父组件的Suspense,不会产生空白过渡问题-->
+   <Suspense>
+      <component :is="DynamicAsyncOuter">
+         <Suspense suspensible> <!-- 像这样 -->
+            <component :is="DynamicAsyncInner" />
+         </Suspense>
+      </component>
+   </Suspense>
+</template>
+
+```
+
++ 有序组合嵌套
+
+```vue
+<template>
+   <RouterView v-slot="{ Component }">
+      <template v-if="Component">
+         <Transition mode="out-in">
+            <KeepAlive>
+               <Suspense>
+                  <!-- 主要内容 -->
+                  <component :is="Component"></component>
+
+                  <!-- 加载中状态 -->
+                  <template #fallback>
+                     正在加载...
+                  </template>
+               </Suspense>
+            </KeepAlive>
+         </Transition>
+      </template>
+   </RouterView>
+</template>
+
+```
 
 ### component
+渲染动态组件或元素
+
+```vue
+<script setup>
+import Foo from './Foo.vue'
+import Bar from './Bar.vue'
+</script>
+
+<template>
+  <component :is="Math.random() > 0.5 ? Foo : Bar" />
+  <component :is="Math.random() > 0.5 ? 'a' : 'span'"></component>
+</template>
+```
 
 ### template
+用于包裹模板的空标签,不会被渲染,不能使用ref/is等属性.
+带有 v-for 的 <template> 也可以有一个 key 属性,所有其他的属性和指令都将被丢弃.
 
-### slot
+```vue
+<template>
+    <!--   可以使用以下指令-->
+   <template v-if></template>
+   <template v-for></template>
+   <template v-slot></template>
+</template>
+```
 
 ## 性能优化
 
