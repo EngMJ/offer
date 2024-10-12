@@ -300,7 +300,7 @@ const fullName = computed({
    </div>
    
    // 4. 数值
-   <div v-for="item in 10" :key="item">
+   <div v-for="item in 10" :key="item"></div>
 </template>
 ```
 
@@ -1723,7 +1723,7 @@ function onEnter(el, done) {
 ```vue
 <script setup>
 import { ref } from 'vue'
-const res = await fetch(...)
+const res = await fetch('...')
 </script>
 
 <template>
@@ -1806,10 +1806,21 @@ import Bar from './Bar.vue'
 </template>
 ```
 
-## 性能优化
-
 ## 安全
+核心: 不使用用户输入内容作为模板.
+
+1. v-html/innerHTML/渲染函数 注入任何元素/链接,做任何操作
+2. 元素 url 注入劫持,乱跳转
+3. 元素 style 注入劫持,乱跳转
+4. 渲染script标签注入, 做任何事
+
+## 组合式 对比 选项式 优势
+
+1. 粒度小,更好的逻辑复用
+2. 更灵活
+3. 更好的ts支持
+4. 更小打包体积
 
 ## 响应式 & 渲染机制
 
-## 组合式 选项式 区别
+
