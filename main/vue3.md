@@ -721,7 +721,7 @@ app.directive('color', (el, binding) => {
 })
 
 // 使用 
-<div v-color="color"></div>
+// <div v-color="color"></div>
 ```
 
 
@@ -1407,3 +1407,325 @@ const { data, error } = useFetch(() => `/posts/${props.id}`)
 url.value = '/new-url'
 ```
 
+## 插件
+
+```js
+
+import { createApp } from 'vue'
+
+const app = createApp({})
+
+const myPlugin = {
+   install(app, options) {
+      // app 实例
+      // 插件作用:
+      // 通过 app.component() 和 app.directive() 注册一到多个全局组件或自定义指令。
+      // 通过 app.provide() 使一个资源可被注入进整个应用。
+      // 向 app.config.globalProperties 中添加一些全局实例属性或方法
+   }
+}
+
+app.use(myPlugin, {
+ // '参数option'
+})
+
+```
+
+## 内置组件
+可在模板中直接使用的组件
+
+### Transition
+
++ 触发机制:
+1. 由 v-if 所触发的切换
+2. 由 v-show 所触发的切换
+3. 由特殊元素 <component> 切换的动态组件
+4. 改变特殊的 key 属性
+
++ 作用机制:
+1. `<Transition>` 仅支持单个元素或组件作为其插槽内容
+2. 在以下状态进行样式类的添加替换: (<Transition name="fade"></Transition> 设置了name时, v会替换成name,如:fade-enter-from)
+![](https://cn.vuejs.org/assets/transition-classes.DYG5-69l.png)
+
+v-enter-from：进入动画的起始状态。在元素插入之前添加，在元素插入完成后的下一帧移除。
+
+v-enter-active：进入动画的生效状态。应用于整个进入动画阶段。在元素被插入之前添加，在过渡或动画完成之后移除。这个 class 可以被用来定义进入动画的持续时间、延迟与速度曲线类型。
+
+v-enter-to：进入动画的结束状态。在元素插入完成后的下一帧被添加 (也就是 v-enter-from 被移除的同时)，在过渡或动画完成之后移除。
+
+v-leave-from：离开动画的起始状态。在离开过渡效果被触发时立即添加，在一帧后被移除。
+
+v-leave-active：离开动画的生效状态。应用于整个离开动画阶段。在离开过渡效果被触发时立即添加，在过渡或动画完成之后移除。这个 class 可以被用来定义离开动画的持续时间、延迟与速度曲线类型。
+
+v-leave-to：离开动画的结束状态。在一个离开动画被触发后的下一帧被添加 (也就是 v-leave-from 被移除的同时)，在过渡或动画完成之后移除
+
+```vue
+<script setup>
+import { ref } from 'vue'
+let show = ref(false)
+
+// 在元素被插入到 DOM 之前被调用
+// 用这个来设置元素的 "enter-from" 状态
+function onBeforeEnter(el) {}
+
+// 在元素被插入到 DOM 之后的下一帧被调用
+// 用这个来开始进入动画
+function onEnter(el, done) {
+   // 调用回调函数 done 表示过渡结束
+   // 如果与 CSS 结合使用，则这个回调是可选参数
+   done()
+}
+
+// 当进入过渡完成时调用。
+function onAfterEnter(el) {}
+
+// 当进入过渡在完成之前被取消时调用
+function onEnterCancelled(el) {}
+
+// 在 leave 钩子之前调用
+// 大多数时候，你应该只会用到 leave 钩子
+function onBeforeLeave(el) {}
+
+// 在离开过渡开始时调用
+// 用这个来开始离开动画
+function onLeave(el, done) {
+   // 调用回调函数 done 表示过渡结束
+   // 如果与 CSS 结合使用，则这个回调是可选参数
+   done()
+}
+
+// 在离开过渡完成、
+// 且元素已从 DOM 中移除时调用
+function onAfterLeave(el) {}
+
+// 仅在 v-show 过渡中可用
+function onLeaveCancelled(el) {}
+</script>
+
+<template>
+   <button @click="show = !show">Toggle</button>
+   // 1. 默认使用
+   <Transition>
+      <p v-if="show">hello</p>
+   </Transition>
+   
+   // 2. 具名使用
+   <Transition name="fade">
+      ...
+   </Transition>
+   <Transition :name="transitionName">
+      <!-- ... -->
+   </Transition>
+
+   // 3. 自定类名使用
+   <Transition
+           name="custom-classes"
+           enter-from-class="xxx"
+           enter-active-class="animate__animated animate__tada"
+           enter-to-class="xxx"
+           leave-from-class="xxx"
+           leave-active-class="animate__animated animate__bounceOutRight"
+           leave-to-class="xxx"
+   >
+      <p v-if="show">hello</p>
+   </Transition>
+   
+   // 4. 钩子
+   <Transition
+           @before-enter="onBeforeEnter"
+           @enter="onEnter"
+           @after-enter="onAfterEnter"
+           @enter-cancelled="onEnterCancelled"
+           @before-leave="onBeforeLeave"
+           @leave="onLeave"
+           @after-leave="onAfterLeave"
+           @leave-cancelled="onLeaveCancelled"
+           :css="false"
+   >
+      <!--  :css="false" // 跳过css自动探测提升性能 -->
+   </Transition>
+   
+   // 5. 首次渲染过渡
+   <Transition appear>
+      ...
+   </Transition>
+   
+   // 6. 过渡模式 内置的一个过渡样式
+   <Transition mode="out-in">
+      ...
+   </Transition>
+   <Transition mode="in-out">
+      ...
+   </Transition>
+</template>
+
+<style scoped>
+   .v-enter-active,
+   .v-leave-active {
+      transition: opacity 0.5s ease;
+   }
+
+   .v-enter-from,
+   .v-leave-to {
+      opacity: 0;
+   }
+</style>
+```
+
+
+### TransitionGroup
+与Transition区别:
+1. 默认情况下，它不会渲染一个容器元素.可以通过传入 tag prop 来指定一个元素作为容器元素来渲染.
+2. CSS 过渡 class 会被应用在列表内的元素上，而不是容器元素上.
+3. 列表中的每个元素都必须有一个独一无二的 key attribute.
+4. 过渡模式(mode属性)在这里不可用，因为我们不再是在互斥的元素之间进行切换.
+
+```vue
+
+<script setup>
+import { ref } from 'vue'
+
+function onEnter(el, done) {
+   gsap.to(el, {
+      opacity: 1,
+      height: '1.6em',
+      delay: el.dataset.index * 0.15,
+      onComplete: done
+   })
+}
+</script>
+
+<template>
+   // 1. 使用
+   <TransitionGroup name="list" tag="ul">
+      <li v-for="item in items" :key="item">
+         {{ item }}
+      </li>
+   </TransitionGroup>
+   
+   // 2. 钩子
+   <TransitionGroup
+           tag="ul"
+           :css="false"
+           @before-enter="onBeforeEnter"
+           @enter="onEnter"
+           @leave="onLeave"
+   >
+      <li
+              v-for="(item, index) in computedList"
+              :key="item.msg"
+              :data-index="index"
+      >
+         {{ item.msg }}
+      </li>
+   </TransitionGroup>
+</template>
+
+<style scoped>
+   .list-enter-active,
+   .list-leave-active {
+      transition: all 0.5s ease;
+   }
+   .list-enter-from,
+   .list-leave-to {
+      opacity: 0;
+      transform: translateX(30px);
+   }
+</style>
+
+
+```
+
+### KeepAlive
+多个组件间动态切换时缓存被移除的组件实例.
+
+```vue
+<script setup>
+   import { onActivated, onDeactivated } from 'vue'
+
+   // onActivated 在组件挂载时也会调用，并且 onDeactivated 在组件卸载时也会调用
+   onActivated(() => {
+      // 调用时机为首次挂载
+      // 以及每次从缓存中被重新插入时
+   })
+
+   onDeactivated(() => {
+      // 在从 DOM 上移除、进入缓存
+      // 以及组件卸载时调用
+   })
+</script>
+
+<template>
+<!-- 1. 使用  -->
+   <!-- 非活跃的组件将会被缓存！ -->
+   <KeepAlive>
+      <component :is="activeComponent" />
+   </KeepAlive>
+
+<!-- 2. 仅缓存include使用 匹配组件的name,使用 <script setup> 的单文件组件会自动根据文件名生成对应的 name 选项，无需再手动声明 -->
+   <!-- 以英文逗号分隔的字符串 -->
+   <KeepAlive include="a,b">
+      <component :is="view" />
+   </KeepAlive>
+   <!-- 正则表达式 (需使用 `v-bind`) -->
+   <KeepAlive :include="/a|b/">
+      <component :is="view" />
+   </KeepAlive>
+   <!-- 数组 (需使用 `v-bind`) -->
+   <KeepAlive :include="['a', 'b']">
+      <component :is="view" />
+   </KeepAlive>
+   
+<!--3. 最大缓存组件数量-->
+   <KeepAlive :max="10">
+      <component :is="activeComponent" />
+   </KeepAlive>
+</template>
+
+<style scoped>
+
+</style>
+
+
+```
+
+### Teleport
+将元素或组件传递到任意DOM节点内
+
+```vue
+<template>
+<!-- 1.  传送的 to 目标必须已经存在于 DOM 中,否则报错-->
+   <Teleport to="body">
+      <div v-if="open" class="modal">
+         <p>Hello from the modal!</p>
+         <button @click="open = false">Close</button>
+      </div>
+   </Teleport>
+
+<!-- 2. 禁用 渲染在原组件位置  -->
+   <Teleport :disabled="isMobile">
+      ...
+   </Teleport>
+<!--3. 延迟加载 defer 3.5+版本可以使用-->
+   <Teleport defer to="#late-div">...</Teleport>
+</template>
+
+```
+
+### Suspense
+
+
+
+### component
+
+### template
+
+### slot
+
+## 性能优化
+
+## 安全
+
+## 响应式 & 渲染机制
+
+## 组合式 选项式 区别
