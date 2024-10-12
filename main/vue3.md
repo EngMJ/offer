@@ -6,7 +6,8 @@
 - 没有显式包含在列表中的全局对象将不能在模板内表达式中访问，可以在 app.config.globalProperties 全局显式添加。
 
 ## script setup
-组件中`<script setup>` 中的顶层的导入、声明的变量和函数可在模板中直接使用。
+- 组件中`<script setup>` 中的顶层的导入、声明的变量和函数可在模板中直接使用。
+- 使用 <script setup> 的单文件组件会自动根据文件名生成对应的 name 选项，无需再手动声明.
 
 ## 响应式值改变触发监听
 
@@ -15,17 +16,19 @@
 2. 对象 key修改, 重新赋值
 3. 原始类型 重新赋值
 
-## reactive
+## reactive & shallowReactive
 
 声明响应式状态使对象本身具有响应性, 只接受对象类型. reactive() 返回的是一个原始对象的 Proxy，它和原始对象是不相等的.
 使用shallowReactive() API 可以选择退出深层响应性.
 
 ```js
-import { reactive } from 'vue'
-
+import { reactive, shallowReactive } from 'vue'
 
 const state = reactive({ count: 0 })
 console.log(state) // {count: 0}
+
+// 浅监听
+const shallowState = shallowReactive({count: 1})
 
 // 原始对象与reactive响应对象
 const raw = {}
@@ -72,7 +75,7 @@ console.log(proxy.nested === raw) // false
    callSomeFunction(state.count)
    ```
 
-## ref
+## ref & shallowRef
 组合式api推荐声明响应式状态方式,将值包装在特殊对象内实现响应式监听.包装对象能够将所有类型值转换为响应式,并能更好保持监听.
 使用shallowRef实现浅相应.
 
@@ -1087,7 +1090,7 @@ components: {
 }
 ```
 
-## 组件props
+## 组件props defineProps
 特性: props只读不可修改.
 
 ```vue
@@ -1181,7 +1184,7 @@ defineProps({
 <child :foo="123"></child>
 ```
 
-## 组件事件
+## 组件事件 defineEmits
 
 ```vue
 // child.vue
@@ -1239,7 +1242,7 @@ function submitForm(email, password) {
 </template>
 ```
 
-## 组件属性透传
+## 组件属性透传 $attrs & defineOptions & inheritAttrs
 透传的 attribute 会自动被添加到组件根元素上.
 + 透传 class 和 style 的合并到根元素
 + v-on 监听器继承,事件会被添加到根元素
@@ -1281,7 +1284,7 @@ defineOptions({
 </template>
 ```
 
-## 依赖注入
+## 依赖注入 provide & inject & readonly
 后代组件跨层级通信
 
 
@@ -1322,7 +1325,7 @@ const app = createApp({})
 app.provide(/* 注入名 */ 'message', /* 值 */ 'hello!')
 ```
 
-## 异步组件
+## 异步组件 defineAsyncComponent
 在组件被使用时才会加载,节约开销.
 
 使用() => import('....')利于打包工具的代码分割.
@@ -1407,7 +1410,7 @@ const { data, error } = useFetch(() => `/posts/${props.id}`)
 url.value = '/new-url'
 ```
 
-## 插件
+## 插件 app.use
 
 ```js
 
