@@ -218,26 +218,267 @@ const fullName = computed({
 
 ```
 
-## Class 与 Style 绑定
-1. :class 和 :style 都可以接受字符串/对象/数组 值
-2. :style 会自动添加浏览器特殊css前缀
+## watch & watchEffect & watchPostEffect & watchSyncEffect & onWatcherCleanup
 
 ```vue
-<template>
-   // class="active", 对象参数
-   <div :class="{ active: true }"></div>
-   // class="a b", 数组参数
-   <div :class="['a', 'b']"></div>
-   // class="a b", 三元表达式
-   <div :class="[true ? 'a' : '', 'b']"></div>
-   // 组件使用class会直接继承到根元素, 也可以使用$attrs.class 自定义使用的地方
-   <MyComponent :class="{ active: isActive }" />
-   // style对象值
-   <div :style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
-   // style数组会将属性合并
-   <div :style="{ display: ['-webkit-box', '-ms-flexbox', 'flex'] }"></div>
-</template>
+<script setup>
+import { ref, watch, watchEffect, watchPostEffect, watchSyncEffect,onWatcherCleanup } from 'vue'
 
+// 1. watch 仅在数据源确实改变时才会触发回调
+// 监听方式:
+const y = ref(0)
+const x = ref(0)
+const obj = reactive({ count: 0 })
+// 单个 ref
+watch(x, (newX) => {
+   console.log(`x is ${newX}`)
+})
+
+// getter 函数
+watch(
+        () => x.value + y.value,
+        (sum) => {
+           console.log(`sum of x + y is: ${sum}`)
+        }
+)
+watch(
+        () => obj.count,
+        (count) => {
+           console.log(`Count is: ${count}`)
+        }
+)
+// 错误，因为 watch() 得到的参数是一个 number
+// watch(obj.count, (count) => {
+//    console.log(`Count is: ${count}`)
+// })
+
+
+// 多个来源组成的数组
+watch([x, () => y.value], ([newX, newY]) => {
+   console.log(`x is ${newX} and y is ${newY}`)
+})
+   
+// 2. watch 深度监听 deep ,在3.5+版本中值可为数字,代表监听到第几层
+// 不以getter 函数形式监听的对象,默认深度监听
+watch(
+        obj,
+        (newValue, oldValue) => {
+        }
+)
+// 也可明文声明deep
+watch(
+        obj,
+        (newValue, oldValue) => {
+        },
+        { deep: true }
+)
+
+// 3. watch 即时触发
+watch(
+        obj,
+        (newValue, oldValue) => {
+           // 立即执行，且当 `obj` 改变时再次执行
+        },
+        { immediate: true }
+)
+
+// 4. watch 一次性监听
+watch(
+        obj,
+        (newValue, oldValue) => {
+           // 当 `obj` 变化时，仅触发一次
+        },
+        { once: true }
+)
+
+// 5. onWatcherCleanup 3.5+版本,侦听器失效并准备重新运行时会被调用
+// 必须在 watchEffect 或 watch 函数中同步执行期间调用,不能在异步函数的 await 语句之后调用它
+watch(x, (newx) => {
+   onWatcherCleanup(() => {
+      // 终止过期请求等逻辑
+   })
+})
+
+// 6. onCleanup 没有以上同步语法限制,在异步逻辑中也可以使用
+watch(x, (newId, oldId, onCleanup) => {
+   // ...
+   onCleanup(() => {
+      // 清理逻辑
+   })
+})
+
+watchEffect((onCleanup) => {
+   // ...
+   onCleanup(() => {
+      // 清理逻辑
+   })
+})
+
+// 7. 访问更新后的DOM flush & watchPostEffect
+// 设置flush为post可以在回调中访问到更新后的DOM
+watch(x, callback, {
+   flush: 'post'
+})
+watchEffect(callback, {
+   flush: 'post'
+})
+// 在 Vue 更新后执行
+watchPostEffect(() => {
+    // ...
+})
+
+// 8. 同步侦听 flush & watchSyncEffect
+// 同步侦听器不会进行批处理，每当检测到响应式数据发生变化时就会触发. 注意性能
+watch(source, callback, {
+   flush: 'sync'
+})
+
+watchEffect(callback, {
+   flush: 'sync'
+})
+
+watchSyncEffect(() => {
+   /* 在响应式数据变化时同步执行 */
+})
+
+// 9. watchEffect 无需写明监听对象,自动监听同步代码中被使用的响应式值
+// 执行机制:
+// 回调会立即执行，不需要指定 immediate: true
+// 仅会在其同步执行期间，才追踪依赖。在使用异步回调时，只有在第一个 await 正常工作前访问到的属性才会被追踪
+watchEffect(async () => {
+   const response = await fetch(
+           `https://xxxx/${y.value}`
+   )
+   x.value = await response.json()
+})
+
+// 10. 停止监听器
+// 组件卸载,会自动停止
+watchEffect(() => {})
+// 组件卸载,异步监听器不会自动卸载,不与组件绑定
+let unwatch = null;
+setTimeout(() => {
+   unwatch = watchEffect(() => {})
+}, 100)
+// 需手动卸载
+unwatch()
+   
+</script>
+```
+
+## 生命周期
+
+**流程图:**
+
+![](https://cn.vuejs.org/assets/lifecycle_zh-CN.W0MNXI0C.png)
+
+```vue
+<script setup>
+import { 
+   onBeforeMount,
+   onMounted,
+   onBeforeUpdate,
+   onUpdated,
+   onBeforeUnmount,
+   onUnmounted,
+   onActivated,
+   onDeactivated,
+   onErrorCaptured,
+   onRenderTracked,
+   onRenderTriggered,
+   onServerPrefetch,
+   onServerPrefetch 
+} from 'vue'
+
+// 在组件被挂载之前被调用, DOM节点还未创建
+// 在服务器端渲染期间不会被调用
+onBeforeMount(()=>{
+    // ...
+})
+
+// 在组件挂载完成后执行,完成以下两步
+// 1. 所有同步子组件都已经被挂载 (不包含异步组件或 <Suspense> 树内的组件)
+// 2. 自身的 DOM 树已经创建完成并插入了父容器中
+// 在服务器端渲染期间不会被调用
+onMounted(() => {
+    // 通常用于访问/操作DOM 
+})
+
+// 在组件响应式状态变更而更新其 DOM 树之前调用
+// 在服务器端渲染期间不会被调用
+onBeforeUpdate(()=>{
+    // 用来在 Vue 更新 DOM 之前访问 DOM 状态
+})
+
+// 在组件的响应式状态变更而更新 DOM 树之后调用
+// 在服务器端渲染期间不会被调用
+onUpdated(() => {
+   // 访问更新后的 DOM
+})
+
+// 在组件实例被卸载之前调用,组件实例依然还保有全部的功能
+// 在服务器端渲染期间不会被调用
+onBeforeUnmount(()=>{
+    // ...
+})
+
+// 组件实例被卸载之后调用
+// 在服务器端渲染期间不会被调用
+onUnmounted(() => {
+    // 清除定时器/订阅等
+})
+
+// 组件实例是 <KeepAlive> 缓存树的一部分，当组件被插入到 DOM 中时调用
+// 服务器端渲染期间不会被调用
+onActivated(()=>{
+})
+
+// 组件实例是 <KeepAlive> 缓存树的一部分，当组件从 DOM 中被移除时调用
+// 服务器端渲染期间不会被调用
+onDeactivated(()=>{
+})
+
+// 在捕获了后代组件传递的错误时调用
+// 捕获以下错误:
+// 组件渲染
+// 事件处理器
+// 生命周期钩子
+// setup() 函数
+// 侦听器
+// 自定义指令钩子
+// 过渡钩子
+onErrorCaptured((err, instance, info)=>{
+   // err 错误对象
+   // instance 触发该错误组件实例
+   // info 错误信息
+    
+   // 错误传递方式:
+   // 1. 正常错误将逐层传递onErrorCaptured,最终到达全局错误处理app.config.errorHandler
+   // 2. 返回false将不再向上传递错误
+   // 3. 当onErrorCaptured出现错误,将直接传递给全局错误处理app.config.errorHandler
+   
+   // 返回false,就停止向上传递错误
+    return false;
+})
+
+// 当组件渲染过程中追踪到响应式依赖时调用
+// 仅在开发模式下可用，且在服务器端渲染期间不会被调用
+onRenderTracked(()=>{
+})
+
+// 当响应式依赖的变更触发了组件渲染时调用
+// 仅在开发模式下可用，且在服务器端渲染期间不会被调用
+onRenderTriggered(()=>{
+})
+
+// 在组件实例在服务器上被渲染之前调用
+// 钩子如果返回了一个 Promise，服务端渲染会在渲染该组件前等待该 Promise 完成
+onServerPrefetch(async()=>{
+   // 主要用于渲染前,数据获取等
+   data.value = await fetchOnServer(/* ... */)
+})
+   
+</script>
 ```
 
 ## 指令
@@ -728,270 +969,31 @@ app.directive('color', (el, binding) => {
 ```
 
 
-## 生命周期
-
-**流程图:**
-
-![](https://cn.vuejs.org/assets/lifecycle_zh-CN.W0MNXI0C.png)
+## Class 与 Style 绑定
+1. :class 和 :style 都可以接受字符串/对象/数组 值
+2. :style 会自动添加浏览器特殊css前缀
 
 ```vue
-<script setup>
-import { 
-   onBeforeMount,
-   onMounted,
-   onBeforeUpdate,
-   onUpdated,
-   onBeforeUnmount,
-   onUnmounted,
-   onActivated,
-   onDeactivated,
-   onErrorCaptured,
-   onRenderTracked,
-   onRenderTriggered,
-   onServerPrefetch,
-   onServerPrefetch 
-} from 'vue'
+<template>
+   // class="active", 对象参数
+   <div :class="{ active: true }"></div>
+   // class="a b", 数组参数
+   <div :class="['a', 'b']"></div>
+   // class="a b", 三元表达式
+   <div :class="[true ? 'a' : '', 'b']"></div>
+   // 组件使用class会直接继承到根元素, 也可以使用$attrs.class 自定义使用的地方
+   <MyComponent :class="{ active: isActive }" />
+   // style对象值
+   <div :style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
+   // style数组会将属性合并
+   <div :style="{ display: ['-webkit-box', '-ms-flexbox', 'flex'] }"></div>
+</template>
 
-// 在组件被挂载之前被调用, DOM节点还未创建
-// 在服务器端渲染期间不会被调用
-onBeforeMount(()=>{
-    // ...
-})
-
-// 在组件挂载完成后执行,完成以下两步
-// 1. 所有同步子组件都已经被挂载 (不包含异步组件或 <Suspense> 树内的组件)
-// 2. 自身的 DOM 树已经创建完成并插入了父容器中
-// 在服务器端渲染期间不会被调用
-onMounted(() => {
-    // 通常用于访问/操作DOM 
-})
-
-// 在组件响应式状态变更而更新其 DOM 树之前调用
-// 在服务器端渲染期间不会被调用
-onBeforeUpdate(()=>{
-    // 用来在 Vue 更新 DOM 之前访问 DOM 状态
-})
-
-// 在组件的响应式状态变更而更新 DOM 树之后调用
-// 在服务器端渲染期间不会被调用
-onUpdated(() => {
-   // 访问更新后的 DOM
-})
-
-// 在组件实例被卸载之前调用,组件实例依然还保有全部的功能
-// 在服务器端渲染期间不会被调用
-onBeforeUnmount(()=>{
-    // ...
-})
-
-// 组件实例被卸载之后调用
-// 在服务器端渲染期间不会被调用
-onUnmounted(() => {
-    // 清除定时器/订阅等
-})
-
-// 组件实例是 <KeepAlive> 缓存树的一部分，当组件被插入到 DOM 中时调用
-// 服务器端渲染期间不会被调用
-onActivated(()=>{
-})
-
-// 组件实例是 <KeepAlive> 缓存树的一部分，当组件从 DOM 中被移除时调用
-// 服务器端渲染期间不会被调用
-onDeactivated(()=>{
-})
-
-// 在捕获了后代组件传递的错误时调用
-// 捕获以下错误:
-// 组件渲染
-// 事件处理器
-// 生命周期钩子
-// setup() 函数
-// 侦听器
-// 自定义指令钩子
-// 过渡钩子
-onErrorCaptured((err, instance, info)=>{
-   // err 错误对象
-   // instance 触发该错误组件实例
-   // info 错误信息
-    
-   // 错误传递方式:
-   // 1. 正常错误将逐层传递onErrorCaptured,最终到达全局错误处理app.config.errorHandler
-   // 2. 返回false将不再向上传递错误
-   // 3. 当onErrorCaptured出现错误,将直接传递给全局错误处理app.config.errorHandler
-   
-   // 返回false,就停止向上传递错误
-    return false;
-})
-
-// 当组件渲染过程中追踪到响应式依赖时调用
-// 仅在开发模式下可用，且在服务器端渲染期间不会被调用
-onRenderTracked(()=>{
-})
-
-// 当响应式依赖的变更触发了组件渲染时调用
-// 仅在开发模式下可用，且在服务器端渲染期间不会被调用
-onRenderTriggered(()=>{
-})
-
-// 在组件实例在服务器上被渲染之前调用
-// 钩子如果返回了一个 Promise，服务端渲染会在渲染该组件前等待该 Promise 完成
-onServerPrefetch(async()=>{
-   // 主要用于渲染前,数据获取等
-   data.value = await fetchOnServer(/* ... */)
-})
-   
-</script>
 ```
 
-## watch & watchEffect & watchPostEffect & watchSyncEffect & onWatcherCleanup
+## 特殊属性
 
-```vue
-<script setup>
-import { ref, watch, watchEffect, watchPostEffect, watchSyncEffect,onWatcherCleanup } from 'vue'
-
-// 1. watch 仅在数据源确实改变时才会触发回调
-// 监听方式:
-const y = ref(0)
-const x = ref(0)
-const obj = reactive({ count: 0 })
-// 单个 ref
-watch(x, (newX) => {
-   console.log(`x is ${newX}`)
-})
-
-// getter 函数
-watch(
-        () => x.value + y.value,
-        (sum) => {
-           console.log(`sum of x + y is: ${sum}`)
-        }
-)
-watch(
-        () => obj.count,
-        (count) => {
-           console.log(`Count is: ${count}`)
-        }
-)
-// 错误，因为 watch() 得到的参数是一个 number
-// watch(obj.count, (count) => {
-//    console.log(`Count is: ${count}`)
-// })
-
-
-// 多个来源组成的数组
-watch([x, () => y.value], ([newX, newY]) => {
-   console.log(`x is ${newX} and y is ${newY}`)
-})
-   
-// 2. watch 深度监听 deep ,在3.5+版本中值可为数字,代表监听到第几层
-// 不以getter 函数形式监听的对象,默认深度监听
-watch(
-        obj,
-        (newValue, oldValue) => {
-        }
-)
-// 也可明文声明deep
-watch(
-        obj,
-        (newValue, oldValue) => {
-        },
-        { deep: true }
-)
-
-// 3. watch 即时触发
-watch(
-        obj,
-        (newValue, oldValue) => {
-           // 立即执行，且当 `obj` 改变时再次执行
-        },
-        { immediate: true }
-)
-
-// 4. watch 一次性监听
-watch(
-        obj,
-        (newValue, oldValue) => {
-           // 当 `obj` 变化时，仅触发一次
-        },
-        { once: true }
-)
-
-// 5. onWatcherCleanup 3.5+版本,侦听器失效并准备重新运行时会被调用
-// 必须在 watchEffect 或 watch 函数中同步执行期间调用,不能在异步函数的 await 语句之后调用它
-watch(x, (newx) => {
-   onWatcherCleanup(() => {
-      // 终止过期请求等逻辑
-   })
-})
-
-// 6. onCleanup 没有以上同步语法限制,在异步逻辑中也可以使用
-watch(x, (newId, oldId, onCleanup) => {
-   // ...
-   onCleanup(() => {
-      // 清理逻辑
-   })
-})
-
-watchEffect((onCleanup) => {
-   // ...
-   onCleanup(() => {
-      // 清理逻辑
-   })
-})
-
-// 7. 访问更新后的DOM flush & watchPostEffect
-// 设置flush为post可以在回调中访问到更新后的DOM
-watch(x, callback, {
-   flush: 'post'
-})
-watchEffect(callback, {
-   flush: 'post'
-})
-// 在 Vue 更新后执行
-watchPostEffect(() => {
-    // ...
-})
-
-// 8. 同步侦听 flush & watchSyncEffect
-// 同步侦听器不会进行批处理，每当检测到响应式数据发生变化时就会触发. 注意性能
-watch(source, callback, {
-   flush: 'sync'
-})
-
-watchEffect(callback, {
-   flush: 'sync'
-})
-
-watchSyncEffect(() => {
-   /* 在响应式数据变化时同步执行 */
-})
-
-// 9. watchEffect 无需写明监听对象,自动监听同步代码中被使用的响应式值
-// 执行机制:
-// 回调会立即执行，不需要指定 immediate: true
-// 仅会在其同步执行期间，才追踪依赖。在使用异步回调时，只有在第一个 await 正常工作前访问到的属性才会被追踪
-watchEffect(async () => {
-   const response = await fetch(
-           `https://xxxx/${y.value}`
-   )
-   x.value = await response.json()
-})
-
-// 10. 停止监听器
-// 组件卸载,会自动停止
-watchEffect(() => {})
-// 组件卸载,异步监听器不会自动卸载,不与组件绑定
-let unwatch = null;
-setTimeout(() => {
-   unwatch = watchEffect(() => {})
-}, 100)
-// 需手动卸载
-unwatch()
-   
-</script>
-```
-
-## 属性ref & useTemplateRef
+### 属性ref & useTemplateRef
 
 + 获取DOM/组件实例
 + 组件挂载后才能访问引用
@@ -1072,6 +1074,12 @@ defineExpose({
 })
 </script>
 ```
+
+### 属性key
+
+### 属性is
+
+
 ## 组件注册
 1. 全局注册 app.component('MyComponent', MyComponent)
 2. 局部注册
