@@ -1830,7 +1830,7 @@ import Bar from './Bar.vue'
 
 渲染机制: 
 编译 (模板编译为渲染函数) => 挂载 (调用渲染函数,返回虚拟DOM树,并创建实际DOM节点) => 更新 (运行副作用,新旧DOM树对比,更新真实DOM)
-[](https://cn.vuejs.org/assets/render-pipeline.CwxnH_lZ.png)
+![](https://cn.vuejs.org/assets/render-pipeline.CwxnH_lZ.png)
 
 模板与渲染函数比较: 模板静态分析性能好, 渲染函数灵活.
 
