@@ -7,7 +7,7 @@
 
 ## script setup
 - 组件中`<script setup>` 中的顶层的导入、声明的变量和函数可在模板中直接使用。
-- 使用 <script setup> 的单文件组件会自动根据文件名生成对应的 name 选项，无需再手动声明.
+- 使用 `<script setup>` 的单文件组件会自动根据文件名生成对应的 name 选项，无需再手动声明.
 
 ## 响应式值改变触发监听
 
@@ -1717,7 +1717,7 @@ function onEnter(el, done) {
 
 ### Suspense
 触发依赖:
-1. 带有异步 setup() 钩子的组件。这也包含了使用 <script setup> 时有顶层 await 表达式的组件。
+1. 带有异步 setup() 钩子的组件。这也包含了使用 `<script setup>` 时有顶层 await 表达式的组件。
 2. 异步组件。
 
 ```vue
@@ -1823,4 +1823,80 @@ import Bar from './Bar.vue'
 
 ## 响应式 & 渲染机制
 
+响应式机制:
++ Vue 3 中则使用了 Proxy 来创建响应式对象，仅将 getter / setter 用于 ref.
++ 在访问时跟踪依赖、在变更时触发副作用的值容器.
++ 运行时响应式,追踪和触发都是在浏览器中运行时进行的,较少边界情况.
 
+渲染机制: 
+编译 (模板编译为渲染函数) => 挂载 (调用渲染函数,返回虚拟DOM树,并创建实际DOM节点) => 更新 (运行副作用,新旧DOM树对比,更新真实DOM)
+[](https://cn.vuejs.org/assets/render-pipeline.CwxnH_lZ.png)
+
+模板与渲染函数比较: 模板静态分析性能好, 渲染函数灵活.
+
+VUE编译时创建/对比虚拟DOM:
++ 对比react等运行时虚拟DOM框架,性能更好. 因为vue可以通过模板做静态分析及更多优化,而其他框架永远需要接受一个未知的内容.
++ 静态提升 对于静态元素除了首次渲染外,更新对比时自动忽略及缓存使用
+```html
+<div>
+  <div>foo</div> <!-- 静态提升 -->
+  <div>bar</div> <!-- 静态提升 -->
+  <div>{{ dynamic }}</div>
+</div>
+```
+
++ 更新类型标记 根据每种使用vue语法的元素,自动推动其更新的类型,减少对比提升性能
+```html
+<!-- 仅含 class 绑定 -->
+<div :class="{ active }"></div>
+
+<!-- 仅含 id 和 value 绑定 -->
+<input :id="id" :value="value">
+
+<!-- 仅含文本子节点 -->
+<div>{{ dynamic }}</div>
+```
+
+```js
+createElementVNode("div", {
+  class: _normalizeClass({ active: _ctx.active })
+}, null, 2 /* 仅更新CLASS的类型 */)
+```
+
++ 树结构打平 内部编译模板时,会将静态元素剥离,形成只存在有vue操作的元素的树结构,减少对比提升性能
+```html
+<div> <!-- root block -->
+  <div>...</div>         <!-- 不会追踪 -->
+  <div :id="id"></div>   <!-- 要追踪 -->
+  <div>                  <!-- 不会追踪 -->
+    <div>{{ bar }}</div> <!-- 要追踪 -->
+  </div>
+</div>
+```
+
+```text
+// 上面模板内容转化为以下树结构
+div (block root)
+- div 带有 :id 绑定
+- div 带有 {{ bar }} 绑定
+```
+
+## 渲染函数 h()
+[更灵活,但各种指令及修饰符需要自己写逻辑](https://cn.vuejs.org/guide/extras/render-function.html)
+
+```vue
+<script>
+   import { ref, h } from 'vue'
+
+   export default {
+      props: {
+         /* ... */
+      },
+      setup(props) {
+         const count = ref(1)
+         // 返回渲染函数
+         return () => h('div', props.msg + count.value)
+      }
+   }
+</script>
+```
