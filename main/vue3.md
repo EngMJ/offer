@@ -685,6 +685,975 @@ console.log(app.config)
 
   通过将 `app.config.throwUnhandledErrorInProduction` 设置为 `true`，即使在生产模式下也会抛出未处理的错误。
 
+## 全局 API：常规
+
+### version
+
+暴露当前所使用的 Vue 版本。
+
+- **类型** `string`
+
+- **示例**
+
+  ```js
+  import { version } from 'vue'
+
+  console.log(version)
+  ```
+
+### nextTick()
+
+等待下一次 DOM 更新刷新的工具方法。
+
+- **类型**
+
+  ```ts
+  function nextTick(callback?: () => void): Promise<void>
+  ```
+
+- **详细信息**
+
+  当你在 Vue 中更改响应式状态时，最终的 DOM 更新并不是同步生效的，而是由 Vue 将它们缓存在一个队列中，直到下一个“tick”才一起执行。这样是为了确保每个组件无论发生多少状态改变，都仅执行一次更新。
+
+  `nextTick()` 可以在状态改变后立即使用，以等待 DOM 更新完成。你可以传递一个回调函数作为参数，或者 await 返回的 Promise。
+
+- **示例**
+
+  <div class="composition-api">
+
+  ```vue
+  <script setup>
+  import { ref, nextTick } from 'vue'
+
+  const count = ref(0)
+
+  async function increment() {
+    count.value++
+
+    // DOM 还未更新
+    console.log(document.getElementById('counter').textContent) // 0
+
+    await nextTick()
+    // DOM 此时已经更新
+    console.log(document.getElementById('counter').textContent) // 1
+  }
+  </script>
+
+  <template>
+    <button id="counter" @click="increment">{{ count }}</button>
+  </template>
+  ```
+
+  </div>
+  <div class="options-api">
+
+  ```vue
+  <script>
+  import { nextTick } from 'vue'
+
+  export default {
+    data() {
+      return {
+        count: 0
+      }
+    },
+    methods: {
+      async increment() {
+        this.count++
+
+        // DOM 还未更新
+        console.log(document.getElementById('counter').textContent) // 0
+
+        await nextTick()
+        // DOM 此时已经更新
+        console.log(document.getElementById('counter').textContent) // 1
+      }
+    }
+  }
+  </script>
+
+  <template>
+    <button id="counter" @click="increment">{{ count }}</button>
+  </template>
+  ```
+
+  </div>
+
+- **参考** [`this.$nextTick()`](/api/component-instance#nexttick)
+
+### defineComponent()
+
+在定义 Vue 组件时提供类型推导的辅助函数。
+
+- **类型**
+
+  ```ts
+  // 选项语法
+  function defineComponent(
+    component: ComponentOptions
+  ): ComponentConstructor
+
+  // 函数语法 (需要 3.3+)
+  function defineComponent(
+    setup: ComponentOptions['setup'],
+    extraOptions?: ComponentOptions
+  ): () => any
+  ```
+
+  > 为了便于阅读，对类型进行了简化。
+
+- **详细信息**
+
+  第一个参数是一个组件选项对象。返回值将是该选项对象本身，因为该函数实际上在运行时没有任何操作，仅用于提供类型推导。
+
+  注意返回值的类型有一点特别：它会是一个构造函数类型，它的实例类型是根据选项推断出的组件实例类型。这是为了能让该返回值在 TSX 中用作标签时提供类型推导支持。
+
+  你可以像这样从 `defineComponent()` 的返回类型中提取出一个组件的实例类型 (与其选项中的 `this` 的类型等价)：
+
+  ```ts
+  const Foo = defineComponent(/* ... */)
+
+  type FooInstance = InstanceType<typeof Foo>
+  ```
+
+  #### 函数签名
+
+  - 仅在 3.3+ 中支持
+
+  `defineComponent()` 还有一种备用签名，旨在与组合式 API 和[渲染函数或 JSX](/guide/extras/render-function.html) 一起使用。
+
+  与传递选项对象不同的是，它需要传入一个函数。这个函数的工作方式与组合式 API 的 [`setup()`](/api/composition-api-setup.html#composition-api-setup) 函数相同：它接收 props 和 setup 上下文。返回值应该是一个渲染函数——支持 `h()` 和 JSX：
+
+  ```js
+  import { ref, h } from 'vue'
+
+  const Comp = defineComponent(
+    (props) => {
+      // 就像在 <script setup> 中一样使用组合式 API
+      const count = ref(0)
+
+      return () => {
+        // 渲染函数或 JSX
+        return h('div', count.value)
+      }
+    },
+    // 其他选项，例如声明 props 和 emits。
+    {
+      props: {
+        /* ... */
+      }
+    }
+  )
+  ```
+
+  此签名的主要用例是使用 TypeScript (特别是使用 TSX)，因为它支持泛型：
+
+  ```tsx
+  const Comp = defineComponent(
+    <T extends string | number>(props: { msg: T; list: T[] }) => {
+      // 就像在 <script setup> 中一样使用组合式 API
+      const count = ref(0)
+
+      return () => {
+        // 渲染函数或 JSX
+        return <div>{count.value}</div>
+      }
+    },
+    // 目前仍然需要手动声明运行时的 props
+    {
+      props: ['msg', 'list']
+    }
+  )
+  ```
+
+  在将来，我们计划提供一个 Babel 插件，自动推断并注入运行时 props (就像在单文件组件中的 `defineProps` 一样)，以便省略运行时 props 的声明。
+
+  #### webpack Treeshaking 的注意事项
+
+  因为 `defineComponent()` 是一个函数调用，所以它可能被某些构建工具认为会产生副作用，如 webpack。即使一个组件从未被使用，也有可能不被 tree-shake。
+
+  为了告诉 webpack 这个函数调用可以被安全地 tree-shake，我们可以在函数调用之前添加一个 `/*#__PURE__*/` 形式的注释：
+
+  ```js
+  export default /*#__PURE__*/ defineComponent(/* ... */)
+  ```
+
+  请注意，如果你的项目中使用的是 Vite，就不需要这么做，因为 Rollup (Vite 底层使用的生产环境打包工具) 可以智能地确定 `defineComponent()` 实际上并没有副作用，所以无需手动注释。
+
+- **参考**[指南 - 配合 TypeScript 使用 Vue](/guide/typescript/overview#general-usage-notes)
+
+### defineAsyncComponent()
+
+定义一个异步组件，它在运行时是懒加载的。参数可以是一个异步加载函数，或是对加载行为进行更具体定制的一个选项对象。
+
+- **类型**
+
+  ```ts
+  function defineAsyncComponent(
+    source: AsyncComponentLoader | AsyncComponentOptions
+  ): Component
+
+  type AsyncComponentLoader = () => Promise<Component>
+
+  interface AsyncComponentOptions {
+    loader: AsyncComponentLoader
+    loadingComponent?: Component
+    errorComponent?: Component
+    delay?: number
+    timeout?: number
+    suspensible?: boolean
+    onError?: (
+      error: Error,
+      retry: () => void,
+      fail: () => void,
+      attempts: number
+    ) => any
+  }
+  ```
+
+- **参考**[指南 - 异步组件](/guide/components/async)
+
+## 响应式 API：工具函数
+
+### isRef() {#isref}
+
+检查某个值是否为 ref。
+
+- **类型**
+
+  ```ts
+  function isRef<T>(r: Ref<T> | unknown): r is Ref<T>
+  ```
+
+  请注意，返回值是一个[类型判定](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates) (type predicate)，这意味着 `isRef` 可以被用作类型守卫：
+
+  ```ts
+  let foo: unknown
+  if (isRef(foo)) {
+    // foo 的类型被收窄为了 Ref<unknown>
+    foo.value
+  }
+  ```
+
+### unref()
+
+如果参数是 ref，则返回内部值，否则返回参数本身。这是 `val = isRef(val) ? val.value : val` 计算的一个语法糖。
+
+- **类型**
+
+  ```ts
+  function unref<T>(ref: T | Ref<T>): T
+  ```
+
+- **示例**
+
+  ```ts
+  function useFoo(x: number | Ref<number>) {
+    const unwrapped = unref(x)
+    // unwrapped 现在保证为 number 类型
+  }
+  ```
+
+### toRef()
+
+可以将值、refs 或 getters 规范化为 refs (3.3+)。
+
+也可以基于响应式对象上的一个属性，创建一个对应的 ref。这样创建的 ref 与其源属性保持同步：改变源属性的值将更新 ref 的值，反之亦然。
+
+- **类型**
+
+  ```ts
+  // 规范化签名 (3.3+)
+  function toRef<T>(
+    value: T
+  ): T extends () => infer R
+    ? Readonly<Ref<R>>
+    : T extends Ref
+    ? T
+    : Ref<UnwrapRef<T>>
+
+  // 对象属性签名
+  function toRef<T extends object, K extends keyof T>(
+    object: T,
+    key: K,
+    defaultValue?: T[K]
+  ): ToRef<T[K]>
+
+  type ToRef<T> = T extends Ref ? T : Ref<T>
+  ```
+
+- **示例**
+
+  规范化签名 (3.3+)：
+
+  ```js
+  // 按原样返回现有的 ref
+  toRef(existingRef)
+
+  // 创建一个只读的 ref，当访问 .value 时会调用此 getter 函数
+  toRef(() => props.foo)
+
+  // 从非函数的值中创建普通的 ref
+  // 等同于 ref(1)
+  toRef(1)
+  ```
+
+  对象属性签名：
+
+  ```js
+  const state = reactive({
+    foo: 1,
+    bar: 2
+  })
+
+  // 双向 ref，会与源属性同步
+  const fooRef = toRef(state, 'foo')
+
+  // 更改该 ref 会更新源属性
+  fooRef.value++
+  console.log(state.foo) // 2
+
+  // 更改源属性也会更新该 ref
+  state.foo++
+  console.log(fooRef.value) // 3
+  ```
+
+  请注意，这不同于：
+
+  ```js
+  const fooRef = ref(state.foo)
+  ```
+
+  上面这个 ref **不会**和 `state.foo` 保持同步，因为这个 `ref()` 接收到的是一个纯数值。
+
+  `toRef()` 这个函数在你想把一个 prop 的 ref 传递给一个组合式函数时会很有用：
+
+  ```vue
+  <script setup>
+  import { toRef } from 'vue'
+
+  const props = defineProps(/* ... */)
+
+  // 将 `props.foo` 转换为 ref，然后传入
+  // 一个组合式函数
+  useSomeFeature(toRef(props, 'foo'))
+
+  // getter 语法——推荐在 3.3+ 版本使用
+  useSomeFeature(toRef(() => props.foo))
+  </script>
+  ```
+
+  当 `toRef` 与组件 props 结合使用时，关于禁止对 props 做出更改的限制依然有效。尝试将新的值传递给 ref 等效于尝试直接更改 props，这是不允许的。在这种场景下，你可能可以考虑使用带有 `get` 和 `set` 的 [`computed`](./reactivity-core#computed) 替代。详情请见[在组件上使用 `v-model`](/guide/components/v-model) 指南。
+
+  当使用对象属性签名时，即使源属性当前不存在，`toRef()` 也会返回一个可用的 ref。这让它在处理可选 props 的时候格外实用，相比之下 [`toRefs`](#torefs) 就不会为可选 props 创建对应的 refs。
+
+### toValue()
+
+- 仅在 3.3+ 中支持
+
+将值、refs 或 getters 规范化为值。这与 [unref()](#unref) 类似，不同的是此函数也会规范化 getter 函数。如果参数是一个 getter，它将会被调用并且返回它的返回值。
+
+这可以在[组合式函数](/guide/reusability/composables.html)中使用，用来规范化一个可以是值、ref 或 getter 的参数。
+
+- **类型**
+
+  ```ts
+  function toValue<T>(source: T | Ref<T> | (() => T)): T
+  ```
+
+- **示例**
+
+  ```js
+  toValue(1) //       --> 1
+  toValue(ref(1)) //  --> 1
+  toValue(() => 1) // --> 1
+  ```
+
+  在组合式函数中规范化参数：
+
+  ```ts
+  import type { MaybeRefOrGetter } from 'vue'
+
+  function useFeature(id: MaybeRefOrGetter<number>) {
+    watch(() => toValue(id), id => {
+      // 处理 id 变更
+    })
+  }
+
+  // 这个组合式函数支持以下的任意形式：
+  useFeature(1)
+  useFeature(ref(1))
+  useFeature(() => 1)
+  ```
+
+### toRefs()
+
+将一个响应式对象转换为一个普通对象，这个普通对象的每个属性都是指向源对象相应属性的 ref。每个单独的 ref 都是使用 [`toRef()`](#toref) 创建的。
+
+- **类型**
+
+  ```ts
+  function toRefs<T extends object>(
+    object: T
+  ): {
+    [K in keyof T]: ToRef<T[K]>
+  }
+
+  type ToRef = T extends Ref ? T : Ref<T>
+  ```
+
+- **示例**
+
+  ```js
+  const state = reactive({
+    foo: 1,
+    bar: 2
+  })
+
+  const stateAsRefs = toRefs(state)
+  /*
+  stateAsRefs 的类型：{
+    foo: Ref<number>,
+    bar: Ref<number>
+  }
+  */
+
+  // 这个 ref 和源属性已经“链接上了”
+  state.foo++
+  console.log(stateAsRefs.foo.value) // 2
+
+  stateAsRefs.foo.value++
+  console.log(state.foo) // 3
+  ```
+
+  当从组合式函数中返回响应式对象时，`toRefs` 相当有用。使用它，消费者组件可以解构/展开返回的对象而不会失去响应性：
+
+  ```js
+  function useFeatureX() {
+    const state = reactive({
+      foo: 1,
+      bar: 2
+    })
+
+    // ...基于状态的操作逻辑
+
+    // 在返回时都转为 ref
+    return toRefs(state)
+  }
+
+  // 可以解构而不会失去响应性
+  const { foo, bar } = useFeatureX()
+  ```
+
+  `toRefs` 在调用时只会为源对象上可以枚举的属性创建 ref。如果要为可能还不存在的属性创建 ref，请改用 [`toRef`](#toref)。
+
+### isProxy()
+
+检查一个对象是否是由 [`reactive()`](./reactivity-core#reactive)、[`readonly()`](./reactivity-core#readonly)、[`shallowReactive()`](./reactivity-advanced#shallowreactive) 或 [`shallowReadonly()`](./reactivity-advanced#shallowreadonly) 创建的代理。
+
+- **类型**
+
+  ```ts
+  function isProxy(value: any): boolean
+  ```
+
+### isReactive()
+
+检查一个对象是否是由 [`reactive()`](./reactivity-core#reactive) 或 [`shallowReactive()`](./reactivity-advanced#shallowreactive) 创建的代理。
+
+- **类型**
+
+  ```ts
+  function isReactive(value: unknown): boolean
+  ```
+
+### isReadonly()
+
+检查传入的值是否为只读对象。只读对象的属性可以更改，但他们不能通过传入的对象直接赋值。
+
+通过 [`readonly()`](./reactivity-core#readonly) 和 [`shallowReadonly()`](./reactivity-advanced#shallowreadonly) 创建的代理都是只读的，因为他们是没有 `set` 函数的 [`computed()`](./reactivity-core#computed) ref。
+
+- **类型**
+
+  ```ts
+  function isReadonly(value: unknown): boolean
+  ```
+
+## 响应式 API：进阶
+
+### shallowRef()
+
+[`ref()`](./reactivity-core#ref) 的浅层作用形式。
+
+- **类型**
+
+  ```ts
+  function shallowRef<T>(value: T): ShallowRef<T>
+
+  interface ShallowRef<T> {
+    value: T
+  }
+  ```
+
+- **详细信息**
+
+  和 `ref()` 不同，浅层 ref 的内部值将会原样存储和暴露，并且不会被深层递归地转为响应式。只有对 `.value` 的访问是响应式的。
+
+  `shallowRef()` 常常用于对大型数据结构的性能优化或是与外部的状态管理系统集成。
+
+- **示例**
+
+  ```js
+  const state = shallowRef({ count: 1 })
+
+  // 不会触发更改
+  state.value.count = 2
+
+  // 会触发更改
+  state.value = { count: 2 }
+  ```
+
+- **参考**
+  - [指南 - 减少大型不可变结构的响应性开销](/guide/best-practices/performance#reduce-reactivity-overhead-for-large-immutable-structures)
+  - [指南 - 与其他状态系统集成](/guide/extras/reactivity-in-depth#integration-with-external-state-systems)
+
+### triggerRef()
+
+强制触发依赖于一个[浅层 ref](#shallowref) 的副作用，这通常在对浅引用的内部值进行深度变更后使用。
+
+- **类型**
+
+  ```ts
+  function triggerRef(ref: ShallowRef): void
+  ```
+
+- **示例**
+
+  ```js
+  const shallow = shallowRef({
+    greet: 'Hello, world'
+  })
+
+  // 触发该副作用第一次应该会打印 "Hello, world"
+  watchEffect(() => {
+    console.log(shallow.value.greet)
+  })
+
+  // 这次变更不应触发副作用，因为这个 ref 是浅层的
+  shallow.value.greet = 'Hello, universe'
+
+  // 打印 "Hello, universe"
+  triggerRef(shallow)
+  ```
+
+### customRef()
+
+创建一个自定义的 ref，显式声明对其依赖追踪和更新触发的控制方式。
+
+- **类型**
+
+  ```ts
+  function customRef<T>(factory: CustomRefFactory<T>): Ref<T>
+
+  type CustomRefFactory<T> = (
+    track: () => void,
+    trigger: () => void
+  ) => {
+    get: () => T
+    set: (value: T) => void
+  }
+  ```
+
+- **详细信息**
+
+  `customRef()` 预期接收一个工厂函数作为参数，这个工厂函数接受 `track` 和 `trigger` 两个函数作为参数，并返回一个带有 `get` 和 `set` 方法的对象。
+
+  一般来说，`track()` 应该在 `get()` 方法中调用，而 `trigger()` 应该在 `set()` 中调用。然而事实上，你对何时调用、是否应该调用他们有完全的控制权。
+
+- **示例**
+
+  创建一个防抖 ref，即只在最近一次 set 调用后的一段固定间隔后再调用：
+
+  ```js
+  import { customRef } from 'vue'
+
+  export function useDebouncedRef(value, delay = 200) {
+    let timeout
+    return customRef((track, trigger) => {
+      return {
+        get() {
+          track()
+          return value
+        },
+        set(newValue) {
+          clearTimeout(timeout)
+          timeout = setTimeout(() => {
+            value = newValue
+            trigger()
+          }, delay)
+        }
+      }
+    })
+  }
+  ```
+
+  在组件中使用：
+
+  ```vue
+  <script setup>
+  import { useDebouncedRef } from './debouncedRef'
+  const text = useDebouncedRef('hello')
+  </script>
+
+  <template>
+    <input v-model="text" />
+  </template>
+  ```
+
+  [在演练场中尝试一下](https://play.vuejs.org/#eNplUkFugzAQ/MqKC1SiIekxIpEq9QVV1BMXCguhBdsyaxqE/PcuGAhNfYGd3Z0ZDwzeq1K7zqB39OI205UiaJGMOieiapTUBAOYFt/wUxqRYf6OBVgotGzA30X5Bt59tX4iMilaAsIbwelxMfCvWNfSD+Gw3++fEhFHTpLFuCBsVJ0ScgUQjw6Az+VatY5PiroHo3IeaeHANlkrh7Qg1NBL43cILUmlMAfqVSXK40QUOSYmHAZHZO0KVkIZgu65kTnWp8Qb+4kHEXfjaDXkhd7DTTmuNZ7MsGyzDYbz5CgSgbdppOBFqqT4l0eX1gZDYOm057heOBQYRl81coZVg9LQWGr+IlrchYKAdJp9h0C6KkvUT3A6u8V1dq4ASqRgZnVnWg04/QWYNyYzC2rD5Y3/hkDgz8fY/cOT1ZjqizMZzGY3rDPC12KGZYyd3J26M8ny1KKx7c3X25q1c1wrZN3L9LCMWs/+AmeG6xI=)
+
+  :::warning 谨慎使用
+  当使用 customRef 时，我们应该谨慎对待其 getter 的返回值，尤其是在每次运行 getter 时都生成新对象数据类型的情况下。当这样的 customRef 作为 prop 传递时，将影响父组件和子组件之间的关系。
+
+  父组件的渲染函数可能会被其他的响应式状态变化触发。在重新渲染过程中，我们会重新评估 customRef 的值，并返回一个新的对象数据类型作为子组件的 prop。这个 prop 会与其上一个值进行比较，由于两者不同，子组件中 customRef 的响应式依赖将被触发。与此同时，因为没有调用 customRef 的 setter，父组件中的响应式依赖不会运行。
+
+  [在演练场中尝试一下](https://play.vuejs.org/#eNqFVEtP3DAQ/itTS9Vm1ZCt1J6WBZUiDvTQIsoNcwiOkzU4tmU7+9Aq/71jO1mCWuhlN/PyfPP45kAujCk2HSdLsnLMCuPBcd+Zc6pEa7T1cADWOa/bW17nYMPPtvRsDT3UVrcww+DZ0flStybpKSkWQQqPU0IVVUwr58FYvdvDWXgpu6ek1pqSHL0fS0vJw/z0xbN1jUPHY/Ys87Zkzzl4K5qG2zmcnUN2oAqg4T6bQ/wENKNXNk+CxWKsSlmLTSk7XlhedYxnWclYDiK+MkQCoK4wnVtnIiBJuuEJNA2qPof7hzkEoc8DXgg9yzYTBBFgNr4xyY4FbaK2p6qfI0iqFgtgulOe27HyQRy69Dk1JXY9C03JIeQ6wg4xWvJCqFpnlNytOcyC2wzYulQNr0Ao+Mhw0KnTTEttl/CIaIJiMz8NGBHFtYetVrPwa58/IL48Zag4N0ssquNYLYBoW16J0vOkC3VQtVqk7cG9QcHz1kj0QAlgVYkNMFk6d0bJ1pbGYKUkmtD42HmvFfi94WhOEiXwjUnBnlEz9OLTJwy5qCo44D4O7en71SIFjI/F9VuG4jEy/GHQKq5hQrJAKOc4uNVighBF5/cygS0GgOMoK+HQb7+EWvLdMM7weVIJy5kXWi0Rj+xaNRhLKRp1IvB9hxYegA6WJ1xkUe9PcF4e9a+suA3YwYiC5MQ79KlFUzw5rZCZEUtoRWuE5PaXCXmxtuWIkpJSSr39EXXHQcWYNWfP/9A/uV3QUXJjueN2E1ZhtPnSIqGS+er3T77D76Ox1VUn0fsd4y3HfewCxuT2vVMVwp74RbTX8WQI1dy5qx12xI1Fpa1K5AreeEHCCN8q/QXul+LrSC3s4nh93jltkVPDIYt5KJkcIKStCReo4rVQ/CZI6dyEzToCCJu7hAtry/1QH/qXncQB400KJwqPxZHxEyona0xS/E3rt1m9Ld1rZl+uhaxecRtP3EjtgddCyimtXyj9H/Ii3eId7uOGTkyk/wOEbQ9h)
+
+  :::
+
+### shallowReactive()
+
+[`reactive()`](./reactivity-core#reactive) 的浅层作用形式。
+
+- **类型**
+
+  ```ts
+  function shallowReactive<T extends object>(target: T): T
+  ```
+
+- **详细信息**
+
+  和 `reactive()` 不同，这里没有深层级的转换：一个浅层响应式对象里只有根级别的属性是响应式的。属性的值会被原样存储和暴露，这也意味着值为 ref 的属性**不会**被自动解包了。
+
+  :::warning 谨慎使用
+  浅层数据结构应该只用于组件中的根级状态。请避免将其嵌套在深层次的响应式对象中，因为它创建的树具有不一致的响应行为，这可能很难理解和调试。
+  :::
+
+- **示例**
+
+  ```js
+  const state = shallowReactive({
+    foo: 1,
+    nested: {
+      bar: 2
+    }
+  })
+
+  // 更改状态自身的属性是响应式的
+  state.foo++
+
+  // ...但下层嵌套对象不会被转为响应式
+  isReactive(state.nested) // false
+
+  // 不是响应式的
+  state.nested.bar++
+  ```
+
+### shallowReadonly()
+
+[`readonly()`](./reactivity-core#readonly) 的浅层作用形式
+
+- **类型**
+
+  ```ts
+  function shallowReadonly<T extends object>(target: T): Readonly<T>
+  ```
+
+- **详细信息**
+
+  和 `readonly()` 不同，这里没有深层级的转换：只有根层级的属性变为了只读。属性的值都会被原样存储和暴露，这也意味着值为 ref 的属性**不会**被自动解包了。
+
+  :::warning 谨慎使用
+  浅层数据结构应该只用于组件中的根级状态。请避免将其嵌套在深层次的响应式对象中，因为它创建的树具有不一致的响应行为，这可能很难理解和调试。
+  :::
+
+- **示例**
+
+  ```js
+  const state = shallowReadonly({
+    foo: 1,
+    nested: {
+      bar: 2
+    }
+  })
+
+  // 更改状态自身的属性会失败
+  state.foo++
+
+  // ...但可以更改下层嵌套对象
+  isReadonly(state.nested) // false
+
+  // 这是可以通过的
+  state.nested.bar++
+  ```
+
+### toRaw()
+
+根据一个 Vue 创建的代理返回其原始对象。
+
+- **类型**
+
+  ```ts
+  function toRaw<T>(proxy: T): T
+  ```
+
+- **详细信息**
+
+  `toRaw()` 可以返回由 [`reactive()`](./reactivity-core#reactive)、[`readonly()`](./reactivity-core#readonly)、[`shallowReactive()`](#shallowreactive) 或者 [`shallowReadonly()`](#shallowreadonly) 创建的代理对应的原始对象。
+
+  这是一个可以用于临时读取而不引起代理访问/跟踪开销，或是写入而不触发更改的特殊方法。不建议保存对原始对象的持久引用，请谨慎使用。
+
+- **示例**
+
+  ```js
+  const foo = {}
+  const reactiveFoo = reactive(foo)
+
+  console.log(toRaw(reactiveFoo) === foo) // true
+  ```
+
+### markRaw()
+
+将一个对象标记为不可被转为代理。返回该对象本身。
+
+- **类型**
+
+  ```ts
+  function markRaw<T extends object>(value: T): T
+  ```
+
+- **示例**
+
+  ```js
+  const foo = markRaw({})
+  console.log(isReactive(reactive(foo))) // false
+
+  // 也适用于嵌套在其他响应性对象
+  const bar = reactive({ foo })
+  console.log(isReactive(bar.foo)) // false
+  ```
+
+  :::warning 谨慎使用
+  `markRaw()` 和类似 `shallowReactive()` 这样的浅层式 API 使你可以有选择地避开默认的深度响应/只读转换，并在状态关系谱中嵌入原始的、非代理的对象。它们可能出于各种各样的原因被使用：
+
+  - 有些值不应该是响应式的，例如复杂的第三方类实例或 Vue 组件对象。
+
+  - 当呈现带有不可变数据源的大型列表时，跳过代理转换可以提高性能。
+
+  这应该是一种进阶需求，因为只在根层能访问到原始值，所以如果把一个嵌套的、没有标记的原始对象设置成一个响应式对象，然后再次访问它，你获取到的是代理的版本。这可能会导致**对象身份风险**，即执行一个依赖于对象身份的操作，但却同时使用了同一对象的原始版本和代理版本：
+
+  ```js
+  const foo = markRaw({
+    nested: {}
+  })
+
+  const bar = reactive({
+    // 尽管 `foo` 被标记为了原始对象，但 foo.nested 却没有
+    nested: foo.nested
+  })
+
+  console.log(foo.nested === bar.nested) // false
+  ```
+
+  识别风险一般是很罕见的。然而，要正确使用这些 API，同时安全地避免这样的风险，需要你对响应性系统的工作方式有充分的了解。
+
+  :::
+
+### effectScope()
+
+创建一个 effect 作用域，可以捕获其中所创建的响应式副作用 (即计算属性和侦听器)，这样捕获到的副作用可以一起处理。对于该 API 的使用细节，请查阅对应的 [RFC](https://github.com/vuejs/rfcs/blob/master/active-rfcs/0041-reactivity-effect-scope.md)。
+
+- **类型**
+
+  ```ts
+  function effectScope(detached?: boolean): EffectScope
+
+  interface EffectScope {
+    run<T>(fn: () => T): T | undefined // 如果作用域不活跃就为 undefined
+    stop(): void
+  }
+  ```
+
+- **示例**
+
+  ```js
+  const scope = effectScope()
+
+  scope.run(() => {
+    const doubled = computed(() => counter.value * 2)
+
+    watch(doubled, () => console.log(doubled.value))
+
+    watchEffect(() => console.log('Count: ', doubled.value))
+  })
+
+  // 处理掉当前作用域内的所有 effect
+  scope.stop()
+  ```
+
+### getCurrentScope()
+
+如果有的话，返回当前活跃的 [effect 作用域](#effectscope)。
+
+- **类型**
+
+  ```ts
+  function getCurrentScope(): EffectScope | undefined
+  ```
+
+### onScopeDispose()
+
+在当前活跃的 [effect 作用域](#effectscope)上注册一个处理回调函数。当相关的 effect 作用域停止时会调用这个回调函数。
+
+这个方法可以作为可复用的组合式函数中 `onUnmounted` 的替代品，它并不与组件耦合，因为每一个 Vue 组件的 `setup()` 函数也是在一个 effect 作用域中调用的。
+
+如果在没有活跃的 effect 作用域的情况下调用此函数，将会抛出警告。在 3.5+ 版本中，可以通过将第二个参数设为 `true` 来消除此警告。
+
+- **类型**
+
+  ```ts
+  function onScopeDispose(fn: () => void, failSilently?: boolean): void
+  ```
+
+## 组合式 API：辅助
+
+### useAttrs()
+
+从 [Setup 上下文](/api/composition-api-setup#setup-context)中返回 `attrs` 对象，其中包含当前组件的[透传 attributes](/guide/components/attrs#fallthrough-attributes)。这是用于 `<script setup>` 中的，因为在 `<script setup>` 中无法获取 setup 上下文对象的。
+
+- **类型**
+
+  ```ts
+  function useAttrs(): Record<string, unknown>
+  ```
+
+### useSlots()
+
+从 [Setup 上下文](/api/composition-api-setup#setup-context)中返回 `slots` 对象，其中包含父组件传递的插槽。这些插槽为可调用的函数，返回虚拟 DOM 节点。这是用于 `<script setup>` 中的，因为在 `<script setup>` 中无法获取 setup 上下文对象的。
+
+如果使用 TypeScript，建议优先使用 [`defineSlots()`](/api/sfc-script-setup#defineslots)。
+
+- **类型**
+
+  ```ts
+  function useSlots(): Record<string, (...args: any[]) => VNode[]>
+  ```
+
+### useModel()
+
+这是驱动 [`defineModel()`](/api/sfc-script-setup#definemodel) 的底层辅助函数。如果使用 `<script setup>`，应当优先使用 `defineModel()`。
+
+- 仅在 3.4+ 版本中可用
+
+- **类型**
+
+  ```ts
+  function useModel(
+    props: Record<string, any>,
+    key: string,
+    options?: DefineModelOptions
+  )
+
+  type DefineModelOptions<T = any> = {
+    get?: (v: T) => any
+    set?: (v: T) => any
+  }
+  ```
+
+- **示例**
+
+  ```js
+  export default {
+    props: ['count'],
+    emits: ['update:count'],
+    setup(props) {
+      const msg = useModel(props, 'count')
+      msg.value = 1
+    }
+  }
+  ```
+
+- **详细信息**
+
+  `useModel()` 可以用于非单文件组件，例如在使用原始的 `setup()` 函数时。它预期的第一个参数是 `props` 对象，第二个参数是 model 名称。可选的第三个参数可以用于为生成的 model ref 声明自定义的 getter 和 setter。请注意，与 `defineModel()` 不同，你需要自己声明 props 和 emits。
+
+### useTemplateRef() <sup class="vt-badge" data-text="3.5+" />
+
+返回一个浅层 ref，其值将与模板中的具有匹配 ref attribute 的元素或组件同步。
+
+- **类型**
+
+  ```ts
+  function useTemplateRef<T>(key: string): Readonly<ShallowRef<T | null>>
+  ```
+
+- **示例**
+
+  ```vue
+  <script setup>
+  import { useTemplateRef, onMounted } from 'vue'
+
+  const inputRef = useTemplateRef('input')
+
+  onMounted(() => {
+    inputRef.value.focus()
+  })
+  </script>
+
+  <template>
+    <input ref="input" />
+  </template>
+  ```
+
+- **参考**
+  - [指南 - 模板引用](/guide/essentials/template-refs)
+  - [指南 - 为模板引用标注类型](/guide/typescript/composition-api#typing-template-refs) <sup class="vt-badge ts" />
+  - [指南 - 为组件模板引用标注类型](/guide/typescript/composition-api#typing-component-template-refs) <sup class="vt-badge ts" />
+
+### useId() <sup class="vt-badge" data-text="3.5+" />
+
+用于为无障碍属性或表单元素生成每个应用内唯一的 ID。
+
+- **类型**
+
+  ```ts
+  function useId(): string
+  ```
+
+- **示例**
+
+  ```vue
+  <script setup>
+  import { useId } from 'vue'
+
+  const id = useId()
+  </script>
+
+  <template>
+    <form>
+      <label :for="id">Name:</label>
+      <input :id="id" type="text" />
+    </form>
+  </template>
+  ```
+
+- **详细信息**
+
+  `useId()` 生成的每个 ID 在每个应用内都是唯一的。它可以用于为表单元素和无障碍属性生成 ID。在同一个组件中多次调用会生成不同的 ID；同一个组件的多个实例调用 `useId()` 也会生成不同的 ID。
+
+  `useId()` 生成的 ID 在服务器端和客户端渲染之间是稳定的，因此可以安全地在 SSR 应用中使用，不会导致激活不匹配。
+
+  如果同一页面上有多个 Vue 应用实例，可以通过 [`app.config.idPrefix`](/api/application#app-config-idprefix) 为每个应用提供一个 ID 前缀，以避免 ID 冲突。
 
 
 ## 响应式值改变触发监听
@@ -1970,7 +2939,7 @@ defineOptions({
 </template>
 ```
 
-## 依赖注入 provide & inject & readonly
+## 依赖注入 provide & inject & readonly & hasInjectionContext
 后代组件跨层级通信
 
 
@@ -1990,7 +2959,7 @@ provide(/* 注入名 */ 'key', /* 值 */ {data: readonly(value)})
 
 ```vue
 // 后代组件
-import { inject } from 'vue'
+import { inject, hasInjectionContext } from 'vue'
 
 // 正常使用
 const message = inject('keyName')
@@ -2002,6 +2971,8 @@ const value = inject('keyName', '默认值')
 // 函数/类默认值写法 避免多余调用
 const value = inject('keyName', () => new ExpensiveClass(), true)
 
+// 在setup之外的地方调用inject产生错误但是不发出警告  hasInjectionContext() 则返回true
+const isInjectError = hasInjectionContext()
 ```
 
 ```js
@@ -2010,6 +2981,9 @@ import { createApp } from 'vue'
 const app = createApp({})
 app.provide(/* 注入名 */ 'message', /* 值 */ 'hello!')
 ```
+
+
+
 
 ## 异步组件 defineAsyncComponent
 在组件被使用时才会加载,节约开销.
