@@ -1,13 +1,19 @@
 # Vue3.5.11 API 参考
 
-## 插值表达式内受限的全局访问
+## 单文件组件 SFC
+
+### 结构
+
+### script setup
+- 组件中`<script setup>` 中的顶层的导入、声明的变量和函数可在模板中直接使用。
+- 使用 `<script setup>` 的单文件组件会自动根据文件名生成对应的 name 选项，无需再手动声明.
+
+### 插值表达式内受限的全局访问
 - 模板中的表达式访问到有限的全局对象。会暴露常用内置全局对象，如 Math 和 Date。
 
 - 没有显式包含在列表中的全局对象将不能在模板内表达式中访问，可以在 app.config.globalProperties 全局显式添加。
 
-## script setup
-- 组件中`<script setup>` 中的顶层的导入、声明的变量和函数可在模板中直接使用。
-- 使用 `<script setup>` 的单文件组件会自动根据文件名生成对应的 name 选项，无需再手动声明.
+### css功能
 
 ## app实例
 
@@ -15,18 +21,9 @@
 
 创建一个应用实例。
 
-- **类型**
-
-  ```ts
-  function createApp(rootComponent: Component, rootProps?: object): App
-  ```
-
-- **详细信息**
-
-  第一个参数是根组件。第二个参数可选，它是要传递给根组件的 props。
-
 - **示例**
 
+  第一个参数是根组件。第二个参数可选，它是要传递给根组件的 props。
   可以直接内联根组件：
 
   ```js
@@ -46,23 +43,13 @@
   const app = createApp(App)
   ```
 
-- **参考**[指南 - 创建一个 Vue 应用实例](/guide/essentials/application)
-
 ### createSSRApp()
 
-以 [SSR 激活](/guide/scaling-up/ssr#client-hydration)模式创建一个应用实例。用法与 `createApp()` 完全相同。
+创建SSR模式的应用实例。用法与 `createApp()` 完全相同。
 
 ### app.mount()
 
 将应用实例挂载在一个容器元素中。
-
-- **类型**
-
-  ```ts
-  interface App {
-    mount(rootContainer: Element | string): ComponentPublicInstance
-  }
-  ```
 
 - **详细信息**
 
@@ -101,7 +88,7 @@
   }
   ```
 
-### app.onUnmount() <sup class="vt-badge" data-text="3.5+" />
+### app.onUnmount() 3.5+
 
 注册一个回调函数，在应用卸载时调用。
 
@@ -115,16 +102,7 @@
 
 ### app.component()
 
-如果同时传递一个组件名字符串及其定义，则注册一个全局组件；如果只传递一个名字，则会返回用该名字注册的组件 (如果存在的话)。
-
-- **类型**
-
-  ```ts
-  interface App {
-    component(name: string): Component | undefined
-    component(name: string, component: Component): this
-  }
-  ```
+注册全局组件
 
 - **示例**
 
@@ -142,20 +120,9 @@
   const MyComponent = app.component('my-component')
   ```
 
-- **参考**[组件注册](/guide/components/registration)
-
 ### app.directive()
 
-如果同时传递一个名字和一个指令定义，则注册一个全局指令；如果只传递一个名字，则会返回用该名字注册的指令 (如果存在的话)。
-
-- **类型**
-
-  ```ts
-  interface App {
-    directive(name: string): Directive | undefined
-    directive(name: string, directive: Directive): this
-  }
-  ```
+注册全局指令
 
 - **示例**
 
@@ -180,19 +147,9 @@
   const myDirective = app.directive('my-directive')
   ```
 
-- **参考**[自定义指令](/guide/reusability/custom-directives)
-
 ### app.use() 插件
 
-安装一个[插件](/guide/reusability/plugins)。
-
-- **类型**
-
-  ```ts
-  interface App {
-    use(plugin: Plugin, ...options: any[]): this
-  }
-  ```
+安装一个插件
 
 - **详细信息**
 
@@ -226,17 +183,11 @@
   
   ```
 
-- **参考**[插件](/guide/reusability/plugins)
 
 ### app.mixin()
 
-应用一个全局 mixin (适用于该应用的范围)。一个全局的 mixin 会作用于应用中的每个组件实例。
-
-:::warning 不推荐
-Mixins 在 Vue 3 支持主要是为了向后兼容，因为生态中有许多库使用到。在新的应用中应尽量避免使用 mixin，特别是全局 mixin。
-
-若要进行逻辑复用，推荐用[组合式函数](/guide/reusability/composables)来替代。
-:::
+注册全局 mixin.
+Mixin 在 Vue 3 支持主要是为了向后兼容，不推荐使用,使用组合式函数代替.
 
 - **类型**
 
@@ -248,15 +199,7 @@ Mixins 在 Vue 3 支持主要是为了向后兼容，因为生态中有许多库
 
 ### app.provide()
 
-提供一个值，可以在应用中的所有后代组件中注入使用。
-
-- **类型**
-
-  ```ts
-  interface App {
-    provide<T>(key: InjectionKey<T> | symbol | string, value: T): this
-  }
-  ```
+全局注入
 
 - **详细信息**
 
@@ -269,7 +212,7 @@ Mixins 在 Vue 3 支持主要是为了向后兼容，因为生态中有许多库
 
   const app = createApp(/* ... */)
 
-  app.provide('message', 'hello')
+  app.provide('key', 'value')
   ```
 
   在应用的某个组件中：
@@ -281,7 +224,7 @@ Mixins 在 Vue 3 支持主要是为了向后兼容，因为生态中有许多库
 
   export default {
     setup() {
-      console.log(inject('message')) // 'hello'
+      console.log(inject('key')) // 'hello'
     }
   }
   ```
@@ -291,7 +234,7 @@ Mixins 在 Vue 3 支持主要是为了向后兼容，因为生态中有许多库
 
   ```js
   export default {
-    inject: ['message'],
+    inject: ['key'],
     created() {
       console.log(this.message) // 'hello'
     }
@@ -300,28 +243,11 @@ Mixins 在 Vue 3 支持主要是为了向后兼容，因为生态中有许多库
 
   </div>
 
-- **参考**
-   - [依赖注入](/guide/components/provide-inject)
-   - [应用层 Provide](/guide/components/provide-inject#app-level-provide)
-   - [app.runWithContext()](#app-runwithcontext)
-
 ### app.runWithContext()
 
 - 仅在 3.3+ 中支持
 
-使用当前应用作为注入上下文执行回调函数。
-
-- **类型**
-
-  ```ts
-  interface App {
-    runWithContext<T>(fn: () => T): T
-  }
-  ```
-
-- **详情**
-
-  需要一个回调函数并立即运行该回调。在回调同步调用期间，即使没有当前活动的组件实例，`inject()` 调用也可以从当前应用提供的值中查找注入。回调的返回值也将被返回。
+使用当前应用作为注入上下文执行回调函数, 即使没有当前活动的组件实例,回调函数中`inject()` 调用也可以从当前应用提供的值中查找注入。回调的返回值也将被返回。
 
 - **示例**
 
@@ -339,15 +265,7 @@ Mixins 在 Vue 3 支持主要是为了向后兼容，因为生态中有许多库
 
 ### app.version
 
-提供当前应用所使用的 Vue 版本号。这在[插件](/guide/reusability/plugins)中很有用，因为可能需要根据不同的 Vue 版本执行不同的逻辑。
-
-- **类型**
-
-  ```ts
-  interface App {
-    version: string
-  }
-  ```
+提供当前应用所使用的 Vue 版本号。
 
 - **示例**
 
@@ -364,11 +282,9 @@ Mixins 在 Vue 3 支持主要是为了向后兼容，因为生态中有许多库
   }
   ```
 
-- **参考**[全局 API - version](/api/general#version)
-
 ### app.config
 
-每个应用实例都会暴露一个 `config` 对象，其中包含了对这个应用的配置设定。你可以在挂载应用前更改这些属性 (下面列举了每个属性的对应文档)。
+应用实例的配置项
 
 ```js
 import { createApp } from 'vue'
@@ -382,23 +298,7 @@ console.log(app.config)
 
 用于为应用内抛出的未捕获错误指定一个全局处理函数。
 
-- **类型**
-
-  ```ts
-  interface AppConfig {
-    errorHandler?: (
-      err: unknown,
-      instance: ComponentPublicInstance | null,
-      // `info` 是一个 Vue 特定的错误信息
-      // 例如：错误是在哪个生命周期的钩子上抛出的
-      info: string
-    ) => void
-  }
-  ```
-
 - **详细信息**
-
-  错误处理器接收三个参数：错误对象、触发该错误的组件实例和一个指出错误来源类型信息的字符串。
 
   它可以从下面这些来源中捕获错误：
 
@@ -410,71 +310,47 @@ console.log(app.config)
    - 自定义指令钩子
    - 过渡 (Transition) 钩子
 
-  :::tip
-  在生产环境中，第三个参数 (`info`) 是一个缩短的代码，而不是含有完整信息的字符串。错误代码和字符串的映射可以参阅[生产环境错误代码参考](/error-reference/#runtime-errors)。
-  :::
-
 - **示例**
 
   ```js
   app.config.errorHandler = (err, instance, info) => {
+    // error 错误对象
+    // instance 产生错误的组件实例
+    // info 错误信息
     // 处理错误，例如：报告给一个服务
   }
   ```
 
 ### app.config.warnHandler
 
-用于为 Vue 的运行时警告指定一个自定义处理函数。
-
-- **类型**
-
-  ```ts
-  interface AppConfig {
-    warnHandler?: (
-      msg: string,
-      instance: ComponentPublicInstance | null,
-      trace: string
-    ) => void
-  }
-  ```
-
-- **详细信息**
-
-  警告处理器将接受警告信息作为其第一个参数，来源组件实例为第二个参数，以及组件追踪字符串作为第三个参数。
-
-  这可以用于过滤筛选特定的警告信息，降低控制台输出的冗余。所有的 Vue 警告都需要在开发阶段得到解决，因此仅建议在调试期间选取部分特定警告，并且应该在调试完成之后立刻移除。
-
-  :::tip
-  警告仅会在开发阶段显示，因此在生产环境中，这条配置将被忽略。
-  :::
+用于为 Vue 的运行时警告指定一个自定义处理函数。 
+警告仅会在开发阶段显示，因此在生产环境中，这条配置将被忽略。
 
 - **示例**
 
   ```js
   app.config.warnHandler = (msg, instance, trace) => {
+    // 警告处理器将接受警告信息作为其第一个参数，来源组件实例为第二个参数，以及组件追踪字符串作为第三个参数。
     // `trace` 是组件层级结构的追踪
   }
   ```
 
 ### app.config.performance
 
-设置此项为 `true` 可以在浏览器开发工具的“性能/时间线”页中启用对组件初始化、编译、渲染和修补的性能表现追踪。仅在开发模式和支持 [performance.mark](https://developer.mozilla.org/en-US/docs/Web/API/Performance/mark) API 的浏览器中工作。
+设置此项为 `true` 可以在浏览器开发工具的“性能/时间线”页中启用对组件初始化、编译、渲染和修补的性能表现追踪。
+仅在开发模式和支持 performance API 的浏览器中工作。
 
 - **类型**：`boolean`
 
-- **参考**[指南 - 性能](/guide/best-practices/performance)
-
 ### app.config.compilerOptions
 
-配置运行时编译器的选项。设置在此对象上的值将会在浏览器内进行模板编译时使用，并会影响到所配置应用的所有组件。另外你也可以通过 [`compilerOptions` 选项](/api/options-rendering#compileroptions)在每个组件的基础上覆盖这些选项。
+配置运行时编译器的选项。也可通过compilerOptions 选项在每个组件的基础上覆盖这些选项。
 
-::: warning 重要
-此配置项仅在完整构建版本，即可以在浏览器中编译模板的 `vue.js` 文件中可用。如果你用的是带构建的项目配置，且使用的是仅含运行时的 Vue 文件版本，那么编译器选项必须通过构建工具的相关配置传递给 `@vue/compiler-dom`。
+此配置项仅在完整构建版本中可用。仅含运行时的 Vue 文件版本，必须通过构建工具的相关配置传递给 `@vue/compiler-dom`。
 
-- `vue-loader`：[通过 `compilerOptions` loader 的选项传递](https://vue-loader.vuejs.org/zh/options.html#compileroptions)。并请阅读[如何在 `vue-cli` 中配置它](https://cli.vuejs.org/zh/guide/webpack.html#%E4%BF%AE%E6%94%B9-loader-%E9%80%89%E9%A1%B9)。
+- `vue-loader`通过 `compilerOptions` loader 的选项传递
 
-- `vite`：[通过 `@vitejs/plugin-vue` 的选项传递](https://github.com/vitejs/vite-plugin-vue/tree/main/packages/plugin-vue#options)。
-  :::
+- `vite`通过 `@vitejs/plugin-vue` 的选项传递
 
 #### app.config.compilerOptions.isCustomElement
 
@@ -496,8 +372,6 @@ console.log(app.config)
     return tag.startsWith('ion-')
   }
   ```
-
-- **参考** [Vue 与 Web Components](/guide/extras/web-components)
 
 #### app.config.compilerOptions.whitespace
 
@@ -562,21 +436,8 @@ console.log(app.config)
 
 ### app.config.globalProperties
 
-一个用于注册能够被应用内所有组件实例访问到的全局属性的对象。
-
-- **类型**
-
-  ```ts
-  interface AppConfig {
-    globalProperties: Record<string, any>
-  }
-  ```
-
-- **详细信息**
-
-  这是对 Vue 2 中 `Vue.prototype` 使用方式的一种替代，此写法在 Vue 3 已经不存在了。与任何全局的东西一样，应该谨慎使用。
-
-  如果全局属性与组件自己的属性冲突，组件自己的属性将具有更高的优先级。
+注册能够被应用内所有组件实例访问到的全局属性的对象, 如果全局属性与组件自己的属性冲突，组件自己的属性将具有更高的优先级。
+这是对 Vue 2 中 `Vue.prototype` 使用方式的一种替代.
 
 - **用法**
 
@@ -594,29 +455,9 @@ console.log(app.config)
   }
   ```
 
-- **参考**[指南 - 扩展全局属性](/guide/typescript/options-api#augmenting-global-properties) <sup class="vt-badge ts" />
-
 ### app.config.optionMergeStrategies
 
-一个用于定义自定义组件选项的合并策略的对象。
-
-- **类型**
-
-  ```ts
-  interface AppConfig {
-    optionMergeStrategies: Record<string, OptionMergeFunction>
-  }
-
-  type OptionMergeFunction = (to: unknown, from: unknown) => any
-  ```
-
-- **详细信息**
-
-  一些插件或库对自定义组件选项添加了支持 (通过注入全局 mixin)。这些选项在有多个不同来源时可能需要特殊的合并策略 (例如 mixin 或组件继承)。
-
-  可以在 `app.config.optionMergeStrategies` 对象上以选项的名称作为 key，可以为一个自定义选项注册分配一个合并策略函数。
-
-  合并策略函数分别接受在父实例和子实例上定义的该选项的值作为第一和第二个参数。
+属性冲突时,用于定义组件选项的合并策略的对象。
 
 - **示例**
 
@@ -636,8 +477,10 @@ console.log(app.config)
     }
   })
 
+  // 在 `app.config.optionMergeStrategies` 对象上以选项的名称作为 key，可以为一个自定义选项注册分配一个合并策略函数
   // 为 `msg` 定义一个合并策略函数
   app.config.optionMergeStrategies.msg = (parent, child) => {
+    // 合并策略函数分别接受在父实例和子实例上定义的该选项的值作为第一和第二个参数。
     return (parent || '') + (child || '')
   }
 
@@ -645,11 +488,9 @@ console.log(app.config)
   // 打印 'Hello Vue'
   ```
 
-- **参考**[组件实例 - `$options`](/api/component-instance#options)
+### app.config.idPrefix 3.5+
 
-### app.config.idPrefix <sup class="vt-badge" data-text="3.5+" />
-
-配置此应用中通过 [useId()](/api/general#useid) 生成的所有 ID 的前缀。
+配置此应用中通过 useId() 生成的所有 ID 的前缀。
 
 - **类型** `string`
 
@@ -667,7 +508,7 @@ console.log(app.config)
   const id2 = useId() // 'my-app:1'
   ```
 
-### app.config.throwUnhandledErrorInProduction <sup class="vt-badge" data-text="3.5+" />
+### app.config.throwUnhandledErrorInProduction 3.5+
 
 强制在生产模式下抛出未处理的错误。
 
@@ -2545,6 +2386,548 @@ let countModel = ref();
 
 ```
 
+## 内置指令
+
+### v-text
+
+更新元素的文本内容。
+
+- **期望的绑定值类型：**`string`
+
+- **详细信息**
+
+  `v-text` 通过设置元素的 [textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent) 属性来工作，因此它将覆盖元素中所有现有的内容。如果你需要更新 `textContent` 的部分，应该使用 [mustache interpolations](/guide/essentials/template-syntax#text-interpolation) 代替。
+
+- **示例**
+
+  ```vue-html
+  <span v-text="msg"></span>
+  <!-- 等同于 -->
+  <span>{{msg}}</span>
+  ```
+
+- **参考**[模板语法 - 文本插值](/guide/essentials/template-syntax#text-interpolation)
+
+### v-html
+
+更新元素的 [innerHTML](https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML)。
+
+- **期望的绑定值类型：**`string`
+
+- **详细信息**
+
+`v-html` 的内容直接作为普通 HTML 插入—— Vue 模板语法是不会被解析的。如果你发现自己正打算用 `v-html` 来编写模板，不如重新想想怎么使用组件来代替。
+
+::: warning 安全说明
+在你的站点上动态渲染任意的 HTML 是非常危险的，因为它很容易导致 [XSS 攻击](https://en.wikipedia.org/wiki/Cross-site_scripting)。请只对可信内容使用 HTML 插值，**绝不要**将用户提供的内容作为插值
+:::
+
+在[单文件组件](/guide/scaling-up/sfc)，`scoped` 样式将不会作用于 `v-html` 里的内容，因为 HTML 内容不会被 Vue 的模板编译器解析。如果你想让 `v-html` 的内容也支持 scoped CSS，你可以使用 [CSS modules](./sfc-css-features#css-modules) 或使用一个额外的全局 `<style>` 元素，手动设置类似 BEM 的作用域策略。
+
+- **示例**
+
+  ```vue-html
+  <div v-html="html"></div>
+  ```
+
+- **参考**[模板语法 - 原始 HTML](/guide/essentials/template-syntax#raw-html)
+
+### v-show
+
+基于表达式值的真假性，来改变元素的可见性。
+
+- **期望的绑定值类型：**`any`
+
+- **详细信息**
+
+  `v-show` 通过设置内联样式的 `display` CSS 属性来工作，当元素可见时将使用初始 `display` 值。当条件改变时，也会触发过渡效果。
+
+- **参考**[条件渲染 - v-show](/guide/essentials/conditional#v-show)
+
+### v-if
+
+基于表达式值的真假性，来条件性地渲染元素或者模板片段。
+
+- **期望的绑定值类型：**`any`
+
+- **详细信息**
+
+  当 `v-if` 元素被触发，元素及其所包含的指令/组件都会销毁和重构。如果初始条件是假，那么其内部的内容根本都不会被渲染。
+
+  可用于 `<template>` 表示仅包含文本或多个元素的条件块。
+
+  当条件改变时会触发过渡效果。
+
+  当同时使用时，`v-if` 比 `v-for` 优先级更高。我们并不推荐在一元素上同时使用这两个指令 — 查看[列表渲染指南](/guide/essentials/list#v-for-with-v-if)详情。
+
+- **参考**[条件渲染 - v-if](/guide/essentials/conditional#v-if)
+
+### v-else
+
+表示 `v-if` 或 `v-if` / `v-else-if` 链式调用的“else 块”。
+
+- **无需传入表达式**
+
+- **详细信息**
+
+  - 限定：上一个兄弟元素必须有 `v-if` 或 `v-else-if`。
+
+  - 可用于 `<template>` 表示仅包含文本或多个元素的条件块。
+
+- **示例**
+
+  ```vue-html
+  <div v-if="Math.random() > 0.5">
+    Now you see me
+  </div>
+  <div v-else>
+    Now you don't
+  </div>
+  ```
+
+- **参考**[条件渲染 - v-else](/guide/essentials/conditional#v-else)
+
+### v-else-if
+
+表示 `v-if` 的“else if 块”。可以进行链式调用。
+
+- **期望的绑定值类型：**`any`
+
+- **详细信息**
+
+  - 限定：上一个兄弟元素必须有 `v-if` 或 `v-else-if`。
+
+  - 可用于 `<template>` 表示仅包含文本或多个元素的条件块。
+
+- **示例**
+
+  ```vue-html
+  <div v-if="type === 'A'">
+    A
+  </div>
+  <div v-else-if="type === 'B'">
+    B
+  </div>
+  <div v-else-if="type === 'C'">
+    C
+  </div>
+  <div v-else>
+    Not A/B/C
+  </div>
+  ```
+
+- **参考**[条件渲染 - v-else-if](/guide/essentials/conditional#v-else-if)
+
+### v-for
+
+基于原始数据多次渲染元素或模板块。
+
+- **期望的绑定值类型：**`Array | Object | number | string | Iterable`
+
+- **详细信息**
+
+  指令值必须使用特殊语法 `alias in expression` 为正在迭代的元素提供一个别名：
+
+  ```vue-html
+  <div v-for="item in items">
+    {{ item.text }}
+  </div>
+  ```
+
+  或者，你也可以为索引指定别名 (如果用在对象，则是键值)：
+
+  ```vue-html
+  <div v-for="(item, index) in items"></div>
+  <div v-for="(value, key) in object"></div>
+  <div v-for="(value, name, index) in object"></div>
+  ```
+
+  `v-for` 的默认方式是尝试就地更新元素而不移动它们。要强制其重新排序元素，你需要用特殊 attribute `key` 来提供一个排序提示：
+
+  ```vue-html
+  <div v-for="item in items" :key="item.id">
+    {{ item.text }}
+  </div>
+  ```
+
+  `v-for` 也可以用于 [Iterable Protocol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterable_protocol) 的实现，包括原生 `Map` 和 `Set`。
+
+- **参考**
+  - [列表渲染](/guide/essentials/list)
+
+### v-on
+
+给元素绑定事件监听器。
+
+- **缩写：**`@`
+
+- **期望的绑定值类型：**`Function | Inline Statement | Object (不带参数)`
+
+- **参数：**`event` (使用对象语法则为可选项)
+
+- **修饰符**
+
+  - `.stop` - 调用 `event.stopPropagation()`。
+  - `.prevent` - 调用 `event.preventDefault()`。
+  - `.capture` - 在捕获模式添加事件监听器。
+  - `.self` - 只有事件从元素本身发出才触发处理函数。
+  - `.{keyAlias}` - 只在某些按键下触发处理函数。
+  - `.once` - 最多触发一次处理函数。
+  - `.left` - 只在鼠标左键事件触发处理函数。
+  - `.right` - 只在鼠标右键事件触发处理函数。
+  - `.middle` - 只在鼠标中键事件触发处理函数。
+  - `.passive` - 通过 `{ passive: true }` 附加一个 DOM 事件。
+
+- **详细信息**
+
+  事件类型由参数来指定。表达式可以是一个方法名，一个内联声明，如果有修饰符则可省略。
+
+  当用于普通元素，只监听[**原生 DOM 事件**](https://developer.mozilla.org/en-US/docs/Web/Events)。当用于自定义元素组件，则监听子组件触发的**自定义事件**。
+
+  当监听原生 DOM 事件时，方法接收原生事件作为唯一参数。如果使用内联声明，声明可以访问一个特殊的 `$event` 变量：`v-on:click="handle('ok', $event)"`。
+
+  `v-on` 还支持绑定不带参数的事件/监听器对的对象。请注意，当使用对象语法时，不支持任何修饰符。
+
+- **示例**
+
+  ```vue-html
+  <!-- 方法处理函数 -->
+  <button v-on:click="doThis"></button>
+
+  <!-- 动态事件 -->
+  <button v-on:[event]="doThis"></button>
+
+  <!-- 内联声明 -->
+  <button v-on:click="doThat('hello', $event)"></button>
+
+  <!-- 缩写 -->
+  <button @click="doThis"></button>
+
+  <!-- 使用缩写的动态事件 -->
+  <button @[event]="doThis"></button>
+
+  <!-- 停止传播 -->
+  <button @click.stop="doThis"></button>
+
+  <!-- 阻止默认事件 -->
+  <button @click.prevent="doThis"></button>
+
+  <!-- 不带表达式地阻止默认事件 -->
+  <form @submit.prevent></form>
+
+  <!-- 链式调用修饰符 -->
+  <button @click.stop.prevent="doThis"></button>
+
+  <!-- 按键用于 keyAlias 修饰符-->
+  <input @keyup.enter="onEnter" />
+
+  <!-- 点击事件将最多触发一次 -->
+  <button v-on:click.once="doThis"></button>
+
+  <!-- 对象语法 -->
+  <button v-on="{ mousedown: doThis, mouseup: doThat }"></button>
+  ```
+
+  监听子组件的自定义事件 (当子组件的“my-event”事件被触发，处理函数将被调用)：
+
+  ```vue-html
+  <MyComponent @my-event="handleThis" />
+
+  <!-- 内联声明 -->
+  <MyComponent @my-event="handleThis(123, $event)" />
+  ```
+
+- **参考**
+  - [事件处理](/guide/essentials/event-handling)
+  - [组件 - 自定义事件](/guide/essentials/component-basics#listening-to-events)
+
+### v-bind
+
+动态的绑定一个或多个 attribute，也可以是组件的 prop。
+
+- **缩写：**
+  - `:` 或者 `.` (当使用 `.prop` 修饰符)
+  - 值可以省略 (当 attribute 和绑定的值同名时，需要 3.4+ 版本)
+
+- **期望：**`any (带参数) | Object (不带参数)`
+
+- **参数：**`attrOrProp (可选的)`
+
+- **修饰符**
+
+  - `.camel` - 将短横线命名的 attribute 转变为驼峰式命名。
+  - `.prop` - 强制绑定为 DOM property (3.2+)。
+  - `.attr` - 强制绑定为 DOM attribute (3.2+)。
+
+- **用途**
+
+  当用于绑定 `class` 或 `style` attribute，`v-bind` 支持额外的值类型如数组或对象。详见下方的指南链接。
+
+  在处理绑定时，Vue 默认会利用 `in` 操作符来检查该元素上是否定义了和绑定的 key 同名的 DOM property。如果存在同名的 property，则 Vue 会将它作为 DOM property 赋值，而不是作为 attribute 设置。这个行为在大多数情况都符合期望的绑定值类型，但是你也可以显式用 `.prop` 和 `.attr` 修饰符来强制绑定方式。有时这是必要的，特别是在和[自定义元素](/guide/extras/web-components#passing-dom-properties)打交道时。
+
+  当用于组件 props 绑定时，所绑定的 props 必须在子组件中已被正确声明。
+
+  当不带参数使用时，可以用于绑定一个包含了多个 attribute 名称-绑定值对的对象。
+
+- **示例**
+
+  ```vue-html
+  <!-- 绑定 attribute -->
+  <img v-bind:src="imageSrc" />
+
+  <!-- 动态 attribute 名 -->
+  <button v-bind:[key]="value"></button>
+
+  <!-- 缩写 -->
+  <img :src="imageSrc" />
+
+  <!-- 缩写形式的动态 attribute 名 (3.4+)，扩展为 :src="src" -->
+  <img :src />
+
+  <!-- 动态 attribute 名的缩写 -->
+  <button :[key]="value"></button>
+
+  <!-- 内联字符串拼接 -->
+  <img :src="'/path/to/images/' + fileName" />
+
+  <!-- class 绑定 -->
+  <div :class="{ red: isRed }"></div>
+  <div :class="[classA, classB]"></div>
+  <div :class="[classA, { classB: isB, classC: isC }]"></div>
+
+  <!-- style 绑定 -->
+  <div :style="{ fontSize: size + 'px' }"></div>
+  <div :style="[styleObjectA, styleObjectB]"></div>
+
+  <!-- 绑定对象形式的 attribute -->
+  <div v-bind="{ id: someProp, 'other-attr': otherProp }"></div>
+
+  <!-- prop 绑定。“prop” 必须在子组件中已声明。 -->
+  <MyComponent :prop="someThing" />
+
+  <!-- 传递子父组件共有的 prop -->
+  <MyComponent v-bind="$props" />
+
+  <!-- XLink -->
+  <svg><a :xlink:special="foo"></a></svg>
+  ```
+
+  `.prop` 修饰符也有专门的缩写，`.`：
+
+  ```vue-html
+  <div :someProperty.prop="someObject"></div>
+
+  <!-- 等同于 -->
+  <div .someProperty="someObject"></div>
+  ```
+
+  当在 DOM 内模板使用 `.camel` 修饰符，可以驼峰化 `v-bind` attribute 的名称，例如 SVG `viewBox` attribute：
+
+  ```vue-html
+  <svg :view-box.camel="viewBox"></svg>
+  ```
+
+  如果使用字符串模板或使用构建步骤预编译模板，则不需要 `.camel`。
+
+- **参考**
+  - [Class 与 Style 绑定](/guide/essentials/class-and-style)
+  - [组件 -  Prop 传递细节](/guide/components/props#prop-passing-details)
+
+### v-model
+
+在表单输入元素或组件上创建双向绑定。
+
+- **期望的绑定值类型**：根据表单输入元素或组件输出的值而变化
+
+- **仅限：**
+
+  - `<input>`
+  - `<select>`
+  - `<textarea>`
+  - components
+
+- **修饰符**
+
+  - [`.lazy`](/guide/essentials/forms#lazy) - 监听 `change` 事件而不是 `input`
+  - [`.number`](/guide/essentials/forms#number) - 将输入的合法字符串转为数字
+  - [`.trim`](/guide/essentials/forms#trim) - 移除输入内容两端空格
+
+- **参考**
+
+  - [表单输入绑定](/guide/essentials/forms)
+  - [组件事件 - 配合 `v-model` 使用](/guide/components/v-model)
+
+### v-slot
+
+用于声明具名插槽或是期望接收 props 的作用域插槽。
+
+- **缩写：**`#`
+
+- **期望的绑定值类型**：能够合法在函数参数位置使用的 JavaScript 表达式。支持解构语法。绑定值是可选的——只有在给作用域插槽传递 props 才需要。
+
+- **参数**：插槽名 (可选，默认是 `default`)
+
+- **仅限：**
+
+  - `<template>`
+  - [components](/guide/components/slots#scoped-slots) (用于带有 prop 的单个默认插槽)
+
+- **示例**
+
+  ```vue-html
+  <!-- 具名插槽 -->
+  <BaseLayout>
+    <template v-slot:header>
+      Header content
+    </template>
+
+    <template v-slot:default>
+      Default slot content
+    </template>
+
+    <template v-slot:footer>
+      Footer content
+    </template>
+  </BaseLayout>
+
+  <!-- 接收 prop 的具名插槽 -->
+  <InfiniteScroll>
+    <template v-slot:item="slotProps">
+      <div class="item">
+        {{ slotProps.item.text }}
+      </div>
+    </template>
+  </InfiniteScroll>
+
+  <!-- 接收 prop 的默认插槽，并解构 -->
+  <Mouse v-slot="{ x, y }">
+    Mouse position: {{ x }}, {{ y }}
+  </Mouse>
+  ```
+
+- **参考**
+  - [组件 - 插槽](/guide/components/slots)
+
+### v-pre
+
+跳过该元素及其所有子元素的编译。
+
+- **无需传入**
+
+- **详细信息**
+
+  元素内具有 `v-pre`，所有 Vue 模板语法都会被保留并按原样渲染。最常见的用例就是显示原始双大括号标签及内容。
+
+- **示例**
+
+  ```vue-html
+  <span v-pre>{{ this will not be compiled }}</span>
+  ```
+
+### v-once
+
+仅渲染元素和组件一次，并跳过之后的更新。
+
+- **无需传入**
+
+- **详细信息**
+
+  在随后的重新渲染，元素/组件及其所有子项将被当作静态内容并跳过渲染。这可以用来优化更新时的性能。
+
+  ```vue-html
+  <!-- 单个元素 -->
+  <span v-once>This will never change: {{msg}}</span>
+  <!-- 带有子元素的元素 -->
+  <div v-once>
+    <h1>Comment</h1>
+    <p>{{msg}}</p>
+  </div>
+  <!-- 组件 -->
+  <MyComponent v-once :comment="msg" />
+  <!-- `v-for` 指令 -->
+  <ul>
+    <li v-for="i in list" v-once>{{i}}</li>
+  </ul>
+  ```
+
+  从 3.2 起，你也可以搭配 [`v-memo`](#v-memo) 的无效条件来缓存部分模板。
+
+- **参考**
+  - [数据绑定语法 - 插值](/guide/essentials/template-syntax#text-interpolation)
+  - [v-memo](#v-memo)
+
+### v-memo
+
+- 仅在 3.2+ 中支持
+
+- **期望的绑定值类型：**`any[]`
+
+- **详细信息**
+
+  缓存一个模板的子树。在元素和组件上都可以使用。为了实现缓存，该指令需要传入一个固定长度的依赖值数组进行比较。如果数组里的每个值都与最后一次的渲染相同，那么整个子树的更新将被跳过。举例来说：
+
+  ```vue-html
+  <div v-memo="[valueA, valueB]">
+    ...
+  </div>
+  ```
+
+  当组件重新渲染，如果 `valueA` 和 `valueB` 都保持不变，这个 `<div>` 及其子项的所有更新都将被跳过。实际上，甚至虚拟 DOM 的 vnode 创建也将被跳过，因为缓存的子树副本可以被重新使用。
+
+  正确指定缓存数组很重要，否则应该生效的更新可能被跳过。`v-memo` 传入空依赖数组 (`v-memo="[]"`) 将与 `v-once` 效果相同。
+
+  **与 `v-for` 一起使用**
+
+  `v-memo` 仅用于性能至上场景中的微小优化，应该很少需要。最常见的情况可能是有助于渲染海量 `v-for` 列表 (长度超过 1000 的情况)：
+
+  ```vue-html
+  <div v-for="item in list" :key="item.id" v-memo="[item.id === selected]">
+    <p>ID: {{ item.id }} - selected: {{ item.id === selected }}</p>
+    <p>...more child nodes</p>
+  </div>
+  ```
+
+  当组件的 `selected` 状态改变，默认会重新创建大量的 vnode，尽管绝大部分都跟之前是一模一样的。`v-memo` 用在这里本质上是在说“只有当该项的被选中状态改变时才需要更新”。这使得每个选中状态没有变的项能完全重用之前的 vnode 并跳过差异比较。注意这里 memo 依赖数组中并不需要包含 `item.id`，因为 Vue 也会根据 item 的 `:key` 进行判断。
+
+  :::warning 警告
+  当搭配 `v-for` 使用 `v-memo`，确保两者都绑定在同一个元素上。**`v-memo` 不能用在 `v-for` 内部。**
+  :::
+
+  `v-memo` 也能被用于在一些默认优化失败的边际情况下，手动避免子组件出现不需要的更新。但是一样的，开发者需要负责指定正确的依赖数组以免跳过必要的更新。
+
+- **参考**
+  - [v-once](#v-once)
+
+### v-cloak
+
+用于隐藏尚未完成编译的 DOM 模板。
+
+- **无需传入**
+
+- **详细信息**
+
+  **该指令只在没有构建步骤的环境下需要使用。**
+
+  当使用直接在 DOM 中书写的模板时，可能会出现一种叫做“未编译模板闪现”的情况：用户可能先看到的是还没编译完成的双大括号标签，直到挂载的组件将它们替换为实际渲染的内容。
+
+  `v-cloak` 会保留在所绑定的元素上，直到相关组件实例被挂载后才移除。配合像 `[v-cloak] { display: none }` 这样的 CSS 规则，它可以在组件编译完毕前隐藏原始模板。
+
+- **示例**
+
+  ```css
+  [v-cloak] {
+    display: none;
+  }
+  ```
+
+  ```vue-html
+  <div v-cloak>
+    {{ message }}
+  </div>
+  ```
+
+  直到编译完成前，`<div>` 将不可见。
+
 
 ## 自定义指令
 
@@ -2645,6 +3028,7 @@ app.directive('color', (el, binding) => {
 + 获取DOM/组件实例
 + 组件挂载后才能访问引用
 + useTemplateRef 3.5+版本才可使用
++ `this.$refs` 也是非响应式的，因此你不应该尝试在模板中使用它来进行数据绑定。
 
 ```vue
 <script setup>
@@ -2724,7 +3108,65 @@ defineExpose({
 
 ### 属性key
 
+`key` 这个特殊的 attribute 主要作为 Vue 的虚拟 DOM 算法提示，在比较新旧节点列表时用于识别 vnode。
+
+- **预期**：`number | string | symbol`
+
+- **详细信息**
+
+  在没有 key 的情况下，Vue 将使用一种最小化元素移动的算法，并尽可能地就地更新/复用相同类型的元素。如果传了 key，则将根据 key 的变化顺序来重新排列元素，并且将始终移除/销毁 key 已经不存在的元素。
+
+  同一个父元素下的子元素必须具有**唯一的 key**。重复的 key 将会导致渲染异常。
+
+  最常见的用例是与 `v-for` 结合：
+
+  ```vue-html
+  <ul>
+    <li v-for="item in items" :key="item.id">...</li>
+  </ul>
+  ```
+
+  也可以用于强制替换一个元素/组件而不是复用它。当你想这么做时它可能会很有用：
+
+  - 在适当的时候触发组件的生命周期钩子
+  - 触发过渡
+
+  举例来说：
+
+  ```vue-html
+  <transition>
+    <span :key="text">{{ text }}</span>
+  </transition>
+  ```
+
+  当 `text` 变化时，`<span>` 总是会被替换而不是更新，因此 transition 将会被触发。
+
+- **参考**[指南 - 列表渲染 - 通过 `key` 管理状态](/guide/essentials/list#maintaining-state-with-key)
+
 ### 属性is
+
+用于绑定[动态组件](/guide/essentials/component-basics#dynamic-components)。
+
+- **预期**：`string | Component`
+
+- **用于原生元素**
+
+  - 仅在 3.1+ 中支持
+
+  当 `is` attribute 用于原生 HTML 元素时，它将被当作 [Customized built-in element](https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements-customized-builtin-example)，其为原生 web 平台的特性。
+
+  但是，在这种用例中，你可能需要 Vue 用其组件来替换原生元素，如 [DOM 内模板解析注意事项](/guide/essentials/component-basics#in-dom-template-parsing-caveats)所述。你可以在 `is` attribute 的值中加上 `vue:` 前缀，这样 Vue 就会把该元素渲染为 Vue 组件：
+
+  ```vue-html
+  <table>
+    <tr is="vue:my-row-component"></tr>
+  </table>
+  ```
+
+- **参考**
+
+  - [内置特殊元素 - `<component>`](/api/built-in-special-elements#component)
+  - [动态组件](/guide/essentials/component-basics#dynamic-components)
 
 
 ## 组件注册
