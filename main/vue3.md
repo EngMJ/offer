@@ -950,7 +950,7 @@ console.log(app.config)
   function isReadonly(value: unknown): boolean
   ```
 
-## 响应式 API：进阶
+## 响应式 API
 
 ### shallowRef()
 
@@ -1296,7 +1296,7 @@ console.log(app.config)
   function onScopeDispose(fn: () => void, failSilently?: boolean): void
   ```
 
-## 组合式 API：辅助
+## 组合式 API
 
 ### useAttrs()
 
