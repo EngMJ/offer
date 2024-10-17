@@ -38,7 +38,7 @@
 
 ```
 
-### template 
+### `<template>` 
 
 #### Class 与 Style 绑定
 1. :class 和 :style 都可以接受字符串/对象/数组 值
@@ -67,11 +67,105 @@
 
 ```
 
-### script setup
+### `<script setup>`
 - 组件中`<script setup>` 中的顶层的导入、声明的变量和函数可在模板中直接使用。
 - 使用 `<script setup>` 的单文件组件会自动根据文件名生成对应的 name 选项，无需再手动声明.
 
-### style css
+- 组件引用
+
+```vue
+<script setup>
+  import * as Form from './form-components' // 组件集合加载, 命名空间组件
+  import { FooBar as FooBarChild } from './components' // 递归组件调用
+</script>
+
+<template>
+  <Form.Input> // 组件集合加载使用, 命名空间组件
+    <Form.Label>label</Form.Label>
+  </Form.Input>
+</template>
+```
+
+- 顶层await,代码会被编译成 async setup()
+
+```vue
+<script setup>
+const post = await fetch(`/api/post/1`).then((r) => r.json())
+</script>
+```
+
+- 与普通的 `<script>` 一起使用,两边无法互相访问,谨慎使用
+```vue
+<script>
+// 普通 <script>，在模块作用域下执行 (仅一次)
+runSideEffectOnce()
+
+// 声明额外的选项
+export default {
+  inheritAttrs: false,
+  customOptions: {}
+}
+</script>
+
+<script setup>
+// 在 setup() 作用域中执行 (对每个实例皆如此)
+</script>
+```
+
+- `<script setup>` 不能使用 src 属性
+
+
+### `<style>`
+
+- 作用域
+```vue
+<style>
+/* 全局样式 */
+</style>
+
+<style scoped>
+/* 作用域样式样式,会为每个选择器添加 组件生成的随机的属性选择器 */
+</style>
+```
+
+- 选择器
+```vue
+<!---->
+<style scoped>
+/*深度选择器,会影响子组件*/
+.a :deep(.b) { /*编译为 .a[data-v-f3f3eg9] .b {} */ 
+  /* ... */
+}
+
+/*插槽选择器, 影响插槽内的样式内容*/
+:slotted(div) {
+  color: red;
+}
+
+/*全局选择器, 影响全局, 即使在scope中依然可以影响全局*/
+:global(.red) {
+  color: red;
+}
+</style>
+```
+
+- CSS Modules
+
+```vue
+
+```
+
+
+- CSS v-bind
+
+```vue
+
+```
+
+
+```vue
+
+```
 
 ## app实例
 
@@ -2795,7 +2889,7 @@ url.value = '/new-url'
 
 ## 内置属性
 
-### 属性ref & useTemplateRef
+### 属性ref & useTemplateRef & defineExpose
 
 + 获取DOM/组件实例
 + 组件挂载后才能访问引用
