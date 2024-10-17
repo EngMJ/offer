@@ -149,22 +149,84 @@ export default {
 </style>
 ```
 
-- CSS Modules
+- CSS Modules & useCssModule()
 
 ```vue
+<template>
+  <p :class="$style.red">This should be red</p>
+  <p :class="classes.red">red</p>
+</template>
+
+<script setup>
+  import { useCssModule } from 'vue'
+
+  // 默认情况下，返回 <style module> 的 class
+  useCssModule()
+
+  // 具名情况下，返回 <style module="classes"> 的 class
+  useCssModule('classes')
+  
+</script>
+
+<!--添加module属性, 组件中可以通过 $style 进行访问-->
+<style module>
+  .red {
+    color: red;
+  }
+</style>
+
+<!--可以自定义注入名称-->
+<style module="classes">
+.red {
+  color: red;
+}
+</style>
 
 ```
-
 
 - CSS v-bind
 
 ```vue
+<!--组合式-->
+<script setup>
+  import { ref } from 'vue'
+  const theme = ref({
+      color: 'red',
+  })
+</script>
 
+<template>
+  <p>hello</p>
+</template>
+
+<style scoped>
+  p {
+    color: v-bind('theme.color');
+  }
+</style>
 ```
 
-
 ```vue
+<!--选项式-->
+<template>
+  <div class="text">hello</div>
+</template>
 
+<script>
+export default {
+  data() {
+    return {
+      color: 'red'
+    }
+  }
+}
+</script>
+
+<style>
+.text {
+  color: v-bind(color);
+}
+</style>
 ```
 
 ## app实例
