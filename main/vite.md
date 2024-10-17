@@ -1,6 +1,6 @@
 # Vite 5.4.9 概述
 
-## vite 与 webpack 优缺点
+## Vite 与 webpack 优缺点
 
 `Vite` 和 `Webpack` 是两种流行的前端构建工具，它们各有优缺点，适用于不同的场景。以下是它们的主要区别和优缺点：
 
