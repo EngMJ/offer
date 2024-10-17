@@ -5,17 +5,36 @@
 **SFC结构示例:**
 
 ```vue
-<script setup>
-import { ref } from 'vue'
-</script>
-
 <template>
-
+  <!-- 注释 -->
+  <div class="example">{{ msg }}</div>
 </template>
 
-<style scoped lang="less">
+<!--组合式-->
+<script setup>
+  import { ref } from 'vue'
+</script>
 
+<!--选项式-->
+<!--<script>-->
+<!--  export default {-->
+<!--    data() {-->
+<!--      return {-->
+<!--        msg: 'Hello world!'-->
+<!--      }-->
+<!--    }-->
+<!--  }-->
+<!--</script>-->
+
+<style scoped lang="less">
+  .example {
+    color: red;
+  }
 </style>
+
+<doc>
+  自定义区块, 如'doc'可以写文档的块等
+</doc>
 
 ```
 
