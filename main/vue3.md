@@ -819,26 +819,17 @@ console.log(app.config)
   const { foo, bar } = stateAsRefs;
   ```
 
-### toValue()
+### toValue() 3.3+
 
-- 仅在 3.3+ 中支持
-
-将值、refs 或 getters 规范化为值。这与 [unref()](#unref) 类似，不同的是此函数也会规范化 getter 函数。如果参数是一个 getter，它将会被调用并且返回它的返回值。
-
-这可以在[组合式函数](/guide/reusability/composables.html)中使用，用来规范化一个可以是值、ref 或 getter 的参数。
-
-- **类型**
-
-  ```ts
-  function toValue<T>(source: T | Ref<T> | (() => T)): T
-  ```
+将值、refs 或 getters 转化为值。
+可在组合式函数中使用，传递规范化的值、ref 或 getter 的参数。
 
 - **示例**
 
   ```js
-  toValue(1) //       --> 1
-  toValue(ref(1)) //  --> 1
-  toValue(() => 1) // --> 1
+  toValue(1) //       --> 1 普通值
+  toValue(ref(1)) //  --> 1 自动解包
+  toValue(() => 1) // --> 1 getter
   ```
 
   在组合式函数中规范化参数：
@@ -852,7 +843,7 @@ console.log(app.config)
     })
   }
 
-  // 这个组合式函数支持以下的任意形式：
+  // 这个组合式函数支持以下的任意形式, 传递的值都是 1 ：
   useFeature(1)
   useFeature(ref(1))
   useFeature(() => 1)
@@ -860,7 +851,7 @@ console.log(app.config)
 
 ### isProxy()
 
-检查一个对象是否是由 [`reactive()`](./reactivity-core#reactive)、[`readonly()`](./reactivity-core#readonly)、[`shallowReactive()`](./reactivity-advanced#shallowreactive) 或 [`shallowReadonly()`](./reactivity-advanced#shallowreadonly) 创建的代理。
+检查一个对象是否是由 `reactive()`、`readonly()`、`shallowReactive()` 或 `shallowReadonly()` 创建的代理。
 
 - **类型**
 
@@ -870,7 +861,7 @@ console.log(app.config)
 
 ### isReactive()
 
-检查一个对象是否是由 [`reactive()`](./reactivity-core#reactive) 或 [`shallowReactive()`](./reactivity-advanced#shallowreactive) 创建的代理。
+检查一个对象是否是由 `reactive()` 或 `shallowReactive()` 创建的代理。
 
 - **类型**
 
@@ -882,7 +873,7 @@ console.log(app.config)
 
 检查传入的值是否为只读对象。只读对象的属性可以更改，但他们不能通过传入的对象直接赋值。
 
-通过 [`readonly()`](./reactivity-core#readonly) 和 [`shallowReadonly()`](./reactivity-advanced#shallowreadonly) 创建的代理都是只读的，因为他们是没有 `set` 函数的 [`computed()`](./reactivity-core#computed) ref。
+通过 `readonly()` 和 `shallowReadonly()` 创建的代理都是只读的，因为他们是没有 `set` 函数的 `computed()` ref。
 
 - **类型**
 
