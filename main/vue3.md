@@ -565,7 +565,7 @@ console.log(app.config)
 
   通过将 `app.config.throwUnhandledErrorInProduction` 设置为 `true`，即使在生产模式下也会抛出未处理的错误。
 
-## 全局 API：常规
+## 全局 API
 
 ### version
 
