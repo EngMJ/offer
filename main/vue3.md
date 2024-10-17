@@ -1007,21 +1007,13 @@ copy.count++ // warning!
 
 ### shallowReadonly()
 
-`readonly()` 的浅层作用形式
+`readonly()` 的浅层作用形式, 不会自动解包ref属性
 
 - **类型**
 
   ```ts
   function shallowReadonly<T extends object>(target: T): Readonly<T>
   ```
-
-- **详细信息**
-
-  和 `readonly()` 不同，这里没有深层级的转换：只有根层级的属性变为了只读。属性的值都会被原样存储和暴露，这也意味着值为 ref 的属性**不会**被自动解包了。
-
-  :::warning 谨慎使用
-  浅层数据结构应该只用于组件中的根级状态。请避免将其嵌套在深层次的响应式对象中，因为它创建的树具有不一致的响应行为，这可能很难理解和调试。
-  :::
 
 - **示例**
 
@@ -1252,7 +1244,7 @@ unwatch()
 
 - **详细信息**
 
-  `toRaw()` 可以返回由 [`reactive()`](./reactivity-core#reactive)、[`readonly()`](./reactivity-core#readonly)、[`shallowReactive()`](#shallowreactive) 或者 [`shallowReadonly()`](#shallowreadonly) 创建的代理对应的原始对象。
+  `toRaw()` 可以返回由 `reactive()`、`readonly()`、`shallowReactive()` 或者 `shallowReadonly()` 创建的代理对应的原始对象。
 
   这是一个可以用于临时读取而不引起代理访问/跟踪开销，或是写入而不触发更改的特殊方法。不建议保存对原始对象的持久引用，请谨慎使用。
 
@@ -1267,7 +1259,7 @@ unwatch()
 
 ### markRaw()
 
-将一个对象标记为不可被转为代理。返回该对象本身。
+将一个对象标记为不可被转为代理。返回该对象本身。用于第三方实例不需要响应式时使用,节省开销.
 
 - **类型**
 
@@ -1285,15 +1277,7 @@ unwatch()
   const bar = reactive({ foo })
   console.log(isReactive(bar.foo)) // false
   ```
-
-  :::warning 谨慎使用
-  `markRaw()` 和类似 `shallowReactive()` 这样的浅层式 API 使你可以有选择地避开默认的深度响应/只读转换，并在状态关系谱中嵌入原始的、非代理的对象。它们可能出于各种各样的原因被使用：
-
-  - 有些值不应该是响应式的，例如复杂的第三方类实例或 Vue 组件对象。
-
-  - 当呈现带有不可变数据源的大型列表时，跳过代理转换可以提高性能。
-
-  这应该是一种进阶需求，因为只在根层能访问到原始值，所以如果把一个嵌套的、没有标记的原始对象设置成一个响应式对象，然后再次访问它，你获取到的是代理的版本。这可能会导致**对象身份风险**，即执行一个依赖于对象身份的操作，但却同时使用了同一对象的原始版本和代理版本：
+  使用注意:
 
   ```js
   const foo = markRaw({
@@ -1308,28 +1292,15 @@ unwatch()
   console.log(foo.nested === bar.nested) // false
   ```
 
-  识别风险一般是很罕见的。然而，要正确使用这些 API，同时安全地避免这样的风险，需要你对响应性系统的工作方式有充分的了解。
-
-  :::
 
 ### effectScope()
 
-创建一个 effect 作用域，可以捕获其中所创建的响应式副作用 (即计算属性和侦听器)，这样捕获到的副作用可以一起处理。对于该 API 的使用细节，请查阅对应的 [RFC](https://github.com/vuejs/rfcs/blob/master/active-rfcs/0041-reactivity-effect-scope.md)。
-
-- **类型**
-
-  ```ts
-  function effectScope(detached?: boolean): EffectScope
-
-  interface EffectScope {
-    run<T>(fn: () => T): T | undefined // 如果作用域不活跃就为 undefined
-    stop(): void
-  }
-  ```
+创建 effect 作用域，捕获其中响应式副作用 (即计算属性和侦听器)，统一创建与销毁。
 
 - **示例**
 
   ```js
+  // 创建副作用作用域
   const scope = effectScope()
 
   scope.run(() => {
@@ -1340,13 +1311,13 @@ unwatch()
     watchEffect(() => console.log('Count: ', doubled.value))
   })
 
-  // 处理掉当前作用域内的所有 effect
+  // 统一销毁作用域内的所有 effect
   scope.stop()
   ```
 
 ### getCurrentScope()
 
-如果有的话，返回当前活跃的 [effect 作用域](#effectscope)。
+获取当前effectScope创建的作用域对象。
 
 - **类型**
 
@@ -1356,16 +1327,14 @@ unwatch()
 
 ### onScopeDispose()
 
-在当前活跃的 [effect 作用域](#effectscope)上注册一个处理回调函数。当相关的 effect 作用域停止时会调用这个回调函数。
-
-这个方法可以作为可复用的组合式函数中 `onUnmounted` 的替代品，它并不与组件耦合，因为每一个 Vue 组件的 `setup()` 函数也是在一个 effect 作用域中调用的。
+在当前effectScope创建的所有没被停止的作用域对象中注册回调函数,当作用域对象停止时会调用这个回调函数。
 
 如果在没有活跃的 effect 作用域的情况下调用此函数，将会抛出警告。在 3.5+ 版本中，可以通过将第二个参数设为 `true` 来消除此警告。
 
-- **类型**
+- **示例**
 
-  ```ts
-  function onScopeDispose(fn: () => void, failSilently?: boolean): void
+  ```js
+    onScopeDispose(()=>{// 销毁处理},true/*可选参数 在已停止作用域中使用,防止抛出警告*/)
   ```
 
 ## 响应式 API 工具函数
