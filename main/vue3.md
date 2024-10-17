@@ -723,202 +723,6 @@ console.log(app.config)
 
   使用 Vite 可以智能地确定 `defineComponent()` 实际上并没有副作用，所以无需手动注释。
 
-## 响应式 API 工具函数
-
-### isRef()
-
-检查某个值是否为 ref。
-
-- **类型**
-
-  ```ts
-  function isRef<T>(r: Ref<T> | unknown): r is Ref<T>
-  ```
-
-  请注意，返回值是一个类型判定，这意味着 `isRef` 可以被用作类型守卫：
-
-  ```ts
-  let foo: unknown
-  if (isRef(foo)) {
-    // foo 的类型被收窄为了 Ref<unknown>
-    foo.value
-  }
-  ```
-
-### unref()
-
-如果参数是 ref，则返回内部值，否则返回参数本身。这是 `val = isRef(val) ? val.value : val` 计算的一个语法糖。
-
-- **类型**
-
-  ```ts
-  function unref<T>(ref: T | Ref<T>): T
-  ```
-
-- **示例**
-
-  ```ts
-  function useFoo(x: number | Ref<number>) {
-    const unwrapped = unref(x)
-    // unwrapped 现在保证为 number 类型
-  }
-  ```
-
-### toRef()
-
-可以将 值 / refs / getters 规范化为 refs (3.3+)。
-保持值的响应性,主要作为props等数据传递给组合式函数使用依然保持响应式连接.
-可为不存在属性使用toRef(),依然返回ref对象.
-
-- **示例**
-
-  1. 规范化签名 (3.3+)：
-
-  ```js
-  // 按原样返回现有的 ref
-  toRef(existingRef)
-
-  // 创建一个只读的 ref，当访问 .value 时会调用此 getter 函数
-  toRef(() => props.foo)
-
-  // 从非函数的值中创建普通的 ref
-  // 等同于 ref(1)
-  toRef(1)
-  ```
-
-  2. 对象属性连接：
-
-  ```js
-  const state = reactive({
-    foo: 1,
-    bar: 2
-  })
-
-  // 双向 ref，会与源属性同步
-  const fooRef = toRef(state, 'foo')
-
-  // 更改该 ref 会更新源属性
-  fooRef.value++
-  console.log(state.foo) // 2
-  // 这里只是将数值转为ref, 不会形成数据连接
-  // const fooRef = ref(state.foo)
-
-  // 更改源属性也会更新该 ref
-  state.foo++
-  console.log(fooRef.value) // 3
-  ```
-
-
-  3. 传递 prop 参数给组合式函数,保持数据响应式连接：
-
-  ```vue
-  <script setup>
-  import { toRef } from 'vue'
-
-  const props = defineProps(/* ... */)
-
-  // 将 `props.foo` 转换为 ref，然后传入
-  // 不能修改对应数据，修改props是不允许的,要修改就使用带有 `get` 和 `set` 的 `computed`替代。
-  useSomeFeature(toRef(props, 'foo'))
-
-  // getter 语法——推荐在 3.3+ 版本使用
-  useSomeFeature(toRef(() => props.foo))
-  </script>
-  ```
-
-### toRefs()
-
-为响应式对象每个可枚举的属性创建数据连接.
-主要用于组合式函数的参数传递.
-不能为不存在属性创建响应式连接.
-
-- **示例**
-
-  ```js
-  const state = reactive({
-    foo: 1,
-    bar: 2
-  })
-  
-  // 1. 每个属性都形成响应式连接
-  const stateAsRefs = toRefs(state)
-  /*
-  stateAsRefs 的类型：{
-    foo: Ref<number>,
-    bar: Ref<number>
-  }
-  */
-  // 这个 ref 和源属性已经“链接上了”
-  state.foo++
-  console.log(stateAsRefs.foo.value) // 2
-  stateAsRefs.foo.value++
-  console.log(state.foo) // 3
-  
-  // 2. 解构也不会失去响应式
-  const { foo, bar } = stateAsRefs;
-  ```
-
-### toValue() 3.3+
-
-将值、refs 或 getters 转化为值。
-可在组合式函数中使用，传递规范化的值、ref 或 getter 的参数。
-
-- **示例**
-
-  ```js
-  toValue(1) //       --> 1 普通值
-  toValue(ref(1)) //  --> 1 自动解包
-  toValue(() => 1) // --> 1 getter
-  ```
-
-  在组合式函数中规范化参数：
-
-  ```ts
-  import type { MaybeRefOrGetter } from 'vue'
-
-  function useFeature(id: MaybeRefOrGetter<number>) {
-    watch(() => toValue(id), id => {
-      // 处理 id 变更
-    })
-  }
-
-  // 这个组合式函数支持以下的任意形式, 传递的值都是 1 ：
-  useFeature(1)
-  useFeature(ref(1))
-  useFeature(() => 1)
-  ```
-
-### isProxy()
-
-检查一个对象是否是由 `reactive()`、`readonly()`、`shallowReactive()` 或 `shallowReadonly()` 创建的代理。
-
-- **类型**
-
-  ```ts
-  function isProxy(value: any): boolean
-  ```
-
-### isReactive()
-
-检查一个对象是否是由 `reactive()` 或 `shallowReactive()` 创建的代理。
-
-- **类型**
-
-  ```ts
-  function isReactive(value: unknown): boolean
-  ```
-
-### isReadonly()
-
-检查传入的值是否为只读对象。只读对象的属性可以更改，但他们不能通过传入的对象直接赋值。
-
-通过 `readonly()` 和 `shallowReadonly()` 创建的代理都是只读的，因为他们是没有 `set` 函数的 `computed()` ref。
-
-- **类型**
-
-  ```ts
-  function isReadonly(value: unknown): boolean
-  ```
 
 ## 响应式 API
 
@@ -1203,7 +1007,7 @@ copy.count++ // warning!
 
 ### shallowReadonly()
 
-[`readonly()`](./reactivity-core#readonly) 的浅层作用形式
+`readonly()` 的浅层作用形式
 
 - **类型**
 
@@ -1563,6 +1367,204 @@ unwatch()
   ```ts
   function onScopeDispose(fn: () => void, failSilently?: boolean): void
   ```
+
+## 响应式 API 工具函数
+
+### isRef()
+
+检查某个值是否为 ref。
+
+- **类型**
+
+  ```ts
+  function isRef<T>(r: Ref<T> | unknown): r is Ref<T>
+  ```
+
+  请注意，返回值是一个类型判定，这意味着 `isRef` 可以被用作类型守卫：
+
+  ```ts
+  let foo: unknown
+  if (isRef(foo)) {
+    // foo 的类型被收窄为了 Ref<unknown>
+    foo.value
+  }
+  ```
+
+### unref()
+
+如果参数是 ref，则返回内部值，否则返回参数本身。这是 `val = isRef(val) ? val.value : val` 计算的一个语法糖。
+
+- **类型**
+
+  ```ts
+  function unref<T>(ref: T | Ref<T>): T
+  ```
+
+- **示例**
+
+  ```ts
+  function useFoo(x: number | Ref<number>) {
+    const unwrapped = unref(x)
+    // unwrapped 现在保证为 number 类型
+  }
+  ```
+
+### toRef()
+
+可以将 值 / refs / getters 规范化为 refs (3.3+)。
+保持值的响应性,主要作为props等数据传递给组合式函数使用依然保持响应式连接.
+可为不存在属性使用toRef(),依然返回ref对象.
+
+- **示例**
+
+  1. 规范化签名 (3.3+)：
+
+  ```js
+  // 按原样返回现有的 ref
+  toRef(existingRef)
+
+  // 创建一个只读的 ref，当访问 .value 时会调用此 getter 函数
+  toRef(() => props.foo)
+
+  // 从非函数的值中创建普通的 ref
+  // 等同于 ref(1)
+  toRef(1)
+  ```
+
+  2. 对象属性连接：
+
+  ```js
+  const state = reactive({
+    foo: 1,
+    bar: 2
+  })
+
+  // 双向 ref，会与源属性同步
+  const fooRef = toRef(state, 'foo')
+
+  // 更改该 ref 会更新源属性
+  fooRef.value++
+  console.log(state.foo) // 2
+  // 这里只是将数值转为ref, 不会形成数据连接
+  // const fooRef = ref(state.foo)
+
+  // 更改源属性也会更新该 ref
+  state.foo++
+  console.log(fooRef.value) // 3
+  ```
+
+
+3. 传递 prop 参数给组合式函数,保持数据响应式连接：
+
+  ```vue
+  <script setup>
+  import { toRef } from 'vue'
+
+  const props = defineProps(/* ... */)
+
+  // 将 `props.foo` 转换为 ref，然后传入
+  // 不能修改对应数据，修改props是不允许的,要修改就使用带有 `get` 和 `set` 的 `computed`替代。
+  useSomeFeature(toRef(props, 'foo'))
+
+  // getter 语法——推荐在 3.3+ 版本使用
+  useSomeFeature(toRef(() => props.foo))
+  </script>
+  ```
+
+### toRefs()
+
+为响应式对象每个可枚举的属性创建数据连接.
+主要用于组合式函数的参数传递.
+不能为不存在属性创建响应式连接.
+
+- **示例**
+
+  ```js
+  const state = reactive({
+    foo: 1,
+    bar: 2
+  })
+  
+  // 1. 每个属性都形成响应式连接
+  const stateAsRefs = toRefs(state)
+  /*
+  stateAsRefs 的类型：{
+    foo: Ref<number>,
+    bar: Ref<number>
+  }
+  */
+  // 这个 ref 和源属性已经“链接上了”
+  state.foo++
+  console.log(stateAsRefs.foo.value) // 2
+  stateAsRefs.foo.value++
+  console.log(state.foo) // 3
+  
+  // 2. 解构也不会失去响应式
+  const { foo, bar } = stateAsRefs;
+  ```
+
+### toValue() 3.3+
+
+将值、refs 或 getters 转化为值。
+可在组合式函数中使用，传递规范化的值、ref 或 getter 的参数。
+
+- **示例**
+
+  ```js
+  toValue(1) //       --> 1 普通值
+  toValue(ref(1)) //  --> 1 自动解包
+  toValue(() => 1) // --> 1 getter
+  ```
+
+  在组合式函数中规范化参数：
+
+  ```ts
+  import type { MaybeRefOrGetter } from 'vue'
+
+  function useFeature(id: MaybeRefOrGetter<number>) {
+    watch(() => toValue(id), id => {
+      // 处理 id 变更
+    })
+  }
+
+  // 这个组合式函数支持以下的任意形式, 传递的值都是 1 ：
+  useFeature(1)
+  useFeature(ref(1))
+  useFeature(() => 1)
+  ```
+
+### isProxy()
+
+检查一个对象是否是由 `reactive()`、`readonly()`、`shallowReactive()` 或 `shallowReadonly()` 创建的代理。
+
+- **类型**
+
+  ```ts
+  function isProxy(value: any): boolean
+  ```
+
+### isReactive()
+
+检查一个对象是否是由 `reactive()` 或 `shallowReactive()` 创建的代理。
+
+- **类型**
+
+  ```ts
+  function isReactive(value: unknown): boolean
+  ```
+
+### isReadonly()
+
+检查传入的值是否为只读对象。只读对象的属性可以更改，但他们不能通过传入的对象直接赋值。
+
+通过 `readonly()` 和 `shallowReadonly()` 创建的代理都是只读的，因为他们是没有 `set` 函数的 `computed()` ref。
+
+- **类型**
+
+  ```ts
+  function isReadonly(value: unknown): boolean
+  ```
+
 
 ## 组合式 API
 
