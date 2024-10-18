@@ -106,9 +106,51 @@
 ## 配置示例
 ```js
 
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
+// defineConfig 不用 jsdoc 注解也可以获取ts类型提示
+
+// 1. 函数参数
+export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
+  //  command参数 serve || build
+  //  isSsrBuild ssr环境
+  //  isPreview 预构建环境
+  //  mode 编译时传递的参数,如 vite build --mode staging, staging字符串就是当前的mode
+  if (command === 'serve') {
+    return {
+      // dev 独有配置
+    }
+  } else {
+    // command === 'build'
+    return {
+      // build 独有配置
+    }
+  }
+})
+// 异步函数
+export default defineConfig(async ({ command, mode }) => {
+  const data = await asyncFunction()
+  return {
+    // vite 配置
+  }
+})
+
+// .env文件加载
+export default defineConfig(({ command, mode }) => {
+  // 根据当前工作目录中的 `mode` 加载 .env 文件
+  // 设置第三个参数为 '' 来加载所有环境变量，而不管是否有 `VITE_` 前缀。
+  const env = loadEnv(mode, process.cwd(), '')
+  return {
+    // vite 配置
+    define: {
+      __APP_ENV__: JSON.stringify(env.APP_ENV),
+    },
+  }
+})
+
+
+// 2. 对象参数
 export default defineConfig({
     // 应用的基础公共路径, 通常用于子路径部署。默认为 '/'，如果部署到子目录则需要指定，如 '/my-app/'
     base: '/',
