@@ -319,3 +319,282 @@ export default defineConfig({
 });
 
 ```
+
+
+## 常用插件
+
+### 1. **`@vitejs/plugin-vue`**
+- **用途**: 支持 Vue 3 单文件组件（SFC），使 Vite 可以处理 `.vue` 文件。
+- **功能**: 解析 Vue 文件中的 `<template>`、`<script>` 和 `<style>` 块，并支持 Vue 的响应式特性。
+
+```bash
+# 安装插件
+npm install @vitejs/plugin-vue --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+
+// 定义 Vite 配置
+export default defineConfig({
+  // 添加 Vue 插件，Vite 将能识别和处理 .vue 文件
+  plugins: [vue()],
+});
+```
+
+### 2. **`@vitejs/plugin-react`**
+- **用途**: 在 Vite 中支持 React 项目。
+- **功能**: 处理 JSX 语法、TypeScript 支持，并启用 React 的快速刷新（Fast Refresh）功能。
+
+```bash
+# 安装插件
+npm install @vitejs/plugin-react --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// 定义 Vite 配置
+export default defineConfig({
+  // 添加 React 插件，使 Vite 支持 React 项目
+  plugins: [react()],
+});
+```
+
+### 3. **`@vitejs/plugin-legacy`**
+- **用途**: 使 Vite 打包后的项目能够兼容不支持 ES 模块的旧版浏览器，如 IE 11。
+- **功能**: 使用 Babel 将现代 JavaScript 语法转换为旧版浏览器可运行的代码。
+
+```bash
+# 安装插件
+npm install @vitejs/plugin-legacy --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import legacy from '@vitejs/plugin-legacy';
+
+// 定义 Vite 配置
+export default defineConfig({
+  plugins: [
+    legacy({
+      // targets 表示支持的浏览器版本，"defaults" 是通用的现代浏览器配置，"not IE 11" 明确排除 IE 11
+      targets: ['defaults', 'not IE 11'],
+    }),
+  ],
+});
+```
+
+### 4. **`vite-plugin-pwa`**
+- **用途**: 让应用成为渐进式 Web 应用（PWA），实现离线缓存和安装功能。
+- **功能**: 自动生成 `manifest.json` 文件，注册 Service Worker，管理离线缓存等。
+
+```bash
+# 安装插件
+npm install vite-plugin-pwa --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
+
+// 定义 Vite 配置
+export default defineConfig({
+  plugins: [
+    VitePWA({
+      // registerType 设置自动更新方式，"autoUpdate" 会在后台自动更新 Service Worker
+      registerType: 'autoUpdate',
+      // manifest 是 PWA 的配置信息，包括应用的名称、图标、主题色等
+      manifest: {
+        name: 'My App',
+        short_name: 'App',
+        theme_color: '#ffffff',
+        icons: [
+          {
+            src: 'icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
+      },
+    }),
+  ],
+});
+```
+
+### 5. **`vite-plugin-compression`**
+- **用途**: 为打包后的文件启用 gzip 或 brotli 压缩，减小文件体积，加快加载速度。
+- **功能**: 自动生成压缩版本的打包文件。
+
+```bash
+# 安装插件
+npm install vite-plugin-compression --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import compression from 'vite-plugin-compression';
+
+// 定义 Vite 配置
+export default defineConfig({
+  plugins: [
+    // 使用默认配置生成 gzip 压缩文件
+    compression(),
+    // 也可以配置生成 brotli 压缩文件
+    compression({
+      algorithm: 'brotliCompress',
+    }),
+  ],
+});
+```
+
+### 6. **`vite-plugin-eslint`**
+- **用途**: 实时在开发阶段检查代码中的 ESLint 问题。
+- **功能**: 开发过程中会在终端或浏览器中显示 ESLint 检查结果，帮助保持代码风格一致性。
+
+```bash
+# 安装插件
+npm install vite-plugin-eslint --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import eslintPlugin from 'vite-plugin-eslint';
+
+// 定义 Vite 配置
+export default defineConfig({
+  plugins: [
+    // 添加 ESLint 插件，启动后会对代码进行实时 ESLint 检查
+    eslintPlugin(),
+  ],
+});
+```
+
+### 7. **`vite-plugin-style-import`**
+- **用途**: 按需加载 CSS 和样式文件，适合与 UI 库（如 Element Plus、Ant Design）结合使用。
+- **功能**: 避免一次性引入整个库的样式，按需导入相关组件所需的样式文件。
+
+```bash
+# 安装插件
+npm install vite-plugin-style-import --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import styleImport from 'vite-plugin-style-import';
+
+// 定义 Vite 配置
+export default defineConfig({
+  plugins: [
+    // 配置按需引入 UI 库的样式文件
+    styleImport({
+      libs: [
+        {
+          // 指定 UI 库为 Element Plus
+          libraryName: 'element-plus',
+          // 确保样式文件被正确加载
+          esModule: true,
+          ensureStyleFile: true,
+          // 根据组件名动态引入相应的样式文件
+          resolveStyle: (name) => {
+            return `element-plus/theme-chalk/${name}.css`;
+          },
+        },
+      ],
+    }),
+  ],
+});
+```
+
+### 8. **`vite-plugin-svg-icons`**
+- **用途**: 将本地 SVG 文件转换为 SVG Sprite，方便在项目中按需使用 SVG 图标。
+- **功能**: 自动生成图标雪碧图，减少 HTTP 请求。
+
+```bash
+# 安装插件
+npm install vite-plugin-svg-icons --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import viteSvgIcons from 'vite-plugin-svg-icons';
+import path from 'path';
+
+// 定义 Vite 配置
+export default defineConfig({
+  plugins: [
+    // 配置插件以处理本地 SVG 图标
+    viteSvgIcons({
+      // 指定 SVG 文件的存储目录
+      iconDirs: [path.resolve(process.cwd(), 'src/assets/icons')],
+      // symbolId 用于定义生成的图标 ID 格式
+      symbolId: 'icon-[dir]-[name]',
+    }),
+  ],
+});
+```
+
+### 9. **`vite-plugin-md`**
+- **用途**: 支持在 Vite 项目中使用 Markdown 文件，并将其转换为 Vue 组件。
+- **功能**: 允许在 Markdown 文件中嵌入 Vue 语法，方便用于文档类项目。
+
+```bash
+# 安装插件
+npm install vite-plugin-md --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import Markdown from 'vite-plugin-md';
+
+// 定义 Vite 配置
+export default defineConfig({
+  plugins: [
+    // 添加 Markdown 支持插件，能将 Markdown 文件转换为 Vue 组件
+    Markdown(),
+  ],
+  // 配置 Vite 解析 .md 文件
+  resolve: {
+    extensions: ['.js', '.vue', '.md'],
+  },
+});
+```
+
+### 10. **`vite-tsconfig-paths`**
+- **用途**: 支持使用 TypeScript 的路径别名功能，从 `tsconfig.json` 中读取路径配置。
+- **功能**: 在导入文件时使用简化路径，如 `@/components/Button` 而不是 `../../components/Button`。
+
+```bash
+# 安装插件
+npm install vite-tsconfig-paths --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
+// 定义 Vite 配置
+export default defineConfig({
+  plugins: [
+    // 启用 TypeScript 路径别名解析
+    tsconfigPaths(),
+  ],
+});
+```
