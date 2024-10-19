@@ -197,7 +197,54 @@ export default defineConfig({
       preserveSymlinks: false, // 模块解析符号链接，将符号链接解析为它们指向的实际路径.
       // 为true时保留模块符号链接, 主要作用于 Monorepo 环境下，多个包可能通过符号链接进行解析, 而不是使用实际路径.
     },
-  
+
+    html:{
+      cspNonce: 'unique-nonce' // 一个在生成脚本或样式标签时会用到的 nonce 值占位符,还会生成一个带有 nonce 值的 meta 标签。符合CSP 规则,确保页面安全
+      /*
+      * <!DOCTYPE html>
+        <html>
+          <head>
+            <title>My App</title>
+            <meta nonce="unique-nonce"></meta>
+            <style nonce="unique-nonce">
+              body { background-color: #fff; }
+            </style>
+          </head>
+          <body>
+            <script nonce="unique-nonce">
+              console.log('This script is allowed by CSP because it has a valid nonce.');
+            </script>
+          </body>
+        </html>
+      * 
+      * */
+    },
+
+    // CSS 相关配置
+    css: {
+      modules: { // 选项将被传递给 postcss-modules
+        scopeBehaviour: 'local', // 样式的作用域范围，默认 'local'，可选 'global'
+        globalModulePaths: '', // 全局模块路径
+        exportGlobals: 'globalName', // 导出全局变量名
+        generateScopedName: 'ScopedName', // 生产作用域名
+        hashPrefix: 'hashName', // hash前缀
+        localsConvention: 'camelCaseOnly', // camelCase 将类名转换为 驼峰 格式 | camelCaseOnly 将类名转换为 驼峰 格式 | dashes 将类名转换为 烤串 格式 | dashesOnly 将类名转换为 烤串 格式
+      },
+      postcss: {
+        plugins: [require('autoprefixer')], // 配置 PostCSS 插件，例如 autoprefixer
+      },
+      preprocessorOptions: {
+        // 配置 CSS 预处理器选项
+        less: {
+          javascriptEnabled: true, // 启用 Less 中的 JavaScript 支持
+          modifyVars: { '@primary-color': '#1DA57A' }, // 自定义全局样式变量
+        },
+        scss: {
+          additionalData: `@import "src/styles/variables.scss";`, // 自动导入 SCSS 全局变量文件
+        },
+      },
+      devSourcemap: true, // 开发模式下是否生成 CSS source map，默认 false
+    },
     // 配置开发服务器选项
     server: {
         host: '0.0.0.0', // 设置为 '0.0.0.0' 允许外部设备访问本地开发服务器
@@ -270,29 +317,6 @@ export default defineConfig({
 
     // 处理特定类型的静态资源
     assetsInclude: ['**/*.gltf'], // 包含特定类型的文件进行处理，默认为所有静态资源文件
-
-    // CSS 相关配置
-    css: {
-        modules: {
-            scopeBehaviour: 'local', // 样式的作用域范围，默认 'local'，可选 'global'
-            generateScopedName: '[name]__[local]___[hash:base64:5]', // 自定义生成的 scoped 名称
-            localsConvention: 'camelCaseOnly', // 将类名转换为 camelCase 格式
-        },
-        preprocessorOptions: {
-            // 配置 CSS 预处理器选项
-            less: {
-                javascriptEnabled: true, // 启用 Less 中的 JavaScript 支持
-                modifyVars: { '@primary-color': '#1DA57A' }, // 自定义全局样式变量
-            },
-            scss: {
-                additionalData: `@import "src/styles/variables.scss";`, // 自动导入 SCSS 全局变量文件
-            },
-        },
-        devSourcemap: true, // 开发模式下是否生成 CSS source map，默认 false
-        postcss: {
-            plugins: [require('autoprefixer')], // 配置 PostCSS 插件，例如 autoprefixer
-        },
-    },
 
     // JSON 相关配置
     json: {
