@@ -368,8 +368,12 @@ export default defineConfig({
         //     clientPort: 3000, // 指定客户端连接的端口
         // },
 
-        warmup:{},
-        force: true, // 如果为 true，将强制重新启动服务器以清理缓存
+        // 提前转换和缓存文件以进行预热,提高初始页面加载速度
+        warmup:{
+          // 文件路径数组或相对于 root 的 fast-glob 通配
+          clientFiles: ['./src/components/*.vue', './src/utils/big-utils.js'], // clientFiles 是仅在客户端使用的文件
+          ssrFiles: ['./src/server/modules/*.js'], // ssrFiles 是仅在服务端渲染中使用的文件
+        },
 
         // 文件监听配置
         // Vite 服务器的文件监听器默认会监听 root 目录，同时会跳过 .git/、node_modules/，以及 Vite 的 cacheDir 和 build.outDir 这些目录
