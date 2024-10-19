@@ -152,15 +152,52 @@ export default defineConfig(({ command, mode }) => {
 
 // 2. 对象参数
 export default defineConfig({
+    // 项目根目录路径（index.html 文件所在的位置）
+    // 默认值 process.cwd() ,当前路径的相对路径
+    root: '/',
     // 应用的基础公共路径, 通常用于子路径部署。默认为 '/'，如果部署到子目录则需要指定，如 '/my-app/'
     base: '/',
-
+  
+    // 当前模式,在配置中指明将会把 serve 和 build 时的模式 都 覆盖掉。也可以通过命令行 --mode 选项来重写
+    mode: 'development', // 生产环境 production
+  
     // 用于定义全局常量，静态替换构建时的值
     define: {
         __APP_VERSION__: JSON.stringify('1.0.0'), // 定义全局变量，可以在应用中使用
         'process.env.NODE_ENV': JSON.stringify('production'), // 伪造 `process.env` 中的值，常用于设置环境
     },
 
+    // 插件配置，用于添加 Vite 插件
+    plugins: [
+      vue(), // 支持 Vue 单文件组件 (SFC)
+    ],
+
+    // 静态资源服务的文件夹名称, 会在打包时直接复制到生产环境包中不做任何处理
+    publicDir: 'public',
+
+    // 存储缓存文件的目录, 以下为默认值
+    cacheDir: 'node_modules/.vite',
+
+    // 解析模块时的行为配置
+    resolve: {
+      alias: {  // 路径别名
+        '@': '/src', // 路径别名配置，@ 代表 /src 目录
+        'components': '/src/components', // 其他自定义别名
+      },
+      dedupe: ['vue'], // 防止依赖模块重复安装，强制引用同一依赖
+      /*
+      * 浏览器 vs Node.js 环境：许多库会针对浏览器和 Node.js 提供不同的模块版本。
+        开发 vs 生产模式：同一模块可能提供未压缩的开发版本和压缩后的生产版本。
+        特定平台构建：根据特定平台（如 Electron、React Native 等）提供不同的实现,可以根据平台选择适当的模块版本
+      * 
+      * */
+      conditions: ['import','module','browser','default', 'production', 'development'], // 一个依赖提供多个版本时,使用conditions根据不同环境使用不同版本的模块,按照顺序进行优先加载
+      mainFields: ['browser', 'module', 'jsnext:main', 'jsnext'], // package.json 中，在解析依赖时,优先解析的顺序 browser(浏览器) module(node.js)
+      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'], // 导入时想要省略的扩展名列表,加载文件忽略后缀名
+      preserveSymlinks: false, // 模块解析符号链接，将符号链接解析为它们指向的实际路径.
+      // 为true时保留模块符号链接, 主要作用于 Monorepo 环境下，多个包可能通过符号链接进行解析, 而不是使用实际路径.
+    },
+  
     // 配置开发服务器选项
     server: {
         host: '0.0.0.0', // 设置为 '0.0.0.0' 允许外部设备访问本地开发服务器
@@ -263,20 +300,6 @@ export default defineConfig({
         stringify: false, // 是否将 JSON 文件视为字符串而非对象，默认为 false
     },
 
-    // 插件配置，用于添加 Vite 插件
-    plugins: [
-        vue(), // 支持 Vue 单文件组件 (SFC)
-    ],
-
-    // 解析模块时的行为配置
-    resolve: {
-        alias: {
-            '@': '/src', // 路径别名配置，@ 代表 /src 目录
-            'components': '/src/components', // 其他自定义别名
-        },
-        extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'], // 文件扩展名解析顺序
-        dedupe: ['vue'], // 防止模块重复安装，通常用于防止不同版本的 Vue 冲突
-    },
 
     // 依赖优化配置
     optimizeDeps: {
