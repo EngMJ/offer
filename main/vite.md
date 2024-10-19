@@ -104,14 +104,14 @@
 | **适用场景**       | 适合中小型项目和现代框架开发         | 适合大型项目和复杂构建场景         |
 
 ## 配置示例
+
+### defineConfig 函数参数
 ```js
 
 import { defineConfig, loadEnv } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
-// defineConfig 不用 jsdoc 注解也可以获取ts类型提示
-
-// 1. 函数参数
+// 使用defineConfig 不用 jsdoc 注解也可以获取ts类型提示
 export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
   //  command参数 serve || build
   //  isSsrBuild ssr环境
@@ -150,7 +150,35 @@ export default defineConfig(({ command, mode }) => {
 })
 
 
-// 2. 对象参数
+```
+
+### defineConfig 对象参数
+
+```js
+import { createLogger, defineConfig, loadEnv } from 'vite';
+import vue from '@vitejs/plugin-vue';
+
+
+
+// 消息处理自定义函数logger
+// interface Logger {
+//   info(msg: string, options?: LogOptions): void
+//           warn(msg: string, options?: LogOptions): void
+//           warnOnce(msg: string, options?: LogOptions): void
+//           error(msg: string, options?: LogErrorOptions): void
+//           clearScreen(type: LogType): void
+//           hasErrorLogged(error: Error | RollupError): boolean
+//   hasWarned: boolean
+// }
+const logger = createLogger()
+const loggerWarn = logger.warn
+logger.warn = (msg, options) => {
+  // 忽略空 CSS 文件的警告
+  if (msg.includes('vite:css') && msg.includes(' is empty')) return
+  loggerWarn(msg, options)
+}
+
+//  对象参数
 export default defineConfig({
     // 项目根目录路径（index.html 文件所在的位置）
     // 默认值 process.cwd() ,当前路径的相对路径
@@ -230,21 +258,71 @@ export default defineConfig({
         hashPrefix: 'hashName', // hash前缀
         localsConvention: 'camelCaseOnly', // camelCase 将类名转换为 驼峰 格式 | camelCaseOnly 将类名转换为 驼峰 格式 | dashes 将类名转换为 烤串 格式 | dashesOnly 将类名转换为 烤串 格式
       },
-      postcss: {
+      postcss: { // 内联的 PostCSS 配置（格式同 postcss.config.js），或者一个（默认基于项目根目录的）自定义的 PostCSS 配置路径
         plugins: [require('autoprefixer')], // 配置 PostCSS 插件，例如 autoprefixer
       },
-      preprocessorOptions: {
+      preprocessorOptions: { // 指定传递给 CSS 预处理器的配置选项
         // 配置 CSS 预处理器选项
-        less: {
+        less: { // 传递给less的选项
           javascriptEnabled: true, // 启用 Less 中的 JavaScript 支持
           modifyVars: { '@primary-color': '#1DA57A' }, // 自定义全局样式变量
         },
-        scss: {
-          additionalData: `@import "src/styles/variables.scss";`, // 自动导入 SCSS 全局变量文件
+        stylus:{ // 仅支持 define，可以作为对象传递
+          define: {
+            $specialColor: new stylus.nodes.RGBA(51, 197, 255, 1),
+          },  
+        },
+        scss: { // 传递给scss预处理器的选项
+          additionalData: `@import "src/styles/variables.scss";`, // 为每段样式内容添加额外的代码. 该行意思为每个样式文件导入全局scss
+          api: 'modern-compiler', // 或 "modern"，"legacy"
+          importers: [
+            // ...
+          ],
         },
       },
+      // 以下为css实验性功能,可能移除
       devSourcemap: true, // 开发模式下是否生成 CSS source map，默认 false
+      preprocessorMaxWorkers: 0, // CSS 预处理器会尽可能在 worker 线程中运行
+      transformer: 'postcss', // 'postcss' | 'lightningcss' , 选择用于 CSS 处理的引擎类型
+      lightningcss: {} // 配置 Lightning CSS
     },
+
+    // JSON 相关配置
+    json: {
+      namedExports: true, // 支持从 JSON 文件中导出按名导入，默认 true
+      stringify: false, // 若设置为 true，导入的 JSON 会被转换为 export default JSON.parse("..."),并禁止namedExports
+    },
+      
+    // esbuild配置 参数: 对象 | false
+    esbuild: {
+      jsxFactory: 'React.createElement',  // 对应 React 的 JSX 创建元素的方法
+      jsxFragment: 'React.Fragment',      // 对应 React 的 Fragment
+      include: [/\.tsx/,/\.jsx/,/\.ts/], // 只编译这些内容
+      exclude: [/\.js$/], // 排除这些内容
+      jsxInject: `import React from 'react'`, // 自动为每一个被 esbuild 转换的文件注入 JSX helper
+      target: 'es2015', // 配置目标为 ES2015，保证转换的代码能在大多数现代浏览器中运行
+      legalComments: 'none',  // 删除所有注释, eof将注释移至末尾
+      minify: true,          // 启用代码压缩
+      pure: ['console.log'], // 移除指定的函数调用，通常用于优化生产代码。比如去掉所有 console.log 调用
+      loader: 'ts',  // 将 TypeScript 直接编译为 JavaScript，速度更快
+    },
+      
+    // 处理特定类型的静态资源,直接使用不会被插件转换
+    assetsInclude: ['**/*.gltf',/\.txt$/, /\.md$/, /\.csv$/],
+  
+    // 调整 Vite 的日志输出级别
+    logLevel: 'info', // 日志级别：'info' | 'warn' | 'error' | 'silent'
+
+    // 使用自定义 logger 处理各种消息
+    customLogger: logger,
+  
+    // 控制实验性特性
+    experimental: {
+      renderBuiltUrl: false, // 是否允许自定义公共 URL 的处理方式
+      progressiveEnhance: true, // 渐进式增强特性，启用某些优化
+    },
+  
+  
     // 配置开发服务器选项
     server: {
         host: '0.0.0.0', // 设置为 '0.0.0.0' 允许外部设备访问本地开发服务器
@@ -315,53 +393,34 @@ export default defineConfig({
         },
     },
 
-    // 处理特定类型的静态资源
-    assetsInclude: ['**/*.gltf'], // 包含特定类型的文件进行处理，默认为所有静态资源文件
-
-    // JSON 相关配置
-    json: {
-        namedExports: true, // 支持从 JSON 文件中导出命名导出，默认 true
-        stringify: false, // 是否将 JSON 文件视为字符串而非对象，默认为 false
-    },
-
-
-    // 依赖优化配置
-    optimizeDeps: {
-        include: ['vue', 'vue-router'], // 强制预构建的依赖
-        exclude: ['some-large-lib'], // 排除不需要优化的依赖
-        esbuildOptions: {
-            target: 'es2020', // 依赖的编译目标，默认 'es2020'
-            minify: true, // 是否压缩依赖，默认 true
-        },
-    },
-
     // 构建后预览配置，适用于本地预览生产构建结果
     preview: {
-        port: 5000, // 预览服务器的端口，默认为 5000
-        strictPort: true, // 如果端口不可用则直接退出
-        open: false, // 是否自动打开浏览器
-        https: false, // 是否启用 HTTPS
-        proxy: {
-            '/api': {
-                target: 'http://localhost:3000',
-                changeOrigin: true,
-            },
+      port: 5000, // 预览服务器的端口，默认为 5000
+      strictPort: true, // 如果端口不可用则直接退出
+      open: false, // 是否自动打开浏览器
+      https: false, // 是否启用 HTTPS
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
         },
+      },
     },
-
+  
+    // 依赖优化配置
+    optimizeDeps: {
+      include: ['vue', 'vue-router'], // 强制预构建的依赖
+      exclude: ['some-large-lib'], // 排除不需要优化的依赖
+      esbuildOptions: {
+        target: 'es2020', // 依赖的编译目标，默认 'es2020'
+        minify: true, // 是否压缩依赖，默认 true
+      },
+    },
+  
     // Web Worker 配置
     worker: {
-        format: 'es', // Worker 的格式，默认为 'es' (可选 'iife')
-        plugins: [], // 为 Worker 添加插件
-    },
-
-    // 调整 Vite 的日志输出级别
-    logLevel: 'info', // 日志级别：'info' | 'warn' | 'error' | 'silent'
-
-    // 控制实验性特性
-    experimental: {
-        renderBuiltUrl: false, // 是否允许自定义公共 URL 的处理方式
-        progressiveEnhance: true, // 渐进式增强特性，启用某些优化
+      format: 'es', // Worker 的格式，默认为 'es' (可选 'iife')
+      plugins: [], // 为 Worker 添加插件
     },
 });
 
