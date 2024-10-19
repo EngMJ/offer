@@ -341,30 +341,38 @@ export default defineConfig({
         host: '0.0.0.0', // 设置为 '0.0.0.0' 允许外部设备访问本地开发服务器
         port: 3000, // 指定开发服务器监听的端口
         strictPort: true, // 如果指定端口被占用，直接退出而不是尝试其他端口
-        open: true, // 启动开发服务器时自动打开浏览器
         https: false, // 是否启用 HTTPS，默认为 false
-        cors: true, // 是否允许跨域请求，默认为 false
-        force: true, // 如果为 true，将强制重新启动服务器以清理缓存
-
+        open: true, // 启动开发服务器时自动打开浏览器
         // 代理配置，解决开发环境下的跨域问题
         proxy: {
-            '/api': {
-                target: 'http://localhost:5000', // 目标服务器地址
-                changeOrigin: true, // 修改请求头中的 origin
-                rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径，去除 `/api`
-                secure: false, // 是否验证 SSL 证书
-            },
+          '/api': {
+            target: 'http://localhost:5000', // 目标服务器地址
+            changeOrigin: true, // 修改请求头中的 origin
+            rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径，去除 `/api`
+            secure: false, // 是否验证 SSL 证书
+          },
+          '/socket.io': {
+            target: 'ws://localhost:5174',
+            ws: true,
+            rewriteWsOrigin: true,
+          },
         },
-
+        cors: true, // 是否允许跨域请求，默认为 false
+        headers: {}, // 指定服务器响应的header
         // 热模块替换 (HMR) 相关配置
-        hmr: {
-            overlay: true, // 是否显示 HMR 错误覆盖层
-            protocol: 'ws', // HMR 使用的通信协议
-            port: 24678, // 指定 HMR 监听的端口
-            clientPort: 3000, // 指定客户端连接的端口
-        },
+        hmr: true,
+        // hmr: {
+        //     overlay: true, // 是否显示 HMR 错误覆盖层
+        //     protocol: 'ws', // HMR 使用的通信协议
+        //     port: 24678, // 指定 HMR 监听的端口
+        //     clientPort: 3000, // 指定客户端连接的端口
+        // },
+
+        warmup:{},
+        force: true, // 如果为 true，将强制重新启动服务器以清理缓存
 
         // 文件监听配置
+        // Vite 服务器的文件监听器默认会监听 root 目录，同时会跳过 .git/、node_modules/，以及 Vite 的 cacheDir 和 build.outDir 这些目录
         watch: {
             ignored: ['!**/node_modules/**'], // 忽略哪些文件或目录的变化
             usePolling: true, // 启用轮询模式检查文件变动
