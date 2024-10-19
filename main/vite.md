@@ -420,16 +420,19 @@ export default defineConfig({
 
     // 构建后预览配置，适用于本地预览生产构建结果
     preview: {
+      host: '0.0.0.0',
       port: 5000, // 预览服务器的端口，默认为 5000
       strictPort: true, // 如果端口不可用则直接退出
-      open: false, // 是否自动打开浏览器
       https: false, // 是否启用 HTTPS
+      open: false, // 是否自动打开浏览器
       proxy: {
         '/api': {
           target: 'http://localhost:3000',
           changeOrigin: true,
         },
       },
+      cors: true,
+      headers: {}
     },
   
     // 依赖优化配置
@@ -444,8 +447,9 @@ export default defineConfig({
   
     // Web Worker 配置
     worker: {
-      format: 'es', // Worker 的格式，默认为 'es' (可选 'iife')
-      plugins: [], // 为 Worker 添加插件
+      format: 'iife', // worker类型，默认为 'iife' (可选 'es')
+      plugins: [], //  worker 打包使用的 Vite 插件
+      rollupOptions: {} // worker 打包使用的 Rollup 配置项
     },
 });
 
