@@ -315,14 +315,27 @@ export default defineConfig({
 
     // 使用自定义 logger 处理各种消息
     customLogger: logger,
-  
-    // 控制实验性特性
-    experimental: {
-      renderBuiltUrl: false, // 是否允许自定义公共 URL 的处理方式
-      progressiveEnhance: true, // 渐进式增强特性，启用某些优化
-    },
-  
-  
+
+    // 设为 false 可以避免 Vite 清屏而错过在终端中打印某些关键信息。
+    clearScreen: true,
+    
+    // 用于加载 .env 文件的目录,可以是一个绝对路径，也可以是相对于项目根的路径
+    // 假设你的环境变量文件放在 config/env/ 目录下,值就为'./config/env'
+    // 值为 'root' 时,直接使用配置中 root 的内容
+    envDir: 'root',
+    
+    // 以 envPrefix 开头的环境变量会通过 import.meta.env 暴露在你的客户端源码中
+    // envPrefix 不应被设置为空字符串 ''，这将暴露你所有的环境变量，导致敏感信息的意外泄漏
+    /* 想暴露一个不含前缀的变量，可以使用 define 选项
+    * define: {
+      'import.meta.env.ENV_VARIABLE': JSON.stringify(process.env.ENV_VARIABLE)
+      }
+    * */
+    envPrefix:'VITE_',
+    
+    // 用于指定当前项目的类型或应用类型,让vite进行相应处理
+    appType:'spa', // 'spa'(单页面文件) | 'mpa'(包含 HTML 中间件) | 'custom'(ssr | 完全自定义 HTML 模板)
+    
     // 配置开发服务器选项
     server: {
         host: '0.0.0.0', // 设置为 '0.0.0.0' 允许外部设备访问本地开发服务器
