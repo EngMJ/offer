@@ -399,7 +399,7 @@ export default defineConfig({
 
     // 构建选项配置
     build: {
-        target: 'es2020', // 构建目标，支持 es2020 或更高，具体视浏览器支持情况而定
+        target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 构建目标，支持 es2020 或更高，具体视浏览器支持情况而定
         outDir: 'dist', // 打包后文件输出目录，默认为 'dist'
         assetsDir: 'assets', // 静态资源文件夹名，默认为 'assets'
         assetsInlineLimit: 4096, // 小于此大小的资源将内联为 base64，单位字节，默认为 4096 (4KB)
@@ -448,14 +448,52 @@ export default defineConfig({
       headers: {}
     },
   
-    // 依赖优化配置
+    // 预购见优化配置,提升开发环境中的模块加载速度和性能
     optimizeDeps: {
-      include: ['vue', 'vue-router'], // 强制预构建的依赖
+      entries: [ // 手动设置入口文件,确保加载所有依赖,不设置会自动排除node_modules、build.outDir等文件夹
+        'src/main.js', // 手动指定要扫描的入口文件
+        'src/components/**/*.vue', // 也可以使用通配符指定多个文件
+        'src/pages/*.js',
+        '!node_modules/*' // 排除node_modules
+      ],
+      include: ['vue', 'vue-router'], // 不在 node_modules 中的，链接的包不会被预构建,设置可强制预构建的依赖
       exclude: ['some-large-lib'], // 排除不需要优化的依赖
-      esbuildOptions: {
-        target: 'es2020', // 依赖的编译目标，默认 'es2020'
-        minify: true, // 是否压缩依赖，默认 true
+      esbuildOptions: { // 开发环境传递给esbuild的选项,所有esbuild可以配置这里都可以配置
+        // 1. 指定编译的 JavaScript 目标版本为 ES2020
+        // 这样可以确保依赖项被编译成 ES2020 兼容的代码，适用于现代浏览器。
+        target: 'es2020',
+        // 2. 定义全局常量
+        // 这些定义在代码中可以作为全局宏使用。比如 __DEV__ 可以在开发环境中使用，
+        // 而 __VERSION__ 可以用来输出当前版本号。
+        define: {
+          __DEV__: 'true',                       // 定义是否处于开发环境
+          __VERSION__: JSON.stringify('1.0.0')   // 定义当前应用版本号
+        },
+        // 3. 自定义 esbuild 插件
+        // 通过 esbuild 插件，可以实现对模块的自定义解析行为，比如这里的例子替换了
+        // 'env' 模块路径为 'env.js'。
+        plugins: [
+          {
+            name: 'custom-plugin', // 插件名称
+            setup(build) {
+              // 自定义模块解析规则
+              // 当导入的模块是 'env' 时，将其路径重定向为 'env.js'
+              build.onResolve({ filter: /^env$/ }, args => {
+                return { path: path.resolve(__dirname, 'env.js') };
+              });
+            }
+          }
+        ],
+        // 4. 启用源码映射
+        // 在开发中启用 sourcemap，这样在浏览器调试时可以追踪到原始源码的位置。
+        sourcemap: true,
+        // 5. 自定义 JSX 编译
+        // 如果使用 JSX，可以自定义 JSX 的工厂函数和片段。
+        // 例如，在使用 Preact 时可能需要这样配置。
+        jsxFactory: 'h',             // 将 JSX 编译为 'h' 函数 (如 Preact)
+        jsxFragment: 'Fragment'       // JSX 片段编译为 'Fragment'
       },
+      force: true, // 强制预构建,忽略缓存
     },
   
     // Web Worker 配置
