@@ -495,6 +495,16 @@ export default defineConfig({
       },
       force: true, // 强制预构建,忽略缓存
     },
+
+    ssr:{ // ssr 环境配置
+      external: true, // 指定的依赖项和它们传递的依赖项进行外部化，以供服务端渲染（SSR）使用.
+      noExternal: [], // 防止列出的依赖项在服务端渲染（SSR）时被外部化，这些依赖项将会在构建过程中被打包. 设为true则所有依赖都不会外部化
+      target: 'node', // 'node' | 'webworker' , SSR 服务器的构建目标
+      resolve: {
+        conditions:['import','module','browser','default', 'production', 'development'], // ssr 导入内部化包入口的解析条件
+        externalConditions:['import','module','browser','default', 'production', 'development'] // ssr 导入外部化包入口的解析条件
+      },
+    },
   
     // Web Worker 配置
     worker: {
