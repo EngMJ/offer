@@ -382,6 +382,19 @@ export default defineConfig({
             usePolling: true, // 启用轮询模式检查文件变动
             interval: 300, // 轮询的时间间隔（ms）
         },
+        middlewareMode: false, // 参数: ssr' | 'html',以中间件模式创建 Vite 服务器。
+        fs: {
+          strict: true, // 禁止 Vite 访问 server.fs.allow 中列出的路径以及项目根目录之外的路径
+          allow: ['项目根目录'], // 允许访问项目外部的文件夹路径数组
+          deny: ['.env', '.env.*', '*.{crt,pem}'], // 比 server.fs.allow 选项的优先级更高,完全禁止访问的文件名
+        },
+        origin: 'http://127.0.0.1:8080', // 服务器资源的origin
+        sourcemapIgnoreList(sourcePath, sourcemapPath) {
+          // sourcePath 资源路径
+          // sourcemapPath 映射路径
+          // 默认值，将把所有路径中含有 node_modules 的文件添加到忽略列表中
+          return sourcePath.includes('node_modules')
+        }
     },
 
     // 构建选项配置
