@@ -183,29 +183,48 @@ export default defineConfig({
     // 项目根目录路径（index.html 文件所在的位置）
     // 默认值 process.cwd() ,当前路径的相对路径
     root: '/',
+  
     // 应用的基础公共路径, 通常用于子路径部署。默认为 '/'，如果部署到子目录则需要指定，如 '/my-app/'
     base: '/',
   
     // 当前模式,在配置中指明将会把 serve 和 build 时的模式 都 覆盖掉。也可以通过命令行 --mode 选项来重写
     mode: 'development', // 生产环境 production
   
-    // 用于定义全局常量，静态替换构建时的值
-    define: {
-        __APP_VERSION__: JSON.stringify('1.0.0'), // 定义全局变量，可以在应用中使用
-        'process.env.NODE_ENV': JSON.stringify('production'), // 伪造 `process.env` 中的值，常用于设置环境
-    },
-
     // 插件配置，用于添加 Vite 插件
     plugins: [
       vue(), // 支持 Vue 单文件组件 (SFC)
     ],
 
+    // 处理特定类型的静态资源,直接使用不会被插件转换
+    assetsInclude: ['**/*.gltf',/\.txt$/, /\.md$/, /\.csv$/],
+  
     // 静态资源服务的文件夹名称, 会在打包时直接复制到生产环境包中不做任何处理
     publicDir: 'public',
 
     // 存储缓存文件的目录, 以下为默认值
     cacheDir: 'node_modules/.vite',
 
+    // 用于加载 .env 文件的目录,可以是一个绝对路径，也可以是相对于项目根的路径
+    // 假设你的环境变量文件放在 config/env/ 目录下,值就为'./config/env'
+    // 值为 'root' 时,直接使用配置中 root 的内容
+    envDir: 'root',
+
+    // 用于定义全局常量，静态替换构建时的值
+    define: {
+      __APP_VERSION__: JSON.stringify('1.0.0'), // 定义全局变量，可以在应用中使用
+      'process.env.NODE_ENV': JSON.stringify('production'), // 伪造 `process.env` 中的值，常用于设置环境
+    },
+  
+    // 以 envPrefix 开头的环境变量会通过 import.meta.env 暴露在你的客户端源码中
+    // envPrefix 不应被设置为空字符串 ''，这将暴露你所有的环境变量，导致敏感信息的意外泄漏
+    /* 想暴露一个不含前缀的变量，可以使用 define 选项
+    * define: {
+      'import.meta.env.ENV_VARIABLE': JSON.stringify(process.env.ENV_VARIABLE)
+      }
+    * */
+    envPrefix:'VITE_',
+
+  
     // 解析模块时的行为配置
     resolve: {
       alias: {  // 路径别名
@@ -306,9 +325,9 @@ export default defineConfig({
       pure: ['console.log'], // 移除指定的函数调用，通常用于优化生产代码。比如去掉所有 console.log 调用
       loader: 'ts',  // 将 TypeScript 直接编译为 JavaScript，速度更快
     },
-      
-    // 处理特定类型的静态资源,直接使用不会被插件转换
-    assetsInclude: ['**/*.gltf',/\.txt$/, /\.md$/, /\.csv$/],
+
+    // 用于指定当前项目的类型或应用类型,让vite进行相应处理
+    appType:'spa', // 'spa'(单页面文件) | 'mpa'(包含 HTML 中间件) | 'custom'(ssr | 完全自定义 HTML 模板)
   
     // 调整 Vite 的日志输出级别
     logLevel: 'info', // 日志级别：'info' | 'warn' | 'error' | 'silent'
@@ -318,23 +337,6 @@ export default defineConfig({
 
     // 设为 false 可以避免 Vite 清屏而错过在终端中打印某些关键信息。
     clearScreen: true,
-    
-    // 用于加载 .env 文件的目录,可以是一个绝对路径，也可以是相对于项目根的路径
-    // 假设你的环境变量文件放在 config/env/ 目录下,值就为'./config/env'
-    // 值为 'root' 时,直接使用配置中 root 的内容
-    envDir: 'root',
-    
-    // 以 envPrefix 开头的环境变量会通过 import.meta.env 暴露在你的客户端源码中
-    // envPrefix 不应被设置为空字符串 ''，这将暴露你所有的环境变量，导致敏感信息的意外泄漏
-    /* 想暴露一个不含前缀的变量，可以使用 define 选项
-    * define: {
-      'import.meta.env.ENV_VARIABLE': JSON.stringify(process.env.ENV_VARIABLE)
-      }
-    * */
-    envPrefix:'VITE_',
-    
-    // 用于指定当前项目的类型或应用类型,让vite进行相应处理
-    appType:'spa', // 'spa'(单页面文件) | 'mpa'(包含 HTML 中间件) | 'custom'(ssr | 完全自定义 HTML 模板)
     
     // 配置开发服务器选项
     server: {
@@ -395,53 +397,6 @@ export default defineConfig({
           // 默认值，将把所有路径中含有 node_modules 的文件添加到忽略列表中
           return sourcePath.includes('node_modules')
         }
-    },
-
-    // 构建选项配置
-    build: {
-        target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 构建兼容目标，支持 es2020 或更高，具体视浏览器支持情况而定
-        modulePreload: { polyfill: true }, // 默认情况下，一个 模块预加载 polyfill 会被自动注入
-        outDir: 'dist', // 打包后文件输出目录，默认为 'dist'
-        assetsDir: 'assets', // 静态资源文件夹名，默认为 'assets'
-        assetsInlineLimit: 4096, // 小于此大小的资源将静态资源转为内联 base64，单位字节，默认为 4096 (4KB)
-        cssCodeSplit: true, // 启用/禁用 CSS 代码拆分，默认为 true
-        cssTarget: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 默认值与 build.target 一致
-        cssMinify: 'esbuild', // 默认值与 build.minify 一致, 参数: boolean | 'esbuild' | 'lightningcss'
-        sourcemap: false, // 是否生成 sourcemap 文件，默认为 false，适合生产环境调试. 参数:boolean | 'inline' | 'hidden'
-        rollupOptions: { // 自定义底层的 Rollup 打包配置
-          input: {
-            main: './index.html', // 构建入口文件
-            nested: './src/nested.html', // 可以有多个入口文件
-          },
-          output: {
-            // 输出文件配置
-            dir: 'dist', // 输出目录
-            entryFileNames: '[name].[hash].js', // 入口文件名格式
-            chunkFileNames: '[name].[hash].js', // 非入口 chunk 的文件名格式
-            assetFileNames: '[name].[hash].[ext]', // 静态资源文件名格式
-            manualChunks(id) {
-              if (id.includes('node_modules')) {
-                return 'vendor'; // 手动将 node_modules 中的代码打包到 vendor 文件中
-              }
-            },
-          },
-        },
-        commonjsOptions:{}, // 传递给 @rollup/plugin-commonjs 插件的选项
-        dynamicImportVarsOptions:{}, // 传递给 @rollup/plugin-dynamic-import-vars 的选项
-        lib: {}, // 构建为库的配置项,不为正常项目
-        manifest: false, // 是否生成包含了没有被 hash 过的资源文件名和 hash 后版本的映射 manifest.json 文件
-        ssrManifest: false, // 是否生成 SSR 的 manifest 文件，以确定生产中的样式链接与资产预加载指令,当该值为一个字符串时，它将作为 manifest 文件的名字
-        ssr: false, // 生成面向 SSR 的构建。此选项的值可以是字符串，用于直接定义 SSR 的入口，也可以为 true，但这需要通过设置 rollupOptions.input 来指定 SSR 的入口。
-        emitAssets: false, // 在非客户端的构建过程中，静态资源并不会被输出，因为我们默认它们会作为客户端构建的一部分被输出, 开启可强制输出这些资源。
-        ssrEmitAssets: false, // 在 SSR 构建期间，静态资源不会被输出，因为它们通常被认为是客户端构建的一部分, 开启可强制输出这些资源。
-        minify: 'esbuild', // 压缩方式，可选 'esbuild' (默认) | 'terser' | true
-        terserOptions: {}, // 传递给 Terser 的更多 minify 选项
-        write: true, // 设置为 false 来禁用将构建后的文件写入磁盘。这常用于 编程式地调用 build() 在写入磁盘之前，需要对构建后的文件进行进一步处理。
-        emptyOutDir: true, // 打包前是否清空输出目录，默认为 true
-        copyPublicDir: true, // 默认情况下，Vite 会在构建阶段将 publicDir 目录中的所有文件复制到 outDir 目录中。可以通过设置该选项为 false 来禁用该行为。
-        reportCompressedSize: true, // 启用/禁用 gzip 压缩大小报告。压缩大型输出文件可能会很慢，因此禁用该功能可能会提高大型项目的构建性能。
-        chunkSizeWarningLimit: 500, // 触发输出警告的 chunk 文件大小（KB），默认为 500KB
-        watch: null, // 设置为 {} 则会启用 rollup 的监听器。对于只在构建阶段或者集成流程使用的插件很常用
     },
 
     // 构建后预览配置，适用于本地预览生产构建结果
@@ -509,6 +464,53 @@ export default defineConfig({
       force: true, // 强制预构建,忽略缓存
     },
 
+    // 构建选项配置
+    build: {
+      target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 构建兼容目标，支持 es2020 或更高，具体视浏览器支持情况而定
+      modulePreload: { polyfill: true }, // 默认情况下，一个 模块预加载 polyfill 会被自动注入
+      outDir: 'dist', // 打包后文件输出目录，默认为 'dist'
+      assetsDir: 'assets', // 静态资源文件夹名，默认为 'assets'
+      assetsInlineLimit: 4096, // 小于此大小的资源将静态资源转为内联 base64，单位字节，默认为 4096 (4KB)
+      cssCodeSplit: true, // 启用/禁用 CSS 代码拆分，默认为 true
+      cssTarget: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 默认值与 build.target 一致
+      cssMinify: 'esbuild', // 默认值与 build.minify 一致, 参数: boolean | 'esbuild' | 'lightningcss'
+      sourcemap: false, // 是否生成 sourcemap 文件，默认为 false，适合生产环境调试. 参数:boolean | 'inline' | 'hidden'
+      rollupOptions: { // 自定义底层的 Rollup 打包配置
+        input: {
+          main: './index.html', // 构建入口文件
+          nested: './src/nested.html', // 可以有多个入口文件
+        },
+        output: {
+          // 输出文件配置
+          dir: 'dist', // 输出目录
+          entryFileNames: '[name].[hash].js', // 入口文件名格式
+          chunkFileNames: '[name].[hash].js', // 非入口 chunk 的文件名格式
+          assetFileNames: '[name].[hash].[ext]', // 静态资源文件名格式
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return 'vendor'; // 手动将 node_modules 中的代码打包到 vendor 文件中
+            }
+          },
+        },
+      },
+      commonjsOptions:{}, // 传递给 @rollup/plugin-commonjs 插件的选项
+      dynamicImportVarsOptions:{}, // 传递给 @rollup/plugin-dynamic-import-vars 的选项
+      lib: {}, // 构建为库的配置项,不为正常项目
+      manifest: false, // 是否生成包含了没有被 hash 过的资源文件名和 hash 后版本的映射 manifest.json 文件
+      ssrManifest: false, // 是否生成 SSR 的 manifest 文件，以确定生产中的样式链接与资产预加载指令,当该值为一个字符串时，它将作为 manifest 文件的名字
+      ssr: false, // 生成面向 SSR 的构建。此选项的值可以是字符串，用于直接定义 SSR 的入口，也可以为 true，但这需要通过设置 rollupOptions.input 来指定 SSR 的入口。
+      emitAssets: false, // 在非客户端的构建过程中，静态资源并不会被输出，因为我们默认它们会作为客户端构建的一部分被输出, 开启可强制输出这些资源。
+      ssrEmitAssets: false, // 在 SSR 构建期间，静态资源不会被输出，因为它们通常被认为是客户端构建的一部分, 开启可强制输出这些资源。
+      minify: 'esbuild', // 压缩方式，可选 'esbuild' (默认) | 'terser' | true
+      terserOptions: {}, // 传递给 Terser 的更多 minify 选项
+      write: true, // 设置为 false 来禁用将构建后的文件写入磁盘。这常用于 编程式地调用 build() 在写入磁盘之前，需要对构建后的文件进行进一步处理。
+      emptyOutDir: true, // 打包前是否清空输出目录，默认为 true
+      copyPublicDir: true, // 默认情况下，Vite 会在构建阶段将 publicDir 目录中的所有文件复制到 outDir 目录中。可以通过设置该选项为 false 来禁用该行为。
+      reportCompressedSize: true, // 启用/禁用 gzip 压缩大小报告。压缩大型输出文件可能会很慢，因此禁用该功能可能会提高大型项目的构建性能。
+      chunkSizeWarningLimit: 500, // 触发输出警告的 chunk 文件大小（KB），默认为 500KB
+      watch: null, // 设置为 {} 则会启用 rollup 的监听器。对于只在构建阶段或者集成流程使用的插件很常用
+    },
+  
     ssr:{ // ssr 环境配置
       external: true, // 指定的依赖项和它们传递的依赖项进行外部化，以供服务端渲染（SSR）使用.
       noExternal: [], // 防止列出的依赖项在服务端渲染（SSR）时被外部化，这些依赖项将会在构建过程中被打包. 设为true则所有依赖都不会外部化
