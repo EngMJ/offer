@@ -399,11 +399,11 @@ export default defineConfig({
 
     // 构建选项配置
     build: {
-        target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 构建目标，支持 es2020 或更高，具体视浏览器支持情况而定
-        modulePreload: { polyfill: true }, // 打包后文件输出目录，默认为 'dist'
+        target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 构建兼容目标，支持 es2020 或更高，具体视浏览器支持情况而定
+        modulePreload: { polyfill: true }, // 默认情况下，一个 模块预加载 polyfill 会被自动注入
         outDir: 'dist', // 打包后文件输出目录，默认为 'dist'
         assetsDir: 'assets', // 静态资源文件夹名，默认为 'assets'
-        assetsInlineLimit: 4096, // 小于此大小的资源将内联为 base64，单位字节，默认为 4096 (4KB)
+        assetsInlineLimit: 4096, // 小于此大小的资源将静态资源转为内联 base64，单位字节，默认为 4096 (4KB)
         cssCodeSplit: true, // 启用/禁用 CSS 代码拆分，默认为 true
         cssTarget: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 默认值与 build.target 一致
         cssMinify: 'esbuild', // 默认值与 build.minify 一致, 参数: boolean | 'esbuild' | 'lightningcss'
@@ -428,19 +428,19 @@ export default defineConfig({
         },
         commonjsOptions:{}, // 传递给 @rollup/plugin-commonjs 插件的选项
         dynamicImportVarsOptions:{}, // 传递给 @rollup/plugin-dynamic-import-vars 的选项
-        lib: {}, // 构建为库,不为正常项目
-        manifest: false, // 是否生成 manifest.json 文件，适用于后端集成
-        ssrManifest: false, // 当设置为 true 时，构建也将生成 SSR 的 manifest 文件，以确定生产中的样式链接与资产预加载指令。当该值为一个字符串时，它将作为 manifest 文件的名字
+        lib: {}, // 构建为库的配置项,不为正常项目
+        manifest: false, // 是否生成包含了没有被 hash 过的资源文件名和 hash 后版本的映射 manifest.json 文件
+        ssrManifest: false, // 是否生成 SSR 的 manifest 文件，以确定生产中的样式链接与资产预加载指令,当该值为一个字符串时，它将作为 manifest 文件的名字
         ssr: false, // 生成面向 SSR 的构建。此选项的值可以是字符串，用于直接定义 SSR 的入口，也可以为 true，但这需要通过设置 rollupOptions.input 来指定 SSR 的入口。
-        emitAssets: false, // 在非客户端的构建过程中，静态资源并不会被输出，因为我们默认它们会作为客户端构建的一部分被输出。这个选项允许框架在其他环境的构建中强制输出这些资源。而将这些资源合并起来则是框架在构建后步骤中的责任。
-        ssrEmitAssets: false, // 在 SSR 构建期间，静态资源不会被输出，因为它们通常被认为是客户端构建的一部分。这个选项允许框架强制在客户端和 SSR 构建中都输出它们。将静态资源在构建后合并是框架的责任。一旦环境 API 稳定，这个选项将被 build.emitAssets 替代
-        minify: 'esbuild', // 压缩方式，可选 'esbuild' (默认) 或 'terser'
+        emitAssets: false, // 在非客户端的构建过程中，静态资源并不会被输出，因为我们默认它们会作为客户端构建的一部分被输出, 开启可强制输出这些资源。
+        ssrEmitAssets: false, // 在 SSR 构建期间，静态资源不会被输出，因为它们通常被认为是客户端构建的一部分, 开启可强制输出这些资源。
+        minify: 'esbuild', // 压缩方式，可选 'esbuild' (默认) | 'terser' | true
         terserOptions: {}, // 传递给 Terser 的更多 minify 选项
         write: true, // 设置为 false 来禁用将构建后的文件写入磁盘。这常用于 编程式地调用 build() 在写入磁盘之前，需要对构建后的文件进行进一步处理。
         emptyOutDir: true, // 打包前是否清空输出目录，默认为 true
         copyPublicDir: true, // 默认情况下，Vite 会在构建阶段将 publicDir 目录中的所有文件复制到 outDir 目录中。可以通过设置该选项为 false 来禁用该行为。
         reportCompressedSize: true, // 启用/禁用 gzip 压缩大小报告。压缩大型输出文件可能会很慢，因此禁用该功能可能会提高大型项目的构建性能。
-        chunkSizeWarningLimit: 500, // 触发警告的 chunk 文件大小（KB），默认为 500KB
+        chunkSizeWarningLimit: 500, // 触发输出警告的 chunk 文件大小（KB），默认为 500KB
         watch: null, // 设置为 {} 则会启用 rollup 的监听器。对于只在构建阶段或者集成流程使用的插件很常用
     },
 
