@@ -1,86 +1,43 @@
-# Vue 面试题
-* * *
-
-## 1. Vue组件之间通信方式有哪些
-
-组件传参的各种方式 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bf775050e1f948bfa52f3c79b3a3e538~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+# Vue2 API & 面试题
 
 * * *
 
-1.  组件通信常用方式： (vue3去除了删除线的api)
-
-+   props
-+   $emit/~~$on~~
-+   $parent/~~$children~~
-+   $attrs/~~$listeners~~
-+   $root
-+   ref
-+   Provide 与 Inject
-+   vuex
-+   eventbus
-
-* * *
-
-2.  组件关系通信
-
-+   父子组件
-
-    +   `props`/`$emit`/~~$on~~/`$parent`/~~$children~~/`ref`/`$attrs`/~~$listeners~~
-+   兄弟组件
-
-    +   `$parent`/`$root`
-+   任意关系
-
-    +   `eventbus`/`vuex`/`provide`+`inject`
-
-* * *
-
-## 2. v-if和v-for哪个优先级更高？
-
-两个指令一起使用,会造成性能浪费,因vue2版本中v-for优先于v-if执行.
-
-* * *
-
-1.  文档中明确指出**永远不要把 `v-if` 和 `v-for` 同时用在同一个元素上**
-
-2.  在**vue2中**，**v-for的优先级是高于v-if**，先执行循环再判断条件，造成浪费；在**vue3中则完全相反，v-if的优先级高于v-for**，所以v-if执行时，v-for产生的变量还不存在，就会导致报错.
-
-3.  处理方法：
-
-    +   使用computed或js提前过滤列表数据
-
-    +   外层包裹template或div执行v-if判断
-
-4.  问题原因: vue源码判断循序造成的，vue2 判断中el.for快于el.if,vue3正好相反.
-
-```js
-// vue 2x
-// \vue-dev\src\compiler\codegen\index.js
-export function genElement (el: ASTElement, state: CodegenState): string {
-    if (el.parent) {
-        el.pre = el.pre || el.parent.pre
-    }
-    if (el.staticRoot && !el.staticProcessed) {
-        return genStatic(el, state)
-    } else if (el.once && !el.onceProcessed) {
-        return genOnce(el, state)
-    } else if (el.for && !el.forProcessed) {
-        return genFor(el, state)
-    } else if (el.if && !el.ifProcessed) {
-        return genIf(el, state)
-    } else if (el.tag === 'template' && !el.slotTarget && !state.pre) {
-        return genChildren(el, state) || 'void 0'
-    } else if (el.tag === 'slot') {
-        return genSlot(el, state)
-    } else {
-        // component or element
-    ...
-    }
-}
-```
+## API参考: [vue 2.x](vue2.md)
 
 
-* * *
+## 19-Vue实例挂载的过程中发生了什么?
+
+### 分析
+
+挂载过程完成了最重要的两件事：
+
+1.  初始化
+2.  建立更新机制
+
+把这两件事说清楚即可！
+
+### 回答范例
+
+1.  挂载过程指的是app.mount()过程，这个过程中整体上做了两件事：**初始化**和**建立更新机制**
+2.  初始化会创建组件实例、初始化组件状态，创建各种响应式数据
+3.  建立更新机制这一步会立即执行一次组件更新函数，这会首次执行组件渲染函数并执行patch将前面获得vnode转换为dom；同时首次执行渲染函数会创建它内部响应式数据之间和组件更新函数之间的依赖关系，这使得以后数据变化时会执行对应的更新函数。
+
+### 知其所以然
+
+测试代码，test-v3.html mount函数定义
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L277-L278 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L277-L278")
+
+首次render过程
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L2303-L2304 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L2303-L2304")
+
+### 可能的追问
+
+1.  响应式数据怎么创建
+2.  依赖关系如何建立
+
+***
 
 ## 3. 简述 Vue 的生命周期以及每个阶段做的事
 
@@ -120,15 +77,761 @@ Vue生命周期总共可以分为8个阶段：**创建前后, 载入前后, 更�
 
 1. 数据请求在created和mouted的区别
 
-    created是在组件实例一旦创建完成的时候立刻调用，这时候页面dom节点并未生成；mounted是在页面dom节点渲染完毕之后就立刻执行的。触发时机上created是比mounted要更早的，两者的相同点：都能拿到实例对象的属性和方法。 讨论这个问题本质就是触发的时机，放在mounted中的请求有可能导致页面闪动（因为此时页面dom结构已经生成），但如果在页面加载前完成请求，则不会出现此情况。建议对页面内容的改动放在created生命周期当中.
+   created是在组件实例一旦创建完成的时候立刻调用，这时候页面dom节点并未生成；mounted是在页面dom节点渲染完毕之后就立刻执行的。触发时机上created是比mounted要更早的，两者的相同点：都能拿到实例对象的属性和方法。 讨论这个问题本质就是触发的时机，放在mounted中的请求有可能导致页面闪动（因为此时页面dom结构已经生成），但如果在页面加载前完成请求，则不会出现此情况。建议对页面内容的改动放在created生命周期当中.
 
 2. setup和created谁先执行？
 
-    Vue3中组合式 API 中的 setup() 钩子会在所有选项式 API 钩子之前调用，beforeCreate() 也不例外.
+   Vue3中组合式 API 中的 setup() 钩子会在所有选项式 API 钩子之前调用，beforeCreate() 也不例外.
 
 3. setup中为什么没有beforeCreate和created？
 
    setup 函数最先执行,本身已经承担了初始化阶段的职责，因此 beforeCreate 和 created 钩子不再单独存在。
+
+* * *
+
+## 14-说一下 Vue 子组件和父组件创建和挂载顺序
+
+这题考查大家对创建过程的理解程度。
+
+### 思路分析
+
+1.  给结论
+2.  阐述理由
+
+* * *
+
+### 回答范例
+
+1.  创建过程自上而下，挂载过程自下而上；即：
+    +   parent created
+    +   child created
+    +   child mounted
+    +   parent mounted
+2.  之所以会这样是因为Vue创建过程是一个递归过程，先创建父组件，有子组件就会创建子组件，因此创建时先有父组件再有子组件；子组件首次创建时会添加mounted钩子到队列，等到patch结束再执行它们，可见子组件的mounted钩子是先进入到队列中的，因此等到patch结束执行这些钩子时也先执行。
+
+* * *
+
+### 知其所以然
+
+观察beforeCreated和created钩子的处理
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L554-L555 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L554-L555")
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L741-L742 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L741-L742")
+
+观察beforeMount和mounted钩子的处理
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1310-L1311 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1310-L1311")
+
+测试代码，test-v3.html
+
+* * *
+
+
+## 18-说说从 template 到 render 处理过程
+
+### 分析
+
+问我们template到render过程，其实是问vue`编译器`工作原理。
+
+### 思路
+
+1.  引入vue编译器概念
+2.  说明编译器的必要性
+3.  阐述编译器工作流程
+
+### 回答范例
+
+1.  Vue中有个独特的编译器模块，称为“compiler”，它的主要作用是将用户编写的template编译为js中可执行的render函数。
+2.  之所以需要这个编译过程是为了便于前端程序员能高效的编写视图模板。相比而言，我们还是更愿意用HTML来编写视图，直观且高效。手写render函数不仅效率底下，而且失去了编译期的优化能力。
+3.  在Vue中编译器会先对template进行解析，这一步称为parse，结束之后会得到一个JS对象，我们成为抽象语法树AST，然后是对AST进行深加工的转换过程，这一步成为transform，最后将前面得到的AST生成为JS代码，也就是render函数。
+
+### 知其所以然
+
+vue3编译过程窥探：
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/compiler-core/src/compile.ts#L61-L62 "https://github1s.com/vuejs/core/blob/HEAD/packages/compiler-core/src/compile.ts#L61-L62")
+
+测试，test-v3.html
+
+### 可能的追问
+
+1.  Vue中编译器何时执行？
+2.  react有没有编译器？
+
+## 21-Vue组件为什么只能有一个根元素?
+
+这题现在有些落伍，`vue3`已经不用一个根了。因此这题目很有说头！
+
+* * *
+
+### 体验一下
+
+vue2直接报错，test-v2.html
+
+```bash
+new Vue({
+  components: {
+    comp: {
+      template: `
+        <div>root1</div>
+        <div>root2</div>
+      `
+    }
+  }
+}).$mount('#app')
+```
+
+![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1d930fdd81814acb8a470f1e8ef3a271~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+vue3中没有问题，test-v3.html
+
+```php
+Vue.createApp({
+  components: {
+    comp: {
+      template: `
+        <div>root1</div>
+        <div>root2</div>
+      `
+    }
+  }
+}).mount('#app')
+```
+
+![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a10d510cc2ec48498a6e244a09437f3c~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+### 回答思路
+
++   给一条自己的结论
++   解释为什么会这样
++   `vue3`解决方法原理
+
+* * *
+
+### 范例
+
++   `vue2`中组件确实只能有一个根，但`vue3`中组件已经可以多根节点了。
++   之所以需要这样是因为`vdom`是一颗单根树形结构，`patch`方法在遍历的时候从根节点开始遍历，它要求只有一个根节点。组件也会转换为一个`vdom`，自然应该满足这个要求。
++   `vue3`中之所以可以写多个根节点，是因为引入了`Fragment`的概念，这是一个抽象的节点，如果发现组件是多根的，就创建一个Fragment节点，把多个根节点作为它的children。将来patch的时候，如果发现是一个Fragment节点，则直接遍历children创建或更新。
+
+* * *
+
+### 知其所以然
+
++   patch方法接收单根vdom：
+
+    [github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L354-L355 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L354-L355")
+
+    ```rust
+    // 直接获取type等，没有考虑数组的可能性
+    const { type, ref, shapeFlag } = n2
+    ```
+
++   patch方法对Fragment的处理：
+
+    [github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1091-L1092 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1091-L1092")
+
+    ```scss
+    // a fragment can only have array children
+    // since they are either generated by the compiler, or implicitly created
+    // from arrays.
+    mountChildren(n2.children as VNodeArrayChildren, container, ...)
+    ```
+
+
+* * *
+
+## 1. Vue组件之间通信方式有哪些
+
+组件传参的各种方式 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bf775050e1f948bfa52f3c79b3a3e538~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+1.  组件通信常用方式： (vue3去除了删除线的api)
+
++   props
++   $emit/~~$on~~
++   $parent/~~$children~~
++   $attrs/~~$listeners~~
++   $root
++   ref
++   Provide 与 Inject
++   vuex
++   eventbus
+
+* * *
+
+2.  组件关系通信
+
++   父子组件
+
+    +   `props`/`$emit`/~~$on~~/`$parent`/~~$children~~/`ref`/`$attrs`/~~$listeners~~
++   兄弟组件
+
+    +   `$parent`/`$root`
++   任意关系
+
+    +   `eventbus`/`vuex`/`provide`+`inject`
+
+* * *
+
+## 06-子组件可以直接改变父组件的数据么，说明原因
+
+### 分析
+
+这是一个实践知识点，组件化开发过程中有个**单项数据流原则**，不在子组件中修改父组件是个常识问题。
+
+参考文档：[staging.vuejs.org/guide/compo…](https://staging.vuejs.org/guide/components/props.html#one-way-data-flow "https://staging.vuejs.org/guide/components/props.html#one-way-data-flow")
+
+* * *
+
+### 思路
+
+1.  讲讲单项数据流原则，表明为何不能这么做
+2.  举几个常见场景的例子说说解决方案
+3.  结合实践讲讲如果需要修改父组件状态应该如何做
+
+* * *
+
+### 回答范例
+
+1.  所有的 prop 都使得其父子之间形成了一个**单向下行绑定**：父级 prop 的更新会向下流动到子组件中，但是反过来则不行。这样会防止从子组件意外变更父级组件的状态，从而导致你的应用的数据流向难以理解。另外，每次父级组件发生变更时，子组件中所有的 prop 都将会刷新为最新的值。这意味着你**不**应该在一个子组件内部改变 prop。如果你这样做了，Vue 会在浏览器控制台中发出警告。
+
+    ```ini
+    const props = defineProps(['foo'])
+    // ❌ 下面行为会被警告, props是只读的!
+    props.foo = 'bar'
+    ```
+
+
+* * *
+
+2.  实际开发过程中有两个场景会想要修改一个属性：
+
+    +   \*\*这个 prop 用来传递一个初始值；这个子组件接下来希望将其作为一个本地的 prop 数据来使用。\*\*在这种情况下，最好定义一个本地的 data，并将这个 prop 用作其初始值：
+
+        ```js
+        const props = defineProps(['initialCounter'])
+        const counter = ref(props.initialCounter)
+        ```
+
+    +   \*\*这个 prop 以一种原始的值传入且需要进行转换。\*\*在这种情况下，最好使用这个 prop 的值来定义一个计算属性：
+
+        ```js
+        const props = defineProps(['size'])
+        // prop变化，计算属性自动更新
+        const normalizedSize = computed(() => props.size.trim().toLowerCase())
+        ```
+
+3.  实践中如果确实想要改变父组件属性应该emit一个事件让父组件去做这个变更。注意虽然我们不能直接修改一个传入的对象或者数组类型的prop，但是我们还是能够直接改内嵌的对象或属性。
+
+
+* * *
+
+## 05-Vue中如何扩展一个组件
+
+此题属于实践题，考察大家对vue常用api使用熟练度，答题时不仅要列出这些解决方案，同时最好说出他们异同。
+
+### 答题思路：
+
+1.  按照逻辑扩展和内容扩展来列举，
+
+    +   逻辑扩展有：mixins、extends、composition api；
+
+    +   内容扩展有slots；
+
+2.  分别说出他们使用方法、场景差异和问题。
+
+3.  作为扩展，还可以说说vue3中新引入的composition api带来的变化
+
+
+* * *
+
+### 回答范例：
+
+1.  常见的组件扩展方法有：mixins，slots，extends等
+
+2.  混入mixins是分发 Vue 组件中可复用功能的非常灵活的方式。混入对象可以包含任意组件选项。当组件使用混入对象时，所有混入对象的选项将被混入该组件本身的选项。
+
+    ```js
+    // 复用代码：它是一个配置对象，选项和组件里面一样
+    const mymixin = {
+       methods: {
+          dosomething(){}
+       }
+    }
+    // 全局混入：将混入对象传入
+    Vue.mixin(mymixin)
+    
+    // 局部混入：做数组项设置到mixins选项，仅作用于当前组件
+    const Comp = {
+       mixins: [mymixin]
+    }
+    ```
+
+
+* * *
+
+3.  插槽主要用于vue组件中的内容分发，也可以用于组件扩展。
+
+    子组件Child
+
+    ```html
+    <div>
+      <slot>这个内容会被父组件传递的内容替换</slot>
+    </div>
+    ```
+
+    父组件Parent
+
+    ```html
+    <div>
+       <Child>来自老爹的内容</Child>
+    </div>
+    ```
+
+    如果要精确分发到不同位置可以使用具名插槽，如果要使用子组件中的数据可以使用作用域插槽。
+
+
+* * *
+
+4.  组件选项中还有一个不太常用的选项extends，也可以起到扩展组件的目的
+
+    ```js
+    // 扩展对象
+    const myextends = {
+       methods: {
+          dosomething(){}
+       }
+    }
+    // 组件扩展：做数组项设置到extends选项，仅作用于当前组件
+    // 跟混入的不同是它只能扩展单个对象
+    // 另外如果和混入发生冲突，该选项优先级较高，优先起作用
+    const Comp = {
+       extends: myextends
+    }
+    ```
+
+
+* * *
+
+5.  混入的数据和方法**不能明确判断来源**且可能和当前组件内变量**产生命名冲突**，vue3中引入的composition api，可以很好解决这些问题，利用独立出来的响应式模块可以很方便的编写独立逻辑并提供响应式的数据，然后在setup选项中组合使用，增强代码的可读性和维护性。例如：
+
+    ```js
+    // 复用逻辑1
+    function useXX() {}
+    // 复用逻辑2
+    function useYY() {}
+    // 逻辑组合
+    const Comp = {
+       setup() {
+          const {xx} = useXX()
+          const {yy} = useYY()
+          return {xx, yy}
+       }
+    }
+    ```
+
+
+* * *
+
+### 可能的追问
+
+Vue.extend方法你用过吗？它能用来做组件扩展吗？
+
+* * *
+
+### 知其所以然
+
+mixins原理：
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L232-L233 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L232-L233")
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L545 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L545")
+
+slots原理：
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentSlots.ts#L129-L130 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentSlots.ts#L129-L130")
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1373-L1374 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1373-L1374")
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/renderSlot.ts#L23-L24 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/renderSlot.ts#L23-L24")
+
+* * *
+
+## 15-怎么缓存当前的组件？缓存后怎么更新？
+
+缓存组件使用keep-alive组件，这是一个非常常见且有用的优化手段，vue3中keep-alive有比较大的更新，能说的点比较多。
+
+### 思路
+
+1.  缓存用keep-alive，它的作用与用法
+2.  使用细节，例如缓存指定/排除、结合router和transition
+3.  组件缓存后更新可以利用activated或者beforeRouteEnter
+4.  原理阐述
+
+* * *
+
+### 回答范例
+
+1.  开发中缓存组件使用keep-alive组件，keep-alive是vue内置组件，keep-alive包裹动态组件component时，会缓存不活动的组件实例，而不是销毁它们，这样在组件切换过程中将状态保留在内存中，防止重复渲染DOM。
+
+    ```vue
+    <keep-alive>
+      <component :is="view"></component>
+    </keep-alive>
+    ```
+
+2.  结合属性include和exclude可以明确指定缓存哪些组件或排除缓存指定组件。vue3中结合vue-router时变化较大，之前是`keep-alive`包裹`router-view`，现在需要反过来用`router-view`包裹`keep-alive`：
+
+    ```vue
+    <router-view v-slot="{ Component }">
+      <keep-alive>
+        <component :is="Component"></component>
+      </keep-alive>
+    </router-view>
+    ```
+
+
+* * *
+
+3.  缓存后如果要获取数据，解决方案可以有以下两种：
+
+    +   beforeRouteEnter：在有vue-router的项目，每次进入路由的时候，都会执行`beforeRouteEnter`
+
+        ```js
+        beforeRouteEnter(to, from, next){
+          next(vm=>{
+            console.log(vm)
+            // 每次进入路由执行
+            vm.getData()  // 获取数据
+          })
+        },
+        ```
+
+    +   actived：在`keep-alive`缓存的组件被激活的时候，都会执行`actived`钩子
+
+        ```js
+        activated(){
+        	  this.getData() // 获取数据
+        },
+        ```
+
+
+* * *
+
+4.  keep-alive是一个通用组件，它内部定义了一个map，缓存创建过的组件实例，它返回的渲染函数内部会查找内嵌的component组件对应组件的vnode，如果该组件在map中存在就直接返回它。由于component的is属性是个响应式数据，因此只要它变化，keep-alive的render函数就会重新执行。
+
+
+* * *
+
+### 知其所以然
+
+KeepAlive定义
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L73-L74 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L73-L74")
+
+缓存定义
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L102-L103 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L102-L103")
+
+缓存组件
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L215-L216 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L215-L216")
+
+获取缓存组件
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L241-L242 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L241-L242")
+
+测试缓存特性，test-v3.html
+
+* * *
+
+## 29-什么是递归组件？举个例子说明下？
+
+### 分析
+
+递归组件我们用的比较少，但是在Tree、Menu这类组件中会被用到。
+
+* * *
+
+### 体验
+
+组件通过组件名称引用它自己，这种情况就是递归组件。
+
+> An SFC can implicitly refer to itself via its filename.
+
+```xml
+<template>
+  <li>
+    <div> {{ model.name }}</div>
+    <ul v-show="isOpen" v-if="isFolder">
+      <!-- 注意这里：组件递归渲染了它自己 -->
+      <TreeItem
+        class="item"
+        v-for="model in model.children"
+        :model="model">
+      </TreeItem>
+    </ul>
+  </li>
+<script>
+export default {
+  name: 'TreeItem',
+  // ...
+}
+</script>
+```
+
+* * *
+
+### 思路
+
++   下定义
++   使用场景
++   使用细节
++   原理阐述
+
+* * *
+
+### 回答范例
+
+0.  如果某个组件通过组件名称引用它自己，这种情况就是递归组件。
+1.  实际开发中类似Tree、Menu这类组件，它们的节点往往包含子节点，子节点结构和父节点往往是相同的。这类组件的数据往往也是树形结构，这种都是使用递归组件的典型场景。
+2.  使用递归组件时，由于我们并未也不能在组件内部导入它自己，所以设置组件`name`属性，用来查找组件定义，如果使用SFC，则可以通过SFC文件名推断。组件内部通常也要有递归结束条件，比如model.children这样的判断。
+3.  查看生成渲染函数可知，递归组件查找时会传递一个布尔值给`resolveComponent`，这样实际获取的组件就是当前组件本身。
+
+* * *
+
+### 知其所以然
+
+递归组件编译结果中，获取组件时会传递一个标识符 `_resolveComponent("Comp", true)`
+
+```ini
+const _component_Comp = _resolveComponent("Comp", true)
+```
+
+就是在传递`maybeSelfReference`
+
+```typescript
+export function resolveComponent(
+  name: string,
+  maybeSelfReference?: boolean
+): ConcreteComponent | string {
+  return resolveAsset(COMPONENTS, name, true, maybeSelfReference) || name
+}
+```
+
+resolveAsset中最终返回的是组件自身：
+
+```kotlin
+if (!res && maybeSelfReference) {
+    // fallback to implicit self-reference
+    return Component
+}
+```
+
+* * *
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L22-L23 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L22-L23")
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L110-L111 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L110-L111")
+
+[sfc.vuejs.org/#eyJBcHAudn…](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBjb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ+mAkuW9kue7hOS7ticpXG5jb25zdCBtb2RlbCA9IHtcbiAgbGFiZWw6ICdub2RlLTEnLFxuICBjaGlsZHJlbjogW1xuICAgIHtsYWJlbDogJ25vZGUtMS0xJ30sXG4gICAge2xhYmVsOiAnbm9kZS0xLTInfVxuICBdXG59XG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgOm1vZGVsPVwibW9kZWxcIj48L2NvbXA+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0iLCJDb21wLnZ1ZSI6Ijx0ZW1wbGF0ZT5cbiAgPGRpdj5cbiAgICB7e21vZGVsLmxhYmVsfX1cbiAgPC9kaXY+XG4gIDxDb21wIHYtZm9yPVwiaXRlbSBpbiBtb2RlbC5jaGlsZHJlblwiIDptb2RlbD1cIml0ZW1cIj48L0NvbXA+XG4gIDxjb21wMj48L2NvbXAyPlxuPC90ZW1wbGF0ZT5cbjxzY3JpcHQ+XG5cdGV4cG9ydCBkZWZhdWx0IHtcbiAgICBuYW1lOiAnQ29tcCcsXG4gICAgcHJvcHM6IHtcbiAgICAgIG1vZGVsOiBPYmplY3RcbiAgICB9LFxuICAgIGNvbXBvbmVudHM6IHtcbiAgICAgIGNvbXAyOiB7XG4gICAgICAgIHJlbmRlcigpe31cbiAgICAgIH1cbiAgICB9XG4gIH1cbjwvc2NyaXB0PiJ9 "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBjb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ+mAkuW9kue7hOS7ticpXG5jb25zdCBtb2RlbCA9IHtcbiAgbGFiZWw6ICdub2RlLTEnLFxuICBjaGlsZHJlbjogW1xuICAgIHtsYWJlbDogJ25vZGUtMS0xJ30sXG4gICAge2xhYmVsOiAnbm9kZS0xLTInfVxuICBdXG59XG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgOm1vZGVsPVwibW9kZWxcIj48L2NvbXA+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0iLCJDb21wLnZ1ZSI6Ijx0ZW1wbGF0ZT5cbiAgPGRpdj5cbiAgICB7e21vZGVsLmxhYmVsfX1cbiAgPC9kaXY+XG4gIDxDb21wIHYtZm9yPVwiaXRlbSBpbiBtb2RlbC5jaGlsZHJlblwiIDptb2RlbD1cIml0ZW1cIj48L0NvbXA+XG4gIDxjb21wMj48L2NvbXAyPlxuPC90ZW1wbGF0ZT5cbjxzY3JpcHQ+XG5cdGV4cG9ydCBkZWZhdWx0IHtcbiAgICBuYW1lOiAnQ29tcCcsXG4gICAgcHJvcHM6IHtcbiAgICAgIG1vZGVsOiBPYmplY3RcbiAgICB9LFxuICAgIGNvbXBvbmVudHM6IHtcbiAgICAgIGNvbXAyOiB7XG4gICAgICAgIHJlbmRlcigpe31cbiAgICAgIH1cbiAgICB9XG4gIH1cbjwvc2NyaXB0PiJ9")
+
+* * *
+
+## 30-异步组件是什么？使用场景有哪些？
+
+### 分析
+
+因为异步路由的存在，我们使用异步组件的次数比较少，因此还是有必要两者的不同。
+
+### 体验
+
+大型应用中，我们需要分割应用为更小的块，并且在需要组件时再加载它们。
+
+> In large applications, we may need to divide the app into smaller chunks and only load a component from the server when it's needed.
+
+```javascript
+import { defineAsyncComponent } from 'vue'
+// defineAsyncComponent定义异步组件
+const AsyncComp = defineAsyncComponent(() => {
+  // 加载函数返回Promise
+  return new Promise((resolve, reject) => {
+    // ...可以从服务器加载组件
+    resolve(/* loaded component */)
+  })
+})
+// 借助打包工具实现ES模块动态导入
+const AsyncComp = defineAsyncComponent(() =>
+  import('./components/MyComponent.vue')
+)
+```
+
+* * *
+
+### 思路
+
+0.  异步组件作用
+1.  何时使用异步组件
+2.  使用细节
+3.  和路由懒加载的不同
+
+* * *
+
+### 范例
+
+0.  在大型应用中，我们需要分割应用为更小的块，并且在需要组件时再加载它们。
+1.  我们不仅可以在路由切换时懒加载组件，还可以在页面组件中继续使用异步组件，从而实现更细的分割粒度。
+2.  使用异步组件最简单的方式是直接给defineAsyncComponent指定一个loader函数，结合ES模块动态导入函数import可以快速实现。我们甚至可以指定loadingComponent和errorComponent选项从而给用户一个很好的加载反馈。另外Vue3中还可以结合Suspense组件使用异步组件。
+3.  异步组件容易和路由懒加载混淆，实际上不是一个东西。异步组件不能被用于定义懒加载路由上，处理它的是vue框架，处理路由组件加载的是vue-router。但是可以在懒加载的路由组件中使用异步组件。
+
+* * *
+
+### 知其所以然
+
+defineAsyncComponent定义了一个高阶组件，返回一个包装组件。包装组件根据加载器的状态决定渲染什么内容。
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiAsyncComponent.ts#L43-L44 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiAsyncComponent.ts#L43-L44")
+
+* * *
+
+## 组件与插件的区别
+
+
+## 09 - 说说你对虚拟 DOM 的理解？
+
+### 分析
+
+现有框架几乎都引入了虚拟 DOM 来对真实 DOM 进行抽象，也就是现在大家所熟知的 VNode 和 VDOM，那么为什么需要引入虚拟 DOM 呢？围绕这个疑问来解答即可！
+
+### 思路
+
+1.  vdom是什么
+2.  引入vdom的好处
+3.  vdom如何生成，又如何成为dom
+4.  在后续的diff中的作用
+
+* * *
+
+### 回答范例
+
+1.  虚拟dom顾名思义就是虚拟的dom对象，它本身就是一个 `JavaScript` 对象，只不过它是通过不同的属性去描述一个视图结构。
+
+2.  通过引入vdom我们可以获得如下好处：
+
+    **将真实元素节点抽象成 VNode，有效减少直接操作 dom 次数，从而提高程序性能**
+
+    +   直接操作 dom 是有限制的，比如：diff、clone 等操作，一个真实元素上有许多的内容，如果直接对其进行 diff 操作，会去额外 diff 一些没有必要的内容；同样的，如果需要进行 clone 那么需要将其全部内容进行复制，这也是没必要的。但是，如果将这些操作转移到 JavaScript 对象上，那么就会变得简单了。
+    +   操作 dom 是比较昂贵的操作，频繁的dom操作容易引起页面的重绘和回流，但是通过抽象 VNode 进行中间处理，可以有效减少直接操作dom的次数，从而减少页面重绘和回流。
+
+    **方便实现跨平台**
+
+    +   同一 VNode 节点可以渲染成不同平台上的对应的内容，比如：渲染在浏览器是 dom 元素节点，渲染在 Native( iOS、Android) 变为对应的控件、可以实现 SSR 、渲染到 WebGL 中等等
+    +   Vue3 中允许开发者基于 VNode 实现自定义渲染器（renderer），以便于针对不同平台进行渲染。
+
+* * *
+
+3.  vdom如何生成？在vue中我们常常会为组件编写模板 - template， 这个模板会被编译器 - compiler编译为渲染函数，在接下来的挂载（mount）过程中会调用render函数，返回的对象就是虚拟dom。但它们还不是真正的dom，所以会在后续的patch过程中进一步转化为dom。
+
+    ![image-20220209153820845](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/80b653050433436da876459a26ab5a65~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+4.  挂载过程结束后，vue程序进入更新流程。如果某些响应式数据发生变化，将会引起组件重新render，此时就会生成新的vdom，和上一次的渲染结果diff就能得到变化的地方，从而转换为最小量的dom操作，高效更新视图。
+
+
+* * *
+
+### 知其所以然
+
+vnode定义：
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L127-L128 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L127-L128")
+
+观察渲染函数：21-vdom/test-render-v3.html
+
+创建vnode：
+
++   createElementBlock:
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L291-L292 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L291-L292")
+
++   createVnode:
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L486-L487 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L486-L487")
+
++   首次调用时刻：
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L283-L284 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L283-L284")
+
+* * *
+
+mount:
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1171-L1172 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1171-L1172")
+
+调试mount过程：mountComponent
+
+21-vdom/test-render-v3.html
+
+* * *
+
+## 10 - 你了解diff算法吗？
+
+### 分析
+
+必问题目，涉及vue更新原理，比较考查理解深度。
+
+![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bffb8ffca9f0468c8a31576cebe6e692~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+### 思路
+
+1.  diff算法是干什么的
+2.  它的必要性
+3.  它何时执行
+4.  具体执行方式
+5.  拔高：说一下vue3中的优化
+
+* * *
+
+### 回答范例
+
+1.Vue中的diff算法称为patching算法，它由Snabbdom修改而来，虚拟DOM要想转化为真实DOM就需要通过patch方法转换。
+
+2.最初Vue1.x视图中每个依赖均有更新函数对应，可以做到精准更新，因此并不需要虚拟DOM和patching算法支持，但是这样粒度过细导致Vue1.x无法承载较大应用；Vue 2.x中为了降低Watcher粒度，每个组件只有一个Watcher与之对应，此时就需要引入patching算法才能精确找到发生变化的地方并高效更新。
+
+3.vue中diff执行的时刻是组件内响应式数据变更触发实例执行其更新函数时，更新函数会再次执行render函数获得最新的虚拟DOM，然后执行patch函数，并传入新旧两次虚拟DOM，通过比对两者找到变化的地方，最后将其转化为对应的DOM操作。
+
+* * *
+
+4.patch过程是一个递归过程，遵循深度优先、同层比较的策略；以vue3的patch为例：
+
++   首先判断两个节点是否为相同同类节点，不同则删除重新创建
++   如果双方都是文本则更新文本内容
++   如果双方都是元素节点则递归更新子元素，同时更新元素属性
++   更新子节点时又分了几种情况：
+    +   新的子节点是文本，老的子节点是数组则清空，并设置文本；
+    +   新的子节点是文本，老的子节点是文本则直接更新文本；
+    +   新的子节点是数组，老的子节点是文本则清空文本，并创建新子节点数组中的子元素；
+    +   新的子节点是数组，老的子节点也是数组，那么比较两组子节点，更新细节blabla
+
+5.  vue3中引入的更新策略：编译期优化patchFlags、block等
+
+* * *
+
+### 知其所以然
+
+patch关键代码
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L354-L355 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L354-L355")
+
+调试 [test-v3.html](https://juejin.cn/post/text-v3.html "text-v3.html")
 
 * * *
 
@@ -287,284 +990,6 @@ Vue3 的响应式系统是基于 **Proxy** 实现的。与 Vue2 不同，Vue3 �
 
 * * *
 
-## 05-Vue中如何扩展一个组件
-
-此题属于实践题，考察大家对vue常用api使用熟练度，答题时不仅要列出这些解决方案，同时最好说出他们异同。
-
-### 答题思路：
-
-1.  按照逻辑扩展和内容扩展来列举，
-
-    +   逻辑扩展有：mixins、extends、composition api；
-
-    +   内容扩展有slots；
-
-2.  分别说出他们使用方法、场景差异和问题。
-
-3.  作为扩展，还可以说说vue3中新引入的composition api带来的变化
-
-
-* * *
-
-### 回答范例：
-
-1.  常见的组件扩展方法有：mixins，slots，extends等
-
-2.  混入mixins是分发 Vue 组件中可复用功能的非常灵活的方式。混入对象可以包含任意组件选项。当组件使用混入对象时，所有混入对象的选项将被混入该组件本身的选项。
-
-    ```js
-    // 复用代码：它是一个配置对象，选项和组件里面一样
-    const mymixin = {
-       methods: {
-          dosomething(){}
-       }
-    }
-    // 全局混入：将混入对象传入
-    Vue.mixin(mymixin)
-    
-    // 局部混入：做数组项设置到mixins选项，仅作用于当前组件
-    const Comp = {
-       mixins: [mymixin]
-    }
-    ```
-
-
-* * *
-
-3.  插槽主要用于vue组件中的内容分发，也可以用于组件扩展。
-
-    子组件Child
-
-    ```html
-    <div>
-      <slot>这个内容会被父组件传递的内容替换</slot>
-    </div>
-    ```
-
-    父组件Parent
-
-    ```html
-    <div>
-       <Child>来自老爹的内容</Child>
-    </div>
-    ```
-
-    如果要精确分发到不同位置可以使用具名插槽，如果要使用子组件中的数据可以使用作用域插槽。
-
-
-* * *
-
-4.  组件选项中还有一个不太常用的选项extends，也可以起到扩展组件的目的
-
-    ```js
-    // 扩展对象
-    const myextends = {
-       methods: {
-          dosomething(){}
-       }
-    }
-    // 组件扩展：做数组项设置到extends选项，仅作用于当前组件
-    // 跟混入的不同是它只能扩展单个对象
-    // 另外如果和混入发生冲突，该选项优先级较高，优先起作用
-    const Comp = {
-       extends: myextends
-    }
-    ```
-
-
-* * *
-
-5.  混入的数据和方法**不能明确判断来源**且可能和当前组件内变量**产生命名冲突**，vue3中引入的composition api，可以很好解决这些问题，利用独立出来的响应式模块可以很方便的编写独立逻辑并提供响应式的数据，然后在setup选项中组合使用，增强代码的可读性和维护性。例如：
-
-    ```js
-    // 复用逻辑1
-    function useXX() {}
-    // 复用逻辑2
-    function useYY() {}
-    // 逻辑组合
-    const Comp = {
-       setup() {
-          const {xx} = useXX()
-          const {yy} = useYY()
-          return {xx, yy}
-       }
-    }
-    ```
-
-
-* * *
-
-### 可能的追问
-
-Vue.extend方法你用过吗？它能用来做组件扩展吗？
-
-* * *
-
-### 知其所以然
-
-mixins原理：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L232-L233 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L232-L233")
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L545 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L545")
-
-slots原理：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentSlots.ts#L129-L130 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentSlots.ts#L129-L130")
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1373-L1374 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1373-L1374")
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/renderSlot.ts#L23-L24 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/renderSlot.ts#L23-L24")
-
-* * *
-
-## 06-子组件可以直接改变父组件的数据么，说明原因
-
-### 分析
-
-这是一个实践知识点，组件化开发过程中有个**单项数据流原则**，不在子组件中修改父组件是个常识问题。
-
-参考文档：[staging.vuejs.org/guide/compo…](https://staging.vuejs.org/guide/components/props.html#one-way-data-flow "https://staging.vuejs.org/guide/components/props.html#one-way-data-flow")
-
-* * *
-
-### 思路
-
-1.  讲讲单项数据流原则，表明为何不能这么做
-2.  举几个常见场景的例子说说解决方案
-3.  结合实践讲讲如果需要修改父组件状态应该如何做
-
-* * *
-
-### 回答范例
-
-1.  所有的 prop 都使得其父子之间形成了一个**单向下行绑定**：父级 prop 的更新会向下流动到子组件中，但是反过来则不行。这样会防止从子组件意外变更父级组件的状态，从而导致你的应用的数据流向难以理解。另外，每次父级组件发生变更时，子组件中所有的 prop 都将会刷新为最新的值。这意味着你**不**应该在一个子组件内部改变 prop。如果你这样做了，Vue 会在浏览器控制台中发出警告。
-
-    ```ini
-    const props = defineProps(['foo'])
-    // ❌ 下面行为会被警告, props是只读的!
-    props.foo = 'bar'
-    ```
-
-
-* * *
-
-2.  实际开发过程中有两个场景会想要修改一个属性：
-
-    +   \*\*这个 prop 用来传递一个初始值；这个子组件接下来希望将其作为一个本地的 prop 数据来使用。\*\*在这种情况下，最好定义一个本地的 data，并将这个 prop 用作其初始值：
-
-        ```js
-        const props = defineProps(['initialCounter'])
-        const counter = ref(props.initialCounter)
-        ```
-
-    +   \*\*这个 prop 以一种原始的值传入且需要进行转换。\*\*在这种情况下，最好使用这个 prop 的值来定义一个计算属性：
-
-        ```js
-        const props = defineProps(['size'])
-        // prop变化，计算属性自动更新
-        const normalizedSize = computed(() => props.size.trim().toLowerCase())
-        ```
-
-3.  实践中如果确实想要改变父组件属性应该emit一个事件让父组件去做这个变更。注意虽然我们不能直接修改一个传入的对象或者数组类型的prop，但是我们还是能够直接改内嵌的对象或属性。
-
-
-* * *
-
-## 07-Vue要做权限管理该怎么做？控制到按钮级别的权限怎么做？
-
-### 分析
-
-综合实践题目，实际开发中经常需要面临权限管理的需求，考查实际应用能力。
-
-权限管理一般需求是两个：页面权限和按钮权限，从这两个方面论述即可。
-
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/631e5a9510f349e488227498ec6212e9~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-### 思路
-
-1.  权限管理需求分析：页面和按钮权限
-2.  权限管理的实现方案：分后端方案和前端方案阐述
-3.  说说各自的优缺点
-
-* * *
-
-### 回答范例
-
-1.  权限管理一般需求是**页面权限**和**按钮权限**的管理
-
-2.  具体实现的时候分后端和前端两种方案：
-
-    前端方案会**把所有路由信息在前端配置**，通过路由守卫要求用户登录，用户**登录后根据角色过滤出路由表**。比如我会配置一个`asyncRoutes`数组，需要认证的页面在其路由的`meta`中添加一个`roles`字段，等获取用户角色之后取两者的交集，若结果不为空则说明可以访问。此过滤过程结束，剩下的路由就是该用户能访问的页面，**最后通过`router.addRoutes(accessRoutes)`方式动态添加路由**即可。
-
-    后端方案会**把所有页面路由信息存在数据库**中，用户登录的时候根据其角色**查询得到其能访问的所有页面路由信息**返回给前端，前端**再通过`addRoutes`动态添加路由**信息
-
-    按钮权限的控制通常会**实现一个指令**，例如`v-permission`，**将按钮要求角色通过值传给v-permission指令**，在指令的`moutned`钩子中可以**判断当前用户角色和按钮是否存在交集**，有则保留按钮，无则移除按钮。
-
-3.  纯前端方案的优点是实现简单，不需要额外权限管理页面，但是维护起来问题比较大，有新的页面和角色需求就要修改前端代码重新打包部署；服务端方案就不存在这个问题，通过专门的角色和权限管理页面，配置页面和按钮权限信息到数据库，应用每次登陆时获取的都是最新的路由信息，可谓一劳永逸！
-
-
-* * *
-
-### 知其所以然
-
-路由守卫
-
-[github1s.com/PanJiaChen/…](https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L13-L14 "https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L13-L14")
-
-路由生成
-
-[github1s.com/PanJiaChen/…](https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/store/modules/permission.js#L50-L51 "https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/store/modules/permission.js#L50-L51")
-
-动态追加路由
-
-[github1s.com/PanJiaChen/…](https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L43-L44 "https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L43-L44")
-
-* * *
-
-### 可能的追问
-
-1.  类似`Tabs`这类组件能不能使用`v-permission`指令实现按钮权限控制？
-
-    ```html
-    <el-tabs> 
-      <el-tab-pane label="⽤户管理" name="first">⽤户管理</el-tab-pane> 
-    	<el-tab-pane label="⻆⾊管理" name="third">⻆⾊管理</el-tab-pane>
-    </el-tabs>
-    ```
-
-
-* * *
-
-2.  服务端返回的路由信息如何添加到路由器中？
-
-    ```js
-    // 前端组件名和组件映射表
-    const map = {
-      //xx: require('@/views/xx.vue').default // 同步的⽅式
-      xx: () => import('@/views/xx.vue') // 异步的⽅式
-    }
-    // 服务端返回的asyncRoutes
-    const asyncRoutes = [
-      { path: '/xx', component: 'xx',... }
-    ]
-    // 遍历asyncRoutes，将component替换为map[component]
-    function mapComponent(asyncRoutes) {
-      asyncRoutes.forEach(route => {
-        route.component = map[route.component];
-        if(route.children) {
-          route.children.map(child => mapComponent(child))
-        }
-    	})
-    }
-    mapComponent(asyncRoutes)
-    ```
-
-
-* * *
-
 ## 08 - 说一说你对vue响应式理解？
 
 ### 分析
@@ -605,134 +1030,441 @@ vue3响应式：
 
 * * *
 
-## 09 - 说说你对虚拟 DOM 的理解？
+## 面试官：为什么data属性是一个函数而不是一个对象？
+
+## 面试官：动态给vue的data添加一个新的属性时会发生什么？怎样解决？
+
+## 面试官：Vue.observable你有了解过吗？说说看
+
+
+## v-show 与 v-if 的区别
+
+## 2. v-if和v-for哪个优先级更高？
+
+两个指令一起使用,会造成性能浪费,因vue2版本中v-for优先于v-if执行.
+
+* * *
+
+1.  文档中明确指出**永远不要把 `v-if` 和 `v-for` 同时用在同一个元素上**
+
+2.  在**vue2中**，**v-for的优先级是高于v-if**，先执行循环再判断条件，造成浪费；在**vue3中则完全相反，v-if的优先级高于v-for**，所以v-if执行时，v-for产生的变量还不存在，就会导致报错.
+
+3.  处理方法：
+
+    +   使用computed或js提前过滤列表数据
+
+    +   外层包裹template或div执行v-if判断
+
+4.  问题原因: vue源码判断循序造成的，vue2 判断中el.for快于el.if,vue3正好相反.
+
+```js
+// vue 2x
+// \vue-dev\src\compiler\codegen\index.js
+export function genElement (el: ASTElement, state: CodegenState): string {
+    if (el.parent) {
+        el.pre = el.pre || el.parent.pre
+    }
+    if (el.staticRoot && !el.staticProcessed) {
+        return genStatic(el, state)
+    } else if (el.once && !el.onceProcessed) {
+        return genOnce(el, state)
+    } else if (el.for && !el.forProcessed) {
+        return genFor(el, state)
+    } else if (el.if && !el.ifProcessed) {
+        return genIf(el, state)
+    } else if (el.tag === 'template' && !el.slotTarget && !state.pre) {
+        return genChildren(el, state) || 'void 0'
+    } else if (el.tag === 'slot') {
+        return genSlot(el, state)
+    } else {
+        // component or element
+    ...
+    }
+}
+```
+
+
+* * *
+
+## 28-v-once的使用场景有哪些？
 
 ### 分析
 
-现有框架几乎都引入了虚拟 DOM 来对真实 DOM 进行抽象，也就是现在大家所熟知的 VNode 和 VDOM，那么为什么需要引入虚拟 DOM 呢？围绕这个疑问来解答即可！
+`v-once`是Vue中内置指令，很有用的API，在优化方面经常会用到，不过小伙伴们平时可能容易忽略它。
+
+* * *
+
+### 体验
+
+仅渲染元素和组件一次，并且跳过未来更新
+
+> Render the element and component once only, and skip future updates.
+
+```xml
+<!-- single element -->
+<span v-once>This will never change: {{msg}}</span>
+<!-- the element have children -->
+<div v-once>
+  <h1>comment</h1>
+  <p>{{msg}}</p>
+</div>
+<!-- component -->
+<my-component v-once :comment="msg"></my-component>
+<!-- `v-for` directive -->
+<ul>
+  <li v-for="i in list" v-once>{{i}}</li>
+</ul>
+```
+
+* * *
 
 ### 思路
 
-1.  vdom是什么
-2.  引入vdom的好处
-3.  vdom如何生成，又如何成为dom
-4.  在后续的diff中的作用
+0.  `v-once`是什么
+1.  什么时候使用
+2.  如何使用
+3.  扩展`v-memo`
+4.  探索原理
 
 * * *
 
 ### 回答范例
 
-1.  虚拟dom顾名思义就是虚拟的dom对象，它本身就是一个 `JavaScript` 对象，只不过它是通过不同的属性去描述一个视图结构。
-
-2.  通过引入vdom我们可以获得如下好处：
-
-    **将真实元素节点抽象成 VNode，有效减少直接操作 dom 次数，从而提高程序性能**
-
-    +   直接操作 dom 是有限制的，比如：diff、clone 等操作，一个真实元素上有许多的内容，如果直接对其进行 diff 操作，会去额外 diff 一些没有必要的内容；同样的，如果需要进行 clone 那么需要将其全部内容进行复制，这也是没必要的。但是，如果将这些操作转移到 JavaScript 对象上，那么就会变得简单了。
-    +   操作 dom 是比较昂贵的操作，频繁的dom操作容易引起页面的重绘和回流，但是通过抽象 VNode 进行中间处理，可以有效减少直接操作dom的次数，从而减少页面重绘和回流。
-
-    **方便实现跨平台**
-
-    +   同一 VNode 节点可以渲染成不同平台上的对应的内容，比如：渲染在浏览器是 dom 元素节点，渲染在 Native( iOS、Android) 变为对应的控件、可以实现 SSR 、渲染到 WebGL 中等等
-    +   Vue3 中允许开发者基于 VNode 实现自定义渲染器（renderer），以便于针对不同平台进行渲染。
+0.  `v-once`是vue的内置指令，作用是仅渲染指定组件或元素一次，并跳过未来对其更新。
+1.  如果我们有一些元素或者组件在初始化渲染之后不再需要变化，这种情况下适合使用`v-once`，这样哪怕这些数据变化，vue也会跳过更新，是一种代码优化手段。
+2.  我们只需要作用的组件或元素上加上v-once即可。
+3.  vue3.2之后，又增加了`v-memo`指令，可以有条件缓存部分模板并控制它们的更新，可以说控制力更强了。
+4.  编译器发现元素上面有v-once时，会将首次计算结果存入缓存对象，组件再次渲染时就会从缓存获取，从而避免再次计算。
 
 * * *
 
-3.  vdom如何生成？在vue中我们常常会为组件编写模板 - template， 这个模板会被编译器 - compiler编译为渲染函数，在接下来的挂载（mount）过程中会调用render函数，返回的对象就是虚拟dom。但它们还不是真正的dom，所以会在后续的patch过程中进一步转化为dom。
+### 知其所以然
 
-    ![image-20220209153820845](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/80b653050433436da876459a26ab5a65~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+下面例子使用了v-once：
 
-4.  挂载过程结束后，vue程序进入更新流程。如果某些响应式数据发生变化，将会引起组件重新render，此时就会生成新的vdom，和上一次的渲染结果diff就能得到变化的地方，从而转换为最小量的dom操作，高效更新视图。
+```xml
+<script setup>
+import { ref } from 'vue'
+
+const msg = ref('Hello World!')
+</script>
+
+<template>
+  <h1 v-once>{{ msg }}</h1>
+  <input v-model="msg">
+</template>
+```
+
+我们发现v-once出现后，编译器会缓存作用元素或组件，从而避免以后更新时重新计算这一部分：
+
+```scss
+// ...
+return (_ctx, _cache) => {
+  return (_openBlock(), _createElementBlock(_Fragment, null, [
+    // 从缓存获取vnode
+    _cache[0] || (
+      _setBlockTracking(-1),
+      _cache[0] = _createElementVNode("h1", null, [
+        _createTextVNode(_toDisplayString(msg.value), 1 /* TEXT */)
+      ]),
+      _setBlockTracking(1),
+      _cache[0]
+    ),
+// ...
+```
+
+* * *
+
+## 26-你写过自定义指令吗？使用场景有哪些？
+
+### 分析
+
+这是一道API题，我们可能写的自定义指令少，但是我们用的多呀，多举几个例子就行。
+
+* * *
+
+### 体验
+
+定义一个包含类似组件生命周期钩子的对象，钩子函数会接收指令挂钩的dom元素：
+
+```javascript
+const focus = {
+  mounted: (el) => el.focus()
+}
+
+export default {
+  directives: {
+    // enables v-focus in template
+    focus
+  }
+}
+<input v-focus />
+```
+
+```css
+<input v-focus />
+```
+
+* * *
+
+### 思路
+
+0.  定义
+1.  何时用
+2.  如何用
+3.  常用指令
+4.  vue3变化
+
+* * *
+
+### 回答范例
+
+0.  Vue有一组默认指令，比如`v-mode`l或`v-for`，同时Vue也允许用户注册自定义指令来扩展Vue能力
+
+1.  自定义指令主要完成一些可复用低层级DOM操作
+
+2.  使用自定义指令分为定义、注册和使用三步：
+
+    +   定义自定义指令有两种方式：对象和函数形式，前者类似组件定义，有各种生命周期；后者只会在mounted和updated时执行
+    +   注册自定义指令类似组件，可以使用app.directive()全局注册，使用{directives:{xxx}}局部注册
+    +   使用时在注册名称前加上v-即可，比如v-focus
+3.  我在项目中常用到一些自定义指令，例如：
+
+    +   复制粘贴 v-copy
+    +   长按 v-longpress
+    +   防抖 v-debounce
+    +   图片懒加载 v-lazy
+    +   按钮权限 v-premission
+    +   页面水印 v-waterMarker
+    +   拖拽指令 v-draggable
+4.  vue3中指令定义发生了比较大的变化，主要是钩子的名称保持和组件一致，这样开发人员容易记忆，不易犯错。另外在v3.2之后，可以在setup中以一个小写v开头方便的定义自定义指令，更简单了！
 
 
 * * *
 
 ### 知其所以然
 
-vnode定义：
+编译后的自定义指令会被withDirective函数装饰，进一步处理生成的vnode，添加到特定属性中。
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L127-L128 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L127-L128")
-
-观察渲染函数：21-vdom/test-render-v3.html
-
-创建vnode：
-
-+   createElementBlock:
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L291-L292 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L291-L292")
-
-+   createVnode:
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L486-L487 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L486-L487")
-
-+   首次调用时刻：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L283-L284 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L283-L284")
+[sfc.vuejs.org/#eyJBcHAudn…](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuXG5jb25zdCB2Rm9jdXMgPSB7XG4gIG1vdW50ZWQoZWwpIHtcbiAgICAvLyDojrflj5ZpbnB1dO+8jOW5tuiwg+eUqOWFtmZvY3VzKCnmlrnms5VcbiAgICBlbC5mb2N1cygpXG4gIH1cbn1cbjwvc2NyaXB0PlxuXG48dGVtcGxhdGU+XG4gIDxoMT57eyBtc2cgfX08L2gxPlxuICA8aW5wdXQgdi1tb2RlbD1cIm1zZ1wiIHYtZm9jdXM+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ== "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuXG5jb25zdCB2Rm9jdXMgPSB7XG4gIG1vdW50ZWQoZWwpIHtcbiAgICAvLyDojrflj5ZpbnB1dO+8jOW5tuiwg+eUqOWFtmZvY3VzKCnmlrnms5VcbiAgICBlbC5mb2N1cygpXG4gIH1cbn1cbjwvc2NyaXB0PlxuXG48dGVtcGxhdGU+XG4gIDxoMT57eyBtc2cgfX08L2gxPlxuICA8aW5wdXQgdi1tb2RlbD1cIm1zZ1wiIHYtZm9jdXM+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ==")
 
 * * *
 
-mount:
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1171-L1172 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1171-L1172")
-
-调试mount过程：mountComponent
-
-21-vdom/test-render-v3.html
-
-* * *
-
-## 10 - 你了解diff算法吗？
+## 27-说下$attrs和$listeners的使用场景
 
 ### 分析
 
-必问题目，涉及vue更新原理，比较考查理解深度。
-
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bffb8ffca9f0468c8a31576cebe6e692~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+API考察，但$attrs和$listeners是比较少用的边界知识，而且vue3有变化，$listeners已经移除，还是有细节可说的。
 
 * * *
 
 ### 思路
 
-1.  diff算法是干什么的
-2.  它的必要性
-3.  它何时执行
-4.  具体执行方式
-5.  拔高：说一下vue3中的优化
+0.  这两个api的作用
+1.  使用场景分析
+2.  使用方式和细节
+3.  vue3变化
+
+* * *
+
+### 体验
+
+一个包含组件透传属性的对象。
+
+> An object that contains the component's fallthrough attributes.
+
+```xml
+<template>
+    <child-component v-bind="$attrs">
+        将非属性特性透传给内部的子组件
+    </child-component>
+</template>
+```
+
+* * *
+
+### 范例
+
+0.  我们可能会有一些属性和事件没有在props中定义，这类称为非属性特性，结合v-bind指令可以直接透传给内部的子组件。
+1.  这类“属性透传”常常用于包装高阶组件时往内部传递属性，常用于爷孙组件之间传参。比如我在扩展A组件时创建了组件B组件，然后在C组件中使用B，此时传递给C的属性中只有props里面声明的属性是给B使用的，其他的都是A需要的，此时就可以利用v-bind="$attrs"透传下去。
+2.  最常见用法是结合v-bind做展开；$attrs本身不是响应式的，除非访问的属性本身是响应式对象。
+3.  vue2中使用listeners获取事件，vue3中已移除，均合并到listeners获取事件，vue3中已移除，均合并到attrs中，使用起来更简单了。
+
+* * *
+
+### 原理
+
+查看透传属性foo和普通属性bar，发现vnode结构完全相同，这说明vue3中将分辨两者工作由框架完成而非用户指定：
+
+```xml
+<template>
+  <h1>{{ msg }}</h1>
+  <comp foo="foo" bar="bar" />
+</template>
+```
+
+```xml
+<template>
+  <div>
+    {{$attrs.foo}} {{bar}}
+  </div>
+</template>
+<script setup>
+defineProps({
+  bar: String
+})
+</script>
+```
+
+```php
+_createVNode(Comp, {
+    foo: "foo",
+    bar: "bar"
+})
+```
+
+* * *
+
+[sfc.vuejs.org/#eyJBcHAudn…](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBDb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ0hlbGxvIFdvcmxkIScpXG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgZm9vPVwiZm9vXCIgYmFyPVwiYmFyXCIgLz5cbjwvdGVtcGxhdGU+IiwiaW1wb3J0LW1hcC5qc29uIjoie1xuICBcImltcG9ydHNcIjoge1xuICAgIFwidnVlXCI6IFwiaHR0cHM6Ly9zZmMudnVlanMub3JnL3Z1ZS5ydW50aW1lLmVzbS1icm93c2VyLmpzXCJcbiAgfVxufSIsIkNvbXAudnVlIjoiPHRlbXBsYXRlPlxuXHQ8ZGl2PlxuICAgIHt7JGF0dHJzLmZvb319IHt7YmFyfX1cbiAgPC9kaXY+XG48L3RlbXBsYXRlPlxuPHNjcmlwdCBzZXR1cD5cbmRlZmluZVByb3BzKHtcbiAgYmFyOiBTdHJpbmdcbn0pXG48L3NjcmlwdD4ifQ== "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBDb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ0hlbGxvIFdvcmxkIScpXG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgZm9vPVwiZm9vXCIgYmFyPVwiYmFyXCIgLz5cbjwvdGVtcGxhdGU+IiwiaW1wb3J0LW1hcC5qc29uIjoie1xuICBcImltcG9ydHNcIjoge1xuICAgIFwidnVlXCI6IFwiaHR0cHM6Ly9zZmMudnVlanMub3JnL3Z1ZS5ydW50aW1lLmVzbS1icm93c2VyLmpzXCJcbiAgfVxufSIsIkNvbXAudnVlIjoiPHRlbXBsYXRlPlxuXHQ8ZGl2PlxuICAgIHt7JGF0dHJzLmZvb319IHt7YmFyfX1cbiAgPC9kaXY+XG48L3RlbXBsYXRlPlxuPHNjcmlwdCBzZXR1cD5cbmRlZmluZVByb3BzKHtcbiAgYmFyOiBTdHJpbmdcbn0pXG48L3NjcmlwdD4ifQ==")
+
+* * *
+
+## 13-watch和computed的区别以及选择?
+
+两个重要API，反应应聘者熟练程度。
+
+### 思路分析
+
+1.  先看[computed](https://vuejs.org/api/reactivity-core.html#computed "https://vuejs.org/api/reactivity-core.html#computed"), [watch](https://vuejs.org/api/reactivity-core.html#watch "https://vuejs.org/api/reactivity-core.html#watch")两者定义，列举使用上的差异
+2.  列举使用场景上的差异，如何选择
+3.  使用细节、注意事项
+4.  vue3变化
+
+* * *
+
+computed特点：具有响应式的返回值
+
+```js
+const count = ref(1)
+const plusOne = computed(() => count.value + 1)
+```
+
+watch特点：侦测变化，执行回调
+
+```js
+const state = reactive({ count: 0 })
+watch(
+  () => state.count,
+  (count, prevCount) => {
+    /* ... */
+  }
+)
+```
 
 * * *
 
 ### 回答范例
 
-1.Vue中的diff算法称为patching算法，它由Snabbdom修改而来，虚拟DOM要想转化为真实DOM就需要通过patch方法转换。
-
-2.最初Vue1.x视图中每个依赖均有更新函数对应，可以做到精准更新，因此并不需要虚拟DOM和patching算法支持，但是这样粒度过细导致Vue1.x无法承载较大应用；Vue 2.x中为了降低Watcher粒度，每个组件只有一个Watcher与之对应，此时就需要引入patching算法才能精确找到发生变化的地方并高效更新。
-
-3.vue中diff执行的时刻是组件内响应式数据变更触发实例执行其更新函数时，更新函数会再次执行render函数获得最新的虚拟DOM，然后执行patch函数，并传入新旧两次虚拟DOM，通过比对两者找到变化的地方，最后将其转化为对应的DOM操作。
+1.  计算属性可以**从组件数据派生出新数据**，最常见的使用方式是设置一个函数，返回计算之后的结果，computed和methods的差异是它具备缓存性，如果依赖项不变时不会重新计算。侦听器**可以侦测某个响应式数据的变化并执行副作用**，常见用法是传递一个函数，执行副作用，watch没有返回值，但可以执行异步操作等复杂逻辑。
+2.  计算属性常用场景是简化行内模板中的复杂表达式，模板中出现太多逻辑会是模板变得臃肿不易维护。侦听器常用场景是状态变化之后做一些额外的DOM操作或者异步操作。选择采用何用方案时首先看是否需要派生出新值，基本能用计算属性实现的方式首选计算属性。
+3.  使用过程中有一些细节，比如计算属性也是可以传递对象，成为既可读又可写的计算属性。watch可以传递对象，设置deep、immediate等选项。
+4.  vue3中watch选项发生了一些变化，例如不再能侦测一个点操作符之外的字符串形式的表达式； reactivity API中新出现了watch、watchEffect可以完全替代目前的watch选项，且功能更加强大。
 
 * * *
 
-4.patch过程是一个递归过程，遵循深度优先、同层比较的策略；以vue3的patch为例：
+### 回答范例
 
-+   首先判断两个节点是否为相同同类节点，不同则删除重新创建
-+   如果双方都是文本则更新文本内容
-+   如果双方都是元素节点则递归更新子元素，同时更新元素属性
-+   更新子节点时又分了几种情况：
-    +   新的子节点是文本，老的子节点是数组则清空，并设置文本；
-    +   新的子节点是文本，老的子节点是文本则直接更新文本；
-    +   新的子节点是数组，老的子节点是文本则清空文本，并创建新子节点数组中的子元素；
-    +   新的子节点是数组，老的子节点也是数组，那么比较两组子节点，更新细节blabla
+1.  计算属性可以**从组件数据派生出新数据**，最常见的使用方式是设置一个函数，返回计算之后的结果，computed和methods的差异是它具备缓存性，如果依赖项不变时不会重新计算。侦听器**可以侦测某个响应式数据的变化并执行副作用**，常见用法是传递一个函数，执行副作用，watch没有返回值，但可以执行异步操作等复杂逻辑。
+2.  计算属性常用场景是简化行内模板中的复杂表达式，模板中出现太多逻辑会是模板变得臃肿不易维护。侦听器常用场景是状态变化之后做一些额外的DOM操作或者异步操作。选择采用何用方案时首先看是否需要派生出新值，基本能用计算属性实现的方式首选计算属性。
+3.  使用过程中有一些细节，比如计算属性也是可以传递对象，成为既可读又可写的计算属性。watch可以传递对象，设置deep、immediate等选项。
+4.  vue3中watch选项发生了一些变化，例如不再能侦测一个点操作符之外的字符串形式的表达式； reactivity API中新出现了watch、watchEffect可以完全替代目前的watch选项，且功能更加强大。
 
-5.  vue3中引入的更新策略：编译期优化patchFlags、block等
+* * *
+
+### 可能追问
+
+1.  watch会不会立即执行？
+2.  watch 和 watchEffect有什么差异
 
 * * *
 
 ### 知其所以然
 
-patch关键代码
+computed的实现
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L354-L355 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L354-L355")
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L79-L80 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L79-L80")
 
-调试 [test-v3.html](https://juejin.cn/post/text-v3.html "text-v3.html")
+ComputedRefImpl
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L26-L27 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L26-L27")
+
+缓存性
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L59-L60 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L59-L60")
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L45-L46 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L45-L46")
+
+watch的实现
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiWatch.ts#L158-L159 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiWatch.ts#L158-L159")
+
+* * *
+
+## 12-说说nextTick的使用和原理？
+
+### 分析
+
+这道题及考察使用，有考察原理，nextTick在开发过程中应用的也较少，原理上和vue异步更新有密切关系，对于面试者考查很有区分度，如果能够很好回答此题，对面试效果有极大帮助。
+
+### 答题思路
+
+1.  nextTick是做什么的？
+2.  为什么需要它呢？
+3.  开发时何时使用它？抓抓头，想想你在平时开发中使用它的地方
+4.  下面介绍一下如何使用nextTick
+5.  原理解读，结合异步更新和nextTick生效方式，会显得你格外优秀
+
+* * *
+
+### 回答范例：
+
+1.  [nextTick](https://staging-cn.vuejs.org/api/general.html#nexttick "https://staging-cn.vuejs.org/api/general.html#nexttick")是等待下一次 DOM 更新刷新的工具方法。
+
+2.  Vue有个异步更新策略，意思是如果数据变化，Vue不会立刻更新DOM，而是开启一个队列，把组件更新函数保存在队列中，在同一事件循环中发生的所有数据变更会异步的批量更新。这一策略导致我们对数据的修改不会立刻体现在DOM上，此时如果想要获取更新后的DOM状态，就需要使用nextTick。
+
+3.  开发时，有两个场景我们会用到nextTick：
+
+
++   created中想要获取DOM时；
++   响应式数据变化后获取DOM更新后的状态，比如希望获取列表更新后的高度。
+
+4.  nextTick签名如下：`function nextTick(callback?: () => void): Promise<void>`
+
+    所以我们只需要在传入的回调函数中访问最新DOM状态即可，或者我们可以await nextTick()方法返回的Promise之后做这件事。
+
+5.  在Vue内部，nextTick之所以能够让我们看到DOM更新后的结果，是因为我们传入的callback会被添加到队列刷新函数(flushSchedulerQueue)的后面，这样等队列内部的更新函数都执行完毕，所有DOM操作也就结束了，callback自然能够获取到最新的DOM值。
+
+
+* * *
+
+### 知其所以然：
+
+1.  源码解读:
+
+组件更新函数入队：
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1547-L1548 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1547-L1548")
+
+入队函数：
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L84-L85 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L84-L85")
+
+nextTick定义：
+
+[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L58-L59 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L58-L59")
+
+2.  测试案例，test-v3.html
 
 * * *
 
@@ -858,444 +1590,255 @@ F C
 
 * * *
 
-## 12-说说nextTick的使用和原理？
+## 31-你是怎么处理vue项目中的错误的？
 
 ### 分析
 
-这道题及考察使用，有考察原理，nextTick在开发过程中应用的也较少，原理上和vue异步更新有密切关系，对于面试者考查很有区分度，如果能够很好回答此题，对面试效果有极大帮助。
+这是一个综合应用题目，在项目中我们常常需要将App的异常上报，此时错误处理就很重要了。
 
-### 答题思路
+这里要区分错误的类型，针对性做收集。
 
-1.  nextTick是做什么的？
-2.  为什么需要它呢？
-3.  开发时何时使用它？抓抓头，想想你在平时开发中使用它的地方
-4.  下面介绍一下如何使用nextTick
-5.  原理解读，结合异步更新和nextTick生效方式，会显得你格外优秀
+然后是将收集的的错误信息上报服务器。
 
 * * *
 
-### 回答范例：
+### 思路
 
-1.  [nextTick](https://staging-cn.vuejs.org/api/general.html#nexttick "https://staging-cn.vuejs.org/api/general.html#nexttick")是等待下一次 DOM 更新刷新的工具方法。
-
-2.  Vue有个异步更新策略，意思是如果数据变化，Vue不会立刻更新DOM，而是开启一个队列，把组件更新函数保存在队列中，在同一事件循环中发生的所有数据变更会异步的批量更新。这一策略导致我们对数据的修改不会立刻体现在DOM上，此时如果想要获取更新后的DOM状态，就需要使用nextTick。
-
-3.  开发时，有两个场景我们会用到nextTick：
-
-
-+   created中想要获取DOM时；
-+   响应式数据变化后获取DOM更新后的状态，比如希望获取列表更新后的高度。
-
-4.  nextTick签名如下：`function nextTick(callback?: () => void): Promise<void>`
-
-    所以我们只需要在传入的回调函数中访问最新DOM状态即可，或者我们可以await nextTick()方法返回的Promise之后做这件事。
-
-5.  在Vue内部，nextTick之所以能够让我们看到DOM更新后的结果，是因为我们传入的callback会被添加到队列刷新函数(flushSchedulerQueue)的后面，这样等队列内部的更新函数都执行完毕，所有DOM操作也就结束了，callback自然能够获取到最新的DOM值。
-
+0.  首先区分错误类型
+1.  根据错误不同类型做相应收集
+2.  收集的错误是如何上报服务器的
 
 * * *
 
-### 知其所以然：
+### 回答范例
 
-1.  源码解读:
-
-组件更新函数入队：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1547-L1548 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1547-L1548")
-
-入队函数：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L84-L85 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L84-L85")
-
-nextTick定义：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L58-L59 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L58-L59")
-
-2.  测试案例，test-v3.html
+0.  应用中的错误类型分为"`接口异常`"和“`代码逻辑异常`”
+1.  我们需要根据不同错误类型做相应处理：`接口异常`是我们请求后端接口过程中发生的异常，可能是请求失败，也可能是请求获得了服务器响应，但是返回的是错误状态。以Axios为例，这类异常我们可以通过封装Axios，在拦截器中统一处理整个应用中请求的错误。`代码逻辑异常`是我们编写的前端代码中存在逻辑上的错误造成的异常，vue应用中最常见的方式是使用全局错误处理函数`app.config.errorHandler`收集错误。
+2.  收集到错误之后，需要统一处理这些异常：分析错误，获取需要错误信息和数据。这里应该有效区分错误类型，如果是请求错误，需要上报接口信息，参数，状态码等；对于前端逻辑异常，获取错误名称和详情即可。另外还可以收集应用名称、环境、版本、用户信息，所在页面等。这些信息可以通过vuex存储的全局状态和路由信息获取。
 
 * * *
 
-## 13-watch和computed的区别以及选择?
+### 实践
 
-两个重要API，反应应聘者熟练程度。
+axios拦截器中处理捕获异常：
 
-### 思路分析
-
-1.  先看[computed](https://vuejs.org/api/reactivity-core.html#computed "https://vuejs.org/api/reactivity-core.html#computed"), [watch](https://vuejs.org/api/reactivity-core.html#watch "https://vuejs.org/api/reactivity-core.html#watch")两者定义，列举使用上的差异
-2.  列举使用场景上的差异，如何选择
-3.  使用细节、注意事项
-4.  vue3变化
-
-* * *
-
-computed特点：具有响应式的返回值
-
-```js
-const count = ref(1)
-const plusOne = computed(() => count.value + 1)
+```vbscript
+// 响应拦截器
+instance.interceptors.response.use(
+  (response) => {
+    return response.data;
+  },
+  (error) => {
+    // 存在response说明服务器有响应
+    if (error.response) {
+      let response = error.response;
+      if (response.status >= 400) {
+        handleError(response);
+      }
+    } else {
+      handleError(null);
+    }
+    return Promise.reject(error);
+  },
+);
 ```
 
-watch特点：侦测变化，执行回调
+* * *
 
-```js
-const state = reactive({ count: 0 })
-watch(
-  () => state.count,
-  (count, prevCount) => {
-    /* ... */
+vue中全局捕获异常：
+
+```javascript
+import { createApp } from 'vue'
+
+const app = createApp(...)
+
+app.config.errorHandler = (err, instance, info) => {
+  // report error to tracking services
+}
+```
+
+* * *
+
+处理接口请求错误：
+
+```lua
+function handleError(error, type) {
+  if(type == 1) {
+    // 接口错误，从config字段中获取请求信息
+    let { url, method, params, data } = error.config
+    let err_data = {
+       url, method,
+       params: { query: params, body: data },
+       error: error.data?.message || JSON.stringify(error.data),
+    })
   }
-)
+}
 ```
 
 * * *
 
-### 回答范例
+处理前端逻辑错误：
 
-1.  计算属性可以**从组件数据派生出新数据**，最常见的使用方式是设置一个函数，返回计算之后的结果，computed和methods的差异是它具备缓存性，如果依赖项不变时不会重新计算。侦听器**可以侦测某个响应式数据的变化并执行副作用**，常见用法是传递一个函数，执行副作用，watch没有返回值，但可以执行异步操作等复杂逻辑。
-2.  计算属性常用场景是简化行内模板中的复杂表达式，模板中出现太多逻辑会是模板变得臃肿不易维护。侦听器常用场景是状态变化之后做一些额外的DOM操作或者异步操作。选择采用何用方案时首先看是否需要派生出新值，基本能用计算属性实现的方式首选计算属性。
-3.  使用过程中有一些细节，比如计算属性也是可以传递对象，成为既可读又可写的计算属性。watch可以传递对象，设置deep、immediate等选项。
-4.  vue3中watch选项发生了一些变化，例如不再能侦测一个点操作符之外的字符串形式的表达式； reactivity API中新出现了watch、watchEffect可以完全替代目前的watch选项，且功能更加强大。
+```go
+function handleError(error, type) {
+  if(type == 2) {
+    let errData = null
+    // 逻辑错误
+    if(error instanceof Error) {
+      let { name, message } = error
+      errData = {
+        type: name,
+        error: message
+      }
+    } else {
+      errData = {
+        type: 'other',
+        error: JSON.strigify(error)
+      }
+    }
+  }
+}
+```
+
+* * *
+
+## 07-Vue要做权限管理该怎么做？控制到按钮级别的权限怎么做？
+
+### 分析
+
+综合实践题目，实际开发中经常需要面临权限管理的需求，考查实际应用能力。
+
+权限管理一般需求是两个：页面权限和按钮权限，从这两个方面论述即可。
+
+![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/631e5a9510f349e488227498ec6212e9~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+### 思路
+
+1.  权限管理需求分析：页面和按钮权限
+2.  权限管理的实现方案：分后端方案和前端方案阐述
+3.  说说各自的优缺点
 
 * * *
 
 ### 回答范例
 
-1.  计算属性可以**从组件数据派生出新数据**，最常见的使用方式是设置一个函数，返回计算之后的结果，computed和methods的差异是它具备缓存性，如果依赖项不变时不会重新计算。侦听器**可以侦测某个响应式数据的变化并执行副作用**，常见用法是传递一个函数，执行副作用，watch没有返回值，但可以执行异步操作等复杂逻辑。
-2.  计算属性常用场景是简化行内模板中的复杂表达式，模板中出现太多逻辑会是模板变得臃肿不易维护。侦听器常用场景是状态变化之后做一些额外的DOM操作或者异步操作。选择采用何用方案时首先看是否需要派生出新值，基本能用计算属性实现的方式首选计算属性。
-3.  使用过程中有一些细节，比如计算属性也是可以传递对象，成为既可读又可写的计算属性。watch可以传递对象，设置deep、immediate等选项。
-4.  vue3中watch选项发生了一些变化，例如不再能侦测一个点操作符之外的字符串形式的表达式； reactivity API中新出现了watch、watchEffect可以完全替代目前的watch选项，且功能更加强大。
+1.  权限管理一般需求是**页面权限**和**按钮权限**的管理
 
-* * *
+2.  具体实现的时候分后端和前端两种方案：
 
-### 可能追问
+    前端方案会**把所有路由信息在前端配置**，通过路由守卫要求用户登录，用户**登录后根据角色过滤出路由表**。比如我会配置一个`asyncRoutes`数组，需要认证的页面在其路由的`meta`中添加一个`roles`字段，等获取用户角色之后取两者的交集，若结果不为空则说明可以访问。此过滤过程结束，剩下的路由就是该用户能访问的页面，**最后通过`router.addRoutes(accessRoutes)`方式动态添加路由**即可。
 
-1.  watch会不会立即执行？
-2.  watch 和 watchEffect有什么差异
+    后端方案会**把所有页面路由信息存在数据库**中，用户登录的时候根据其角色**查询得到其能访问的所有页面路由信息**返回给前端，前端**再通过`addRoutes`动态添加路由**信息
+
+    按钮权限的控制通常会**实现一个指令**，例如`v-permission`，**将按钮要求角色通过值传给v-permission指令**，在指令的`moutned`钩子中可以**判断当前用户角色和按钮是否存在交集**，有则保留按钮，无则移除按钮。
+
+3.  纯前端方案的优点是实现简单，不需要额外权限管理页面，但是维护起来问题比较大，有新的页面和角色需求就要修改前端代码重新打包部署；服务端方案就不存在这个问题，通过专门的角色和权限管理页面，配置页面和按钮权限信息到数据库，应用每次登陆时获取的都是最新的路由信息，可谓一劳永逸！
+
 
 * * *
 
 ### 知其所以然
 
-computed的实现
+路由守卫
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L79-L80 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L79-L80")
+[github1s.com/PanJiaChen/…](https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L13-L14 "https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L13-L14")
 
-ComputedRefImpl
+路由生成
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L26-L27 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L26-L27")
+[github1s.com/PanJiaChen/…](https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/store/modules/permission.js#L50-L51 "https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/store/modules/permission.js#L50-L51")
 
-缓存性
+动态追加路由
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L59-L60 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L59-L60")
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L45-L46 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/computed.ts#L45-L46")
-
-watch的实现
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiWatch.ts#L158-L159 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiWatch.ts#L158-L159")
+[github1s.com/PanJiaChen/…](https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L43-L44 "https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L43-L44")
 
 * * *
 
-## 14-说一下 Vue 子组件和父组件创建和挂载顺序
+### 可能的追问
 
-这题考查大家对创建过程的理解程度。
+1.  类似`Tabs`这类组件能不能使用`v-permission`指令实现按钮权限控制？
+
+    ```html
+    <el-tabs> 
+      <el-tab-pane label="⽤户管理" name="first">⽤户管理</el-tab-pane> 
+    	<el-tab-pane label="⻆⾊管理" name="third">⻆⾊管理</el-tab-pane>
+    </el-tabs>
+    ```
+
+
+* * *
+
+2.  服务端返回的路由信息如何添加到路由器中？
+
+    ```js
+    // 前端组件名和组件映射表
+    const map = {
+      //xx: require('@/views/xx.vue').default // 同步的⽅式
+      xx: () => import('@/views/xx.vue') // 异步的⽅式
+    }
+    // 服务端返回的asyncRoutes
+    const asyncRoutes = [
+      { path: '/xx', component: 'xx',... }
+    ]
+    // 遍历asyncRoutes，将component替换为map[component]
+    function mapComponent(asyncRoutes) {
+      asyncRoutes.forEach(route => {
+        route.component = map[route.component];
+        if(route.children) {
+          route.children.map(child => mapComponent(child))
+        }
+    	})
+    }
+    mapComponent(asyncRoutes)
+    ```
+
+
+* * *
+
+## 24-SPA、SSR的区别是什么
+
+我们现在编写的Vue、React和Angular应用大多数情况下都会在一个页面中，点击链接跳转页面通常是内容切换而非页面跳转，由于良好的用户体验逐渐成为主流的开发模式。但同时也会有首屏加载时间长，SEO不友好的问题，因此有了SSR，这也是为什么面试中会问到两者的区别。
 
 ### 思路分析
 
-1.  给结论
-2.  阐述理由
+0.  两者概念
+1.  两者优缺点分析
+2.  使用场景差异
+3.  其他选择
 
 * * *
 
 ### 回答范例
 
-1.  创建过程自上而下，挂载过程自下而上；即：
-    +   parent created
-    +   child created
-    +   child mounted
-    +   parent mounted
-2.  之所以会这样是因为Vue创建过程是一个递归过程，先创建父组件，有子组件就会创建子组件，因此创建时先有父组件再有子组件；子组件首次创建时会添加mounted钩子到队列，等到patch结束再执行它们，可见子组件的mounted钩子是先进入到队列中的，因此等到patch结束执行这些钩子时也先执行。
+0.  SPA（Single Page Application）即**单页面应用**。一般也称为 **客户端渲染**（Client Side Render）， 简称 CSR。SSR（Server Side Render）即 **服务端渲染**。一般也称为 **多页面应用**（Mulpile Page Application），简称 MPA。
+1.  SPA应用只会首次请求html文件，后续只需要请求JSON数据即可，因此用户体验更好，节约流量，服务端压力也较小。但是首屏加载的时间会变长，而且SEO不友好。为了解决以上缺点，就有了SSR方案，由于HTML内容在服务器一次性生成出来，首屏加载快，搜索引擎也可以很方便的抓取页面信息。但同时SSR方案也会有性能，开发受限等问题。
+2.  在选择上，如果我们的应用存在首屏加载优化需求，SEO需求时，就可以考虑SSR。
+3.  但并不是只有这一种替代方案，比如对一些不常变化的静态网站，SSR反而浪费资源，我们可以考虑[预渲染](https://github.com/chrisvfritz/prerender-spa-plugin "https://github.com/chrisvfritz/prerender-spa-plugin")（prerender）方案。另外nuxt.js/next.js中给我们提供了SSG（Static Site Generate）静态网站生成方案也是很好的静态站点解决方案，结合一些CI手段，可以起到很好的优化效果，且能节约服务器资源。
 
 * * *
 
 ### 知其所以然
 
-观察beforeCreated和created钩子的处理
+内容生成上的区别：
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L554-L555 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L554-L555")
+SSR
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L741-L742 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L741-L742")
-
-观察beforeMount和mounted钩子的处理
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1310-L1311 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1310-L1311")
-
-测试代码，test-v3.html
+![ss](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f486234794794c8baf4f44496d8e824f~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
 * * *
 
-## 15-怎么缓存当前的组件？缓存后怎么更新？
+SPA
 
-缓存组件使用keep-alive组件，这是一个非常常见且有用的优化手段，vue3中keep-alive有比较大的更新，能说的点比较多。
-
-### 思路
-
-1.  缓存用keep-alive，它的作用与用法
-2.  使用细节，例如缓存指定/排除、结合router和transition
-3.  组件缓存后更新可以利用activated或者beforeRouteEnter
-4.  原理阐述
+![sp](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5171c9f5a94447fc8f12d644ab31e078~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
 * * *
 
-### 回答范例
+部署上的区别
 
-1.  开发中缓存组件使用keep-alive组件，keep-alive是vue内置组件，keep-alive包裹动态组件component时，会缓存不活动的组件实例，而不是销毁它们，这样在组件切换过程中将状态保留在内存中，防止重复渲染DOM。
-
-    ```vue
-    <keep-alive>
-      <component :is="view"></component>
-    </keep-alive>
-    ```
-
-2.  结合属性include和exclude可以明确指定缓存哪些组件或排除缓存指定组件。vue3中结合vue-router时变化较大，之前是`keep-alive`包裹`router-view`，现在需要反过来用`router-view`包裹`keep-alive`：
-
-    ```vue
-    <router-view v-slot="{ Component }">
-      <keep-alive>
-        <component :is="Component"></component>
-      </keep-alive>
-    </router-view>
-    ```
-
+![部署上区别](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3af3e8cc8da34394bf7d4c3d75bf9ec8~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
 * * *
-
-3.  缓存后如果要获取数据，解决方案可以有以下两种：
-
-    +   beforeRouteEnter：在有vue-router的项目，每次进入路由的时候，都会执行`beforeRouteEnter`
-
-        ```js
-        beforeRouteEnter(to, from, next){
-          next(vm=>{
-            console.log(vm)
-            // 每次进入路由执行
-            vm.getData()  // 获取数据
-          })
-        },
-        ```
-
-    +   actived：在`keep-alive`缓存的组件被激活的时候，都会执行`actived`钩子
-
-        ```js
-        activated(){
-        	  this.getData() // 获取数据
-        },
-        ```
-
-
-* * *
-
-4.  keep-alive是一个通用组件，它内部定义了一个map，缓存创建过的组件实例，它返回的渲染函数内部会查找内嵌的component组件对应组件的vnode，如果该组件在map中存在就直接返回它。由于component的is属性是个响应式数据，因此只要它变化，keep-alive的render函数就会重新执行。
-
-
-* * *
-
-### 知其所以然
-
-KeepAlive定义
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L73-L74 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L73-L74")
-
-缓存定义
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L102-L103 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L102-L103")
-
-缓存组件
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L215-L216 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L215-L216")
-
-获取缓存组件
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L241-L242 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L241-L242")
-
-测试缓存特性，test-v3.html
-
-* * *
-
-## 16-从0到1自己构架一个vue项目，说说有哪些步骤、哪些重要插件、目录结构你会怎么组织
-
-综合实践类题目，考查实战能力。没有什么绝对的正确答案，把平时工作的重点有条理的描述一下即可。
-
-### 思路
-
-1.  构建项目，创建项目基本结构
-2.  引入必要的插件：
-3.  代码规范：prettier，eslint
-4.  提交规范：husky，lint-staged
-5.  其他常用：svg-loader，vueuse，nprogress
-6.  常见目录结构
-
-* * *
-
-### 回答范例
-
-1.  从0创建一个项目我大致会做以下事情：项目构建、引入必要插件、代码规范、提交规范、常用库和组件
-
-2.  目前vue3项目我会用vite或者create-vue创建项目
-
-3.  接下来引入必要插件：路由插件vue-router、状态管理vuex/pinia、ui库我比较喜欢element-plus和antd-vue、http工具我会选axios
-
-4.  其他比较常用的库有vueuse，nprogress，图标可以使用vite-svg-loader
-
-5.  下面是代码规范：结合prettier和eslint即可
-
-6.  最后是提交规范，可以使用husky，lint-staged，commitlint
-
-
-* * *
-
-7.  目录结构我有如下习惯： `.vscode`：用来放项目中的 vscode 配置
-
-    `plugins`：用来放 vite 插件的 plugin 配置
-
-    `public`：用来放一些诸如 页头icon 之类的公共文件，会被打包到dist根目录下
-
-    `src`：用来放项目代码文件
-
-    `api`：用来放http的一些接口配置
-
-    `assets`：用来放一些 CSS 之类的静态资源
-
-    `components`：用来放项目通用组件
-
-    `layout`：用来放项目的布局
-
-    `router`：用来放项目的路由配置
-
-    `store`：用来放状态管理Pinia的配置
-
-    `utils`：用来放项目中的工具方法类
-
-    `views`：用来放项目的页面文件
-
-
-* * *
-
-## 17-实际工作中，你总结的vue最佳实践有哪些？
-
-看到这样的题目，可以用以下图片来回答：
-
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/893abf278d56465e81ac83492b150684~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-### 思路
-
-查看vue官方文档：
-
-风格指南：[vuejs.org/style-guide…](https://vuejs.org/style-guide/ "https://vuejs.org/style-guide/")
-
-性能：[vuejs.org/guide/best-…](https://vuejs.org/guide/best-practices/performance.html#overview "https://vuejs.org/guide/best-practices/performance.html#overview")
-
-安全：[vuejs.org/guide/best-…](https://vuejs.org/guide/best-practices/security.html "https://vuejs.org/guide/best-practices/security.html")
-
-访问性：[vuejs.org/guide/best-…](https://vuejs.org/guide/best-practices/accessibility.html "https://vuejs.org/guide/best-practices/accessibility.html")
-
-发布：[vuejs.org/guide/best-…](https://vuejs.org/guide/best-practices/production-deployment.html "https://vuejs.org/guide/best-practices/production-deployment.html")
-
-* * *
-
-### 回答范例
-
-我从编码风格、性能、安全等方面说几条：
-
-1.  编码风格方面：
-    +   命名组件时使用“多词”风格避免和HTML元素冲突
-    +   使用“细节化”方式定义属性而不是只有一个属性名
-    +   属性名声明时使用“驼峰命名”，模板或jsx中使用“肉串命名”
-    +   使用v-for时务必加上key，且不要跟v-if写在一起
-2.  性能方面：
-    +   路由懒加载减少应用尺寸
-    +   利用SSR减少首屏加载时间
-    +   利用v-once渲染那些不需要更新的内容
-    +   一些长列表可以利用虚拟滚动技术避免内存过度占用
-    +   对于深层嵌套对象的大数组可以使用shallowRef或shallowReactive降低开销
-    +   避免不必要的组件抽象
-
-* * *
-
-3.  安全：
-    +   不使用不可信模板，例如使用用户输入拼接模板：`template: <div> + userProvidedString + </div>`
-    +   小心使用v-html，:url，:style等，避免html、url、样式等注入
-4.  等等......
-
-* * *
-
-## 18-说说从 template 到 render 处理过程
-
-### 分析
-
-问我们template到render过程，其实是问vue`编译器`工作原理。
-
-### 思路
-
-1.  引入vue编译器概念
-2.  说明编译器的必要性
-3.  阐述编译器工作流程
-
-### 回答范例
-
-1.  Vue中有个独特的编译器模块，称为“compiler”，它的主要作用是将用户编写的template编译为js中可执行的render函数。
-2.  之所以需要这个编译过程是为了便于前端程序员能高效的编写视图模板。相比而言，我们还是更愿意用HTML来编写视图，直观且高效。手写render函数不仅效率底下，而且失去了编译期的优化能力。
-3.  在Vue中编译器会先对template进行解析，这一步称为parse，结束之后会得到一个JS对象，我们成为抽象语法树AST，然后是对AST进行深加工的转换过程，这一步成为transform，最后将前面得到的AST生成为JS代码，也就是render函数。
-
-### 知其所以然
-
-vue3编译过程窥探：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/compiler-core/src/compile.ts#L61-L62 "https://github1s.com/vuejs/core/blob/HEAD/packages/compiler-core/src/compile.ts#L61-L62")
-
-测试，test-v3.html
-
-### 可能的追问
-
-1.  Vue中编译器何时执行？
-2.  react有没有编译器？
-
-## 19-Vue实例挂载的过程中发生了什么?
-
-### 分析
-
-挂载过程完成了最重要的两件事：
-
-1.  初始化
-2.  建立更新机制
-
-把这两件事说清楚即可！
-
-### 回答范例
-
-1.  挂载过程指的是app.mount()过程，这个过程中整体上做了两件事：**初始化**和**建立更新机制**
-2.  初始化会创建组件实例、初始化组件状态，创建各种响应式数据
-3.  建立更新机制这一步会立即执行一次组件更新函数，这会首次执行组件渲染函数并执行patch将前面获得vnode转换为dom；同时首次执行渲染函数会创建它内部响应式数据之间和组件更新函数之间的依赖关系，这使得以后数据变化时会执行对应的更新函数。
-
-### 知其所以然
-
-测试代码，test-v3.html mount函数定义
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L277-L278 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L277-L278")
-
-首次render过程
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L2303-L2304 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L2303-L2304")
-
-### 可能的追问
-
-1.  响应式数据怎么创建
-2.  依赖关系如何建立
-
-***
-
 
 ## 20-你了解哪些Vue性能优化方法？
 
@@ -1526,93 +2069,299 @@ vue3编译过程窥探：
 
 * * *
 
-## 21-Vue组件为什么只能有一个根元素?
+## 面试官：vue项目本地开发完成后部署到服务器后报404是什么原因呢？
 
-这题现在有些落伍，`vue3`已经不用一个根了。因此这题目很有说头！
+## 25-vue-loader是什么？它有什么作用？
+
+### 分析
+
+这是一道工具类的原理题目，相当有深度，具有不错的人才区分度。
 
 * * *
 
-### 体验一下
+### 体验
 
-vue2直接报错，test-v2.html
+使用官方提供的SFC playground可以很好的体验`vue-loader`。
 
-```bash
-new Vue({
-  components: {
-    comp: {
-      template: `
-        <div>root1</div>
-        <div>root2</div>
-      `
+[sfc.vuejs.org](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuPC9zY3JpcHQ+XG5cbjx0ZW1wbGF0ZT5cbiAgPGgxPnt7IG1zZyB9fTwvaDE+XG4gIDxpbnB1dCB2LW1vZGVsPVwibXNnXCI+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ== "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuPC9zY3JpcHQ+XG5cbjx0ZW1wbGF0ZT5cbiAgPGgxPnt7IG1zZyB9fTwvaDE+XG4gIDxpbnB1dCB2LW1vZGVsPVwibXNnXCI+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ==")
+
+* * *
+
+有了`vue-loader`加持，我们才可以以SFC的方式快速编写代码。
+
+```xml
+<template>
+  <div class="example">{{ msg }}</div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      msg: 'Hello world!',
     }
-  }
-}).$mount('#app')
+  },
+}
+</script>
+
+<style>
+.example {
+  color: red;
+}
+</style>
 ```
 
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1d930fdd81814acb8a470f1e8ef3a271~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+* * *
+
+### 思路
+
++   `vue-loader`是什么东东
++   `vue-loader`是做什么用的
++   `vue-loader`何时生效
++   `vue-loader`如何工作
 
 * * *
 
-vue3中没有问题，test-v3.html
+### 回答范例
 
-```php
-Vue.createApp({
-  components: {
-    comp: {
-      template: `
-        <div>root1</div>
-        <div>root2</div>
-      `
-    }
-  }
-}).mount('#app')
-```
-
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a10d510cc2ec48498a6e244a09437f3c~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-### 回答思路
-
-+   给一条自己的结论
-+   解释为什么会这样
-+   `vue3`解决方法原理
-
-* * *
-
-### 范例
-
-+   `vue2`中组件确实只能有一个根，但`vue3`中组件已经可以多根节点了。
-+   之所以需要这样是因为`vdom`是一颗单根树形结构，`patch`方法在遍历的时候从根节点开始遍历，它要求只有一个根节点。组件也会转换为一个`vdom`，自然应该满足这个要求。
-+   `vue3`中之所以可以写多个根节点，是因为引入了`Fragment`的概念，这是一个抽象的节点，如果发现组件是多根的，就创建一个Fragment节点，把多个根节点作为它的children。将来patch的时候，如果发现是一个Fragment节点，则直接遍历children创建或更新。
+0.  `vue-loader`是用于处理单文件组件（SFC，Single-File Component）的webpack loader
+1.  因为有了`vue-loader`，我们就可以在项目中编写SFC格式的Vue组件，我们可以把代码分割为<template>、<script>和<style>，代码会异常清晰。结合其他loader我们还可以用Pug编写<template>，用SASS编写<style>，用TS编写<script>。我们的<style>还可以单独作用当前组件。
+2.  webpack打包时，会以loader的方式调用`vue-loader`
+3.  `vue-loader`被执行时，它会对SFC中的每个语言块用单独的loader链处理。最后将这些单独的块装配成最终的组件模块。
 
 * * *
 
 ### 知其所以然
 
-+   patch方法接收单根vdom：
+0.  `vue-loader`会调用`@vue/compiler-sfc`模块解析SFC源码为一个描述符（Descriptor），然后为每个语言块生成import代码，返回的代码类似下面：
 
-    [github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L354-L355 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L354-L355")
+```javascript
+// source.vue被vue-loader处理之后返回的代码
 
-    ```rust
-    // 直接获取type等，没有考虑数组的可能性
-    const { type, ref, shapeFlag } = n2
-    ```
+// import the <template> block
+import render from 'source.vue?vue&type=template'
+// import the <script> block
+import script from 'source.vue?vue&type=script'
+export * from 'source.vue?vue&type=script'
+// import <style> blocks
+import 'source.vue?vue&type=style&index=1'
 
-+   patch方法对Fragment的处理：
+script.render = render
+export default script
+```
 
-    [github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1091-L1092 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1091-L1092")
+* * *
 
-    ```scss
-    // a fragment can only have array children
-    // since they are either generated by the compiler, or implicitly created
-    // from arrays.
-    mountChildren(n2.children as VNodeArrayChildren, container, ...)
-    ```
+2.  我们想要script块中的内容被作为js处理（当然如果是`<script lang="ts">`被作为ts处理），这样我们想要webpack把配置中跟.js匹配的规则都应用到形如`source.vue?vue&type=script`的这个请求上。例如我们对所有\*.js配置了babel-loader，这个规则将被克隆并应用到所在Vue SFC的
+
+```javascript
+import script from 'source.vue?vue&type=script'
+```
+
+将被展开为：
+
+```javascript
+import script from 'babel-loader!vue-loader!source.vue?vue&type=script'
+```
+
+类似的，如果我们对`.sass`文件配置了`style-loader` + `css-loader` + `sass-loader`，对下面的代码：
+
+```ini
+<style scoped lang="scss">
+```
+
+`vue-loader`将会返回给我们下面结果：
+
+```arduino
+import 'source.vue?vue&type=style&index=1&scoped&lang=scss'
+```
+
+* * *
+
+然后webpack会展开如下：
+
+```arduino
+import 'style-loader!css-loader!sass-loader!vue-loader!source.vue?vue&type=style&index=1&scoped&lang=scss'
+```
+
+0.  当处理展开请求时，`vue-loader`将被再次调用。这次，loader将会关注那些有查询串的请求，且仅针对特定块，它会选中特定块内部的内容并传递给后面匹配的loader。
+1.  对于`<script>`块，处理到这就可以了，但是`<template>` 和 `<style>`还有一些额外任务要做，比如：
+
++   需要用Vue 模板编译器编译template，从而得到render函数
++   需要对`<style scoped>`中的CSS做后处理（post-process），该操作在css-loader之后但在style-loader之前
+
+实现上这些附加的loader需要被注入到已经展开的loader链上，最终的请求会像下面这样：
+
+```arduino
+// <template lang="pug">
+import 'vue-loader/template-loader!pug-loader!source.vue?vue&type=template'
+
+// <style scoped lang="scss">
+import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loader!source.vue?vue&type=style&index=1&scoped&lang=scss'
+```
+
+* * *
+
+## 16-从0到1自己构架一个vue项目，说说有哪些步骤、哪些重要插件、目录结构你会怎么组织
+
+综合实践类题目，考查实战能力。没有什么绝对的正确答案，把平时工作的重点有条理的描述一下即可。
+
+### 思路
+
+1.  构建项目，创建项目基本结构
+2.  引入必要的插件：
+3.  代码规范：prettier，eslint
+4.  提交规范：husky，lint-staged
+5.  其他常用：svg-loader，vueuse，nprogress
+6.  常见目录结构
+
+* * *
+
+### 回答范例
+
+1.  从0创建一个项目我大致会做以下事情：项目构建、引入必要插件、代码规范、提交规范、常用库和组件
+
+2.  目前vue3项目我会用vite或者create-vue创建项目
+
+3.  接下来引入必要插件：路由插件vue-router、状态管理vuex/pinia、ui库我比较喜欢element-plus和antd-vue、http工具我会选axios
+
+4.  其他比较常用的库有vueuse，nprogress，图标可以使用vite-svg-loader
+
+5.  下面是代码规范：结合prettier和eslint即可
+
+6.  最后是提交规范，可以使用husky，lint-staged，commitlint
 
 
 * * *
 
+7.  目录结构我有如下习惯： `.vscode`：用来放项目中的 vscode 配置
+
+    `plugins`：用来放 vite 插件的 plugin 配置
+
+    `public`：用来放一些诸如 页头icon 之类的公共文件，会被打包到dist根目录下
+
+    `src`：用来放项目代码文件
+
+    `api`：用来放http的一些接口配置
+
+    `assets`：用来放一些 CSS 之类的静态资源
+
+    `components`：用来放项目通用组件
+
+    `layout`：用来放项目的布局
+
+    `router`：用来放项目的路由配置
+
+    `store`：用来放状态管理Pinia的配置
+
+    `utils`：用来放项目中的工具方法类
+
+    `views`：用来放项目的页面文件
+
+
+* * *
+
+## 17-实际工作中，你总结的vue最佳实践有哪些？
+
+看到这样的题目，可以用以下图片来回答：
+
+![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/893abf278d56465e81ac83492b150684~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+### 思路
+
+查看vue官方文档：
+
+风格指南：[vuejs.org/style-guide…](https://vuejs.org/style-guide/ "https://vuejs.org/style-guide/")
+
+性能：[vuejs.org/guide/best-…](https://vuejs.org/guide/best-practices/performance.html#overview "https://vuejs.org/guide/best-practices/performance.html#overview")
+
+安全：[vuejs.org/guide/best-…](https://vuejs.org/guide/best-practices/security.html "https://vuejs.org/guide/best-practices/security.html")
+
+访问性：[vuejs.org/guide/best-…](https://vuejs.org/guide/best-practices/accessibility.html "https://vuejs.org/guide/best-practices/accessibility.html")
+
+发布：[vuejs.org/guide/best-…](https://vuejs.org/guide/best-practices/production-deployment.html "https://vuejs.org/guide/best-practices/production-deployment.html")
+
+* * *
+
+### 回答范例
+
+我从编码风格、性能、安全等方面说几条：
+
+1.  编码风格方面：
+    +   命名组件时使用“多词”风格避免和HTML元素冲突
+    +   使用“细节化”方式定义属性而不是只有一个属性名
+    +   属性名声明时使用“驼峰命名”，模板或jsx中使用“肉串命名”
+    +   使用v-for时务必加上key，且不要跟v-if写在一起
+2.  性能方面：
+    +   路由懒加载减少应用尺寸
+    +   利用SSR减少首屏加载时间
+    +   利用v-once渲染那些不需要更新的内容
+    +   一些长列表可以利用虚拟滚动技术避免内存过度占用
+    +   对于深层嵌套对象的大数组可以使用shallowRef或shallowReactive降低开销
+    +   避免不必要的组件抽象
+
+* * *
+
+3.  安全：
+    +   不使用不可信模板，例如使用用户输入拼接模板：`template: <div> + userProvidedString + </div>`
+    +   小心使用v-html，:url，:style等，避免html、url、样式等注入
+4.  等等......
+
+* * *
+
+
+
+# Vue3 API
+
+参考: [vue 3.x](vue3.md)
+
+## 33-Composition API 与 Options API 有什么不同
+
+### 分析
+
+Vue3最重要更新之一就是Composition API，它具有一些列优点，其中不少是针对Options API暴露的一些问题量身打造。是Vue3推荐的写法，因此掌握好Composition API应用对掌握好Vue3至关重要。
+
+![image-20220629182639250](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8b7b4bfafa5c4507be726d273161c3c2~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+[vuejs.org/guide/extra…](https://vuejs.org/guide/extras/composition-api-faq.html "https://vuejs.org/guide/extras/composition-api-faq.html")
+
+* * *
+
+### 体验
+
+Composition API能更好的组织代码，下面这个代码用options api实现
+
+![image-20220629183203082](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a280d15533ad4481a6121064940eae1b~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+如果用composition api可以提取为useCount()，用于组合、复用
+
+![image-20220629184919471](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1aa01aeeff224815bef1356b773fae2d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+
+* * *
+
+### 思路
+
++   总述不同点
++   composition api动机
++   两者选择
+
+* * *
+
+### 回答范例
+
++   `Composition API`是一组API，包括：Reactivity API、生命周期钩子、依赖注入，使用户可以通过导入函数方式编写vue组件。而`Options API`则通过声明组件选项的对象形式编写组件。
++   `Composition API`最主要作用是能够简洁、高效复用逻辑。解决了过去`Options API`中`mixins`的各种缺点；另外`Composition API`具有更加敏捷的代码组织能力，很多用户喜欢`Options API`，认为所有东西都有固定位置的选项放置代码，但是单个组件增长过大之后这反而成为限制，一个逻辑关注点分散在组件各处，形成代码碎片，维护时需要反复横跳，`Composition API`则可以将它们有效组织在一起。最后`Composition API`拥有更好的类型推断，对ts支持更友好，`Options API`在设计之初并未考虑类型推断因素，虽然官方为此做了很多复杂的类型体操，确保用户可以在使用`Options API`时获得类型推断，然而还是没办法用在mixins和provide/inject上。
++   Vue3首推`Composition API`，但是这会让我们在代码组织上多花点心思，因此在选择上，如果我们项目属于中低复杂度的场景，`Options API`仍是一个好选择。对于那些大型，高扩展，强维护的项目上，`Composition API`会获得更大收益。
+
+* * *
+
+### 可能的追问
+
++   `Composition API`能否和`Options API`一起使用？
+
+* * *
 
 ## 22-ref和reactive异同
 
@@ -1763,802 +2512,6 @@ export function watch<T = any, Immediate extends Readonly<boolean> = false>(
 很明显`watchEffect`就是一种特殊的`watch`实现。
 
 * * *
-
-## 24-SPA、SSR的区别是什么
-
-我们现在编写的Vue、React和Angular应用大多数情况下都会在一个页面中，点击链接跳转页面通常是内容切换而非页面跳转，由于良好的用户体验逐渐成为主流的开发模式。但同时也会有首屏加载时间长，SEO不友好的问题，因此有了SSR，这也是为什么面试中会问到两者的区别。
-
-### 思路分析
-
-0.  两者概念
-1.  两者优缺点分析
-2.  使用场景差异
-3.  其他选择
-
-* * *
-
-### 回答范例
-
-0.  SPA（Single Page Application）即**单页面应用**。一般也称为 **客户端渲染**（Client Side Render）， 简称 CSR。SSR（Server Side Render）即 **服务端渲染**。一般也称为 **多页面应用**（Mulpile Page Application），简称 MPA。
-1.  SPA应用只会首次请求html文件，后续只需要请求JSON数据即可，因此用户体验更好，节约流量，服务端压力也较小。但是首屏加载的时间会变长，而且SEO不友好。为了解决以上缺点，就有了SSR方案，由于HTML内容在服务器一次性生成出来，首屏加载快，搜索引擎也可以很方便的抓取页面信息。但同时SSR方案也会有性能，开发受限等问题。
-2.  在选择上，如果我们的应用存在首屏加载优化需求，SEO需求时，就可以考虑SSR。
-3.  但并不是只有这一种替代方案，比如对一些不常变化的静态网站，SSR反而浪费资源，我们可以考虑[预渲染](https://github.com/chrisvfritz/prerender-spa-plugin "https://github.com/chrisvfritz/prerender-spa-plugin")（prerender）方案。另外nuxt.js/next.js中给我们提供了SSG（Static Site Generate）静态网站生成方案也是很好的静态站点解决方案，结合一些CI手段，可以起到很好的优化效果，且能节约服务器资源。
-
-* * *
-
-### 知其所以然
-
-内容生成上的区别：
-
-SSR
-
-![ss](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f486234794794c8baf4f44496d8e824f~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-SPA
-
-![sp](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5171c9f5a94447fc8f12d644ab31e078~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-部署上的区别
-
-![部署上区别](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3af3e8cc8da34394bf7d4c3d75bf9ec8~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-## 25-vue-loader是什么？它有什么作用？
-
-### 分析
-
-这是一道工具类的原理题目，相当有深度，具有不错的人才区分度。
-
-* * *
-
-### 体验
-
-使用官方提供的SFC playground可以很好的体验`vue-loader`。
-
-[sfc.vuejs.org](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuPC9zY3JpcHQ+XG5cbjx0ZW1wbGF0ZT5cbiAgPGgxPnt7IG1zZyB9fTwvaDE+XG4gIDxpbnB1dCB2LW1vZGVsPVwibXNnXCI+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ== "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuPC9zY3JpcHQ+XG5cbjx0ZW1wbGF0ZT5cbiAgPGgxPnt7IG1zZyB9fTwvaDE+XG4gIDxpbnB1dCB2LW1vZGVsPVwibXNnXCI+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ==")
-
-* * *
-
-有了`vue-loader`加持，我们才可以以SFC的方式快速编写代码。
-
-```xml
-<template>
-  <div class="example">{{ msg }}</div>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      msg: 'Hello world!',
-    }
-  },
-}
-</script>
-
-<style>
-.example {
-  color: red;
-}
-</style>
-```
-
-* * *
-
-### 思路
-
-+   `vue-loader`是什么东东
-+   `vue-loader`是做什么用的
-+   `vue-loader`何时生效
-+   `vue-loader`如何工作
-
-* * *
-
-### 回答范例
-
-0.  `vue-loader`是用于处理单文件组件（SFC，Single-File Component）的webpack loader
-1.  因为有了`vue-loader`，我们就可以在项目中编写SFC格式的Vue组件，我们可以把代码分割为<template>、<script>和<style>，代码会异常清晰。结合其他loader我们还可以用Pug编写<template>，用SASS编写<style>，用TS编写<script>。我们的<style>还可以单独作用当前组件。
-2.  webpack打包时，会以loader的方式调用`vue-loader`
-3.  `vue-loader`被执行时，它会对SFC中的每个语言块用单独的loader链处理。最后将这些单独的块装配成最终的组件模块。
-
-* * *
-
-### 知其所以然
-
-0.  `vue-loader`会调用`@vue/compiler-sfc`模块解析SFC源码为一个描述符（Descriptor），然后为每个语言块生成import代码，返回的代码类似下面：
-
-```javascript
-// source.vue被vue-loader处理之后返回的代码
-
-// import the <template> block
-import render from 'source.vue?vue&type=template'
-// import the <script> block
-import script from 'source.vue?vue&type=script'
-export * from 'source.vue?vue&type=script'
-// import <style> blocks
-import 'source.vue?vue&type=style&index=1'
-
-script.render = render
-export default script
-```
-
-* * *
-
-2.  我们想要script块中的内容被作为js处理（当然如果是`<script lang="ts">`被作为ts处理），这样我们想要webpack把配置中跟.js匹配的规则都应用到形如`source.vue?vue&type=script`的这个请求上。例如我们对所有\*.js配置了babel-loader，这个规则将被克隆并应用到所在Vue SFC的
-
-```javascript
-import script from 'source.vue?vue&type=script'
-```
-
-将被展开为：
-
-```javascript
-import script from 'babel-loader!vue-loader!source.vue?vue&type=script'
-```
-
-类似的，如果我们对`.sass`文件配置了`style-loader` + `css-loader` + `sass-loader`，对下面的代码：
-
-```ini
-<style scoped lang="scss">
-```
-
-`vue-loader`将会返回给我们下面结果：
-
-```arduino
-import 'source.vue?vue&type=style&index=1&scoped&lang=scss'
-```
-
-* * *
-
-然后webpack会展开如下：
-
-```arduino
-import 'style-loader!css-loader!sass-loader!vue-loader!source.vue?vue&type=style&index=1&scoped&lang=scss'
-```
-
-0.  当处理展开请求时，`vue-loader`将被再次调用。这次，loader将会关注那些有查询串的请求，且仅针对特定块，它会选中特定块内部的内容并传递给后面匹配的loader。
-1.  对于`<script>`块，处理到这就可以了，但是`<template>` 和 `<style>`还有一些额外任务要做，比如：
-
-+   需要用Vue 模板编译器编译template，从而得到render函数
-+   需要对`<style scoped>`中的CSS做后处理（post-process），该操作在css-loader之后但在style-loader之前
-
-实现上这些附加的loader需要被注入到已经展开的loader链上，最终的请求会像下面这样：
-
-```arduino
-// <template lang="pug">
-import 'vue-loader/template-loader!pug-loader!source.vue?vue&type=template'
-
-// <style scoped lang="scss">
-import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loader!source.vue?vue&type=style&index=1&scoped&lang=scss'
-```
-
-* * *
-
-## 26-你写过自定义指令吗？使用场景有哪些？
-
-### 分析
-
-这是一道API题，我们可能写的自定义指令少，但是我们用的多呀，多举几个例子就行。
-
-* * *
-
-### 体验
-
-定义一个包含类似组件生命周期钩子的对象，钩子函数会接收指令挂钩的dom元素：
-
-```javascript
-const focus = {
-  mounted: (el) => el.focus()
-}
-
-export default {
-  directives: {
-    // enables v-focus in template
-    focus
-  }
-}
-<input v-focus />
-```
-
-```css
-<input v-focus />
-```
-
-* * *
-
-### 思路
-
-0.  定义
-1.  何时用
-2.  如何用
-3.  常用指令
-4.  vue3变化
-
-* * *
-
-### 回答范例
-
-0.  Vue有一组默认指令，比如`v-mode`l或`v-for`，同时Vue也允许用户注册自定义指令来扩展Vue能力
-
-1.  自定义指令主要完成一些可复用低层级DOM操作
-
-2.  使用自定义指令分为定义、注册和使用三步：
-
-    +   定义自定义指令有两种方式：对象和函数形式，前者类似组件定义，有各种生命周期；后者只会在mounted和updated时执行
-    +   注册自定义指令类似组件，可以使用app.directive()全局注册，使用{directives:{xxx}}局部注册
-    +   使用时在注册名称前加上v-即可，比如v-focus
-3.  我在项目中常用到一些自定义指令，例如：
-
-    +   复制粘贴 v-copy
-    +   长按 v-longpress
-    +   防抖 v-debounce
-    +   图片懒加载 v-lazy
-    +   按钮权限 v-premission
-    +   页面水印 v-waterMarker
-    +   拖拽指令 v-draggable
-4.  vue3中指令定义发生了比较大的变化，主要是钩子的名称保持和组件一致，这样开发人员容易记忆，不易犯错。另外在v3.2之后，可以在setup中以一个小写v开头方便的定义自定义指令，更简单了！
-
-
-* * *
-
-### 知其所以然
-
-编译后的自定义指令会被withDirective函数装饰，进一步处理生成的vnode，添加到特定属性中。
-
-[sfc.vuejs.org/#eyJBcHAudn…](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuXG5jb25zdCB2Rm9jdXMgPSB7XG4gIG1vdW50ZWQoZWwpIHtcbiAgICAvLyDojrflj5ZpbnB1dO+8jOW5tuiwg+eUqOWFtmZvY3VzKCnmlrnms5VcbiAgICBlbC5mb2N1cygpXG4gIH1cbn1cbjwvc2NyaXB0PlxuXG48dGVtcGxhdGU+XG4gIDxoMT57eyBtc2cgfX08L2gxPlxuICA8aW5wdXQgdi1tb2RlbD1cIm1zZ1wiIHYtZm9jdXM+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ== "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuXG5jb25zdCB2Rm9jdXMgPSB7XG4gIG1vdW50ZWQoZWwpIHtcbiAgICAvLyDojrflj5ZpbnB1dO+8jOW5tuiwg+eUqOWFtmZvY3VzKCnmlrnms5VcbiAgICBlbC5mb2N1cygpXG4gIH1cbn1cbjwvc2NyaXB0PlxuXG48dGVtcGxhdGU+XG4gIDxoMT57eyBtc2cgfX08L2gxPlxuICA8aW5wdXQgdi1tb2RlbD1cIm1zZ1wiIHYtZm9jdXM+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ==")
-
-* * *
-
-## 27-说下$attrs和$listeners的使用场景
-
-### 分析
-
-API考察，但$attrs和$listeners是比较少用的边界知识，而且vue3有变化，$listeners已经移除，还是有细节可说的。
-
-* * *
-
-### 思路
-
-0.  这两个api的作用
-1.  使用场景分析
-2.  使用方式和细节
-3.  vue3变化
-
-* * *
-
-### 体验
-
-一个包含组件透传属性的对象。
-
-> An object that contains the component's fallthrough attributes.
-
-```xml
-<template>
-    <child-component v-bind="$attrs">
-        将非属性特性透传给内部的子组件
-    </child-component>
-</template>
-```
-
-* * *
-
-### 范例
-
-0.  我们可能会有一些属性和事件没有在props中定义，这类称为非属性特性，结合v-bind指令可以直接透传给内部的子组件。
-1.  这类“属性透传”常常用于包装高阶组件时往内部传递属性，常用于爷孙组件之间传参。比如我在扩展A组件时创建了组件B组件，然后在C组件中使用B，此时传递给C的属性中只有props里面声明的属性是给B使用的，其他的都是A需要的，此时就可以利用v-bind="$attrs"透传下去。
-2.  最常见用法是结合v-bind做展开；$attrs本身不是响应式的，除非访问的属性本身是响应式对象。
-3.  vue2中使用listeners获取事件，vue3中已移除，均合并到listeners获取事件，vue3中已移除，均合并到attrs中，使用起来更简单了。
-
-* * *
-
-### 原理
-
-查看透传属性foo和普通属性bar，发现vnode结构完全相同，这说明vue3中将分辨两者工作由框架完成而非用户指定：
-
-```xml
-<template>
-  <h1>{{ msg }}</h1>
-  <comp foo="foo" bar="bar" />
-</template>
-```
-
-```xml
-<template>
-  <div>
-    {{$attrs.foo}} {{bar}}
-  </div>
-</template>
-<script setup>
-defineProps({
-  bar: String
-})
-</script>
-```
-
-```php
-_createVNode(Comp, {
-    foo: "foo",
-    bar: "bar"
-})
-```
-
-* * *
-
-[sfc.vuejs.org/#eyJBcHAudn…](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBDb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ0hlbGxvIFdvcmxkIScpXG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgZm9vPVwiZm9vXCIgYmFyPVwiYmFyXCIgLz5cbjwvdGVtcGxhdGU+IiwiaW1wb3J0LW1hcC5qc29uIjoie1xuICBcImltcG9ydHNcIjoge1xuICAgIFwidnVlXCI6IFwiaHR0cHM6Ly9zZmMudnVlanMub3JnL3Z1ZS5ydW50aW1lLmVzbS1icm93c2VyLmpzXCJcbiAgfVxufSIsIkNvbXAudnVlIjoiPHRlbXBsYXRlPlxuXHQ8ZGl2PlxuICAgIHt7JGF0dHJzLmZvb319IHt7YmFyfX1cbiAgPC9kaXY+XG48L3RlbXBsYXRlPlxuPHNjcmlwdCBzZXR1cD5cbmRlZmluZVByb3BzKHtcbiAgYmFyOiBTdHJpbmdcbn0pXG48L3NjcmlwdD4ifQ== "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBDb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ0hlbGxvIFdvcmxkIScpXG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgZm9vPVwiZm9vXCIgYmFyPVwiYmFyXCIgLz5cbjwvdGVtcGxhdGU+IiwiaW1wb3J0LW1hcC5qc29uIjoie1xuICBcImltcG9ydHNcIjoge1xuICAgIFwidnVlXCI6IFwiaHR0cHM6Ly9zZmMudnVlanMub3JnL3Z1ZS5ydW50aW1lLmVzbS1icm93c2VyLmpzXCJcbiAgfVxufSIsIkNvbXAudnVlIjoiPHRlbXBsYXRlPlxuXHQ8ZGl2PlxuICAgIHt7JGF0dHJzLmZvb319IHt7YmFyfX1cbiAgPC9kaXY+XG48L3RlbXBsYXRlPlxuPHNjcmlwdCBzZXR1cD5cbmRlZmluZVByb3BzKHtcbiAgYmFyOiBTdHJpbmdcbn0pXG48L3NjcmlwdD4ifQ==")
-
-* * *
-
-## 28-v-once的使用场景有哪些？
-
-### 分析
-
-`v-once`是Vue中内置指令，很有用的API，在优化方面经常会用到，不过小伙伴们平时可能容易忽略它。
-
-* * *
-
-### 体验
-
-仅渲染元素和组件一次，并且跳过未来更新
-
-> Render the element and component once only, and skip future updates.
-
-```xml
-<!-- single element -->
-<span v-once>This will never change: {{msg}}</span>
-<!-- the element have children -->
-<div v-once>
-  <h1>comment</h1>
-  <p>{{msg}}</p>
-</div>
-<!-- component -->
-<my-component v-once :comment="msg"></my-component>
-<!-- `v-for` directive -->
-<ul>
-  <li v-for="i in list" v-once>{{i}}</li>
-</ul>
-```
-
-* * *
-
-### 思路
-
-0.  `v-once`是什么
-1.  什么时候使用
-2.  如何使用
-3.  扩展`v-memo`
-4.  探索原理
-
-* * *
-
-### 回答范例
-
-0.  `v-once`是vue的内置指令，作用是仅渲染指定组件或元素一次，并跳过未来对其更新。
-1.  如果我们有一些元素或者组件在初始化渲染之后不再需要变化，这种情况下适合使用`v-once`，这样哪怕这些数据变化，vue也会跳过更新，是一种代码优化手段。
-2.  我们只需要作用的组件或元素上加上v-once即可。
-3.  vue3.2之后，又增加了`v-memo`指令，可以有条件缓存部分模板并控制它们的更新，可以说控制力更强了。
-4.  编译器发现元素上面有v-once时，会将首次计算结果存入缓存对象，组件再次渲染时就会从缓存获取，从而避免再次计算。
-
-* * *
-
-### 知其所以然
-
-下面例子使用了v-once：
-
-```xml
-<script setup>
-import { ref } from 'vue'
-
-const msg = ref('Hello World!')
-</script>
-
-<template>
-  <h1 v-once>{{ msg }}</h1>
-  <input v-model="msg">
-</template>
-```
-
-我们发现v-once出现后，编译器会缓存作用元素或组件，从而避免以后更新时重新计算这一部分：
-
-```scss
-// ...
-return (_ctx, _cache) => {
-  return (_openBlock(), _createElementBlock(_Fragment, null, [
-    // 从缓存获取vnode
-    _cache[0] || (
-      _setBlockTracking(-1),
-      _cache[0] = _createElementVNode("h1", null, [
-        _createTextVNode(_toDisplayString(msg.value), 1 /* TEXT */)
-      ]),
-      _setBlockTracking(1),
-      _cache[0]
-    ),
-// ...
-```
-
-* * *
-
-## 29-什么是递归组件？举个例子说明下？
-
-### 分析
-
-递归组件我们用的比较少，但是在Tree、Menu这类组件中会被用到。
-
-* * *
-
-### 体验
-
-组件通过组件名称引用它自己，这种情况就是递归组件。
-
-> An SFC can implicitly refer to itself via its filename.
-
-```xml
-<template>
-  <li>
-    <div> {{ model.name }}</div>
-    <ul v-show="isOpen" v-if="isFolder">
-      <!-- 注意这里：组件递归渲染了它自己 -->
-      <TreeItem
-        class="item"
-        v-for="model in model.children"
-        :model="model">
-      </TreeItem>
-    </ul>
-  </li>
-<script>
-export default {
-  name: 'TreeItem',
-  // ...
-}
-</script>
-```
-
-* * *
-
-### 思路
-
-+   下定义
-+   使用场景
-+   使用细节
-+   原理阐述
-
-* * *
-
-### 回答范例
-
-0.  如果某个组件通过组件名称引用它自己，这种情况就是递归组件。
-1.  实际开发中类似Tree、Menu这类组件，它们的节点往往包含子节点，子节点结构和父节点往往是相同的。这类组件的数据往往也是树形结构，这种都是使用递归组件的典型场景。
-2.  使用递归组件时，由于我们并未也不能在组件内部导入它自己，所以设置组件`name`属性，用来查找组件定义，如果使用SFC，则可以通过SFC文件名推断。组件内部通常也要有递归结束条件，比如model.children这样的判断。
-3.  查看生成渲染函数可知，递归组件查找时会传递一个布尔值给`resolveComponent`，这样实际获取的组件就是当前组件本身。
-
-* * *
-
-### 知其所以然
-
-递归组件编译结果中，获取组件时会传递一个标识符 `_resolveComponent("Comp", true)`
-
-```ini
-const _component_Comp = _resolveComponent("Comp", true)
-```
-
-就是在传递`maybeSelfReference`
-
-```typescript
-export function resolveComponent(
-  name: string,
-  maybeSelfReference?: boolean
-): ConcreteComponent | string {
-  return resolveAsset(COMPONENTS, name, true, maybeSelfReference) || name
-}
-```
-
-resolveAsset中最终返回的是组件自身：
-
-```kotlin
-if (!res && maybeSelfReference) {
-    // fallback to implicit self-reference
-    return Component
-}
-```
-
-* * *
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L22-L23 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L22-L23")
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L110-L111 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L110-L111")
-
-[sfc.vuejs.org/#eyJBcHAudn…](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBjb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ+mAkuW9kue7hOS7ticpXG5jb25zdCBtb2RlbCA9IHtcbiAgbGFiZWw6ICdub2RlLTEnLFxuICBjaGlsZHJlbjogW1xuICAgIHtsYWJlbDogJ25vZGUtMS0xJ30sXG4gICAge2xhYmVsOiAnbm9kZS0xLTInfVxuICBdXG59XG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgOm1vZGVsPVwibW9kZWxcIj48L2NvbXA+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0iLCJDb21wLnZ1ZSI6Ijx0ZW1wbGF0ZT5cbiAgPGRpdj5cbiAgICB7e21vZGVsLmxhYmVsfX1cbiAgPC9kaXY+XG4gIDxDb21wIHYtZm9yPVwiaXRlbSBpbiBtb2RlbC5jaGlsZHJlblwiIDptb2RlbD1cIml0ZW1cIj48L0NvbXA+XG4gIDxjb21wMj48L2NvbXAyPlxuPC90ZW1wbGF0ZT5cbjxzY3JpcHQ+XG5cdGV4cG9ydCBkZWZhdWx0IHtcbiAgICBuYW1lOiAnQ29tcCcsXG4gICAgcHJvcHM6IHtcbiAgICAgIG1vZGVsOiBPYmplY3RcbiAgICB9LFxuICAgIGNvbXBvbmVudHM6IHtcbiAgICAgIGNvbXAyOiB7XG4gICAgICAgIHJlbmRlcigpe31cbiAgICAgIH1cbiAgICB9XG4gIH1cbjwvc2NyaXB0PiJ9 "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBjb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ+mAkuW9kue7hOS7ticpXG5jb25zdCBtb2RlbCA9IHtcbiAgbGFiZWw6ICdub2RlLTEnLFxuICBjaGlsZHJlbjogW1xuICAgIHtsYWJlbDogJ25vZGUtMS0xJ30sXG4gICAge2xhYmVsOiAnbm9kZS0xLTInfVxuICBdXG59XG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgOm1vZGVsPVwibW9kZWxcIj48L2NvbXA+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0iLCJDb21wLnZ1ZSI6Ijx0ZW1wbGF0ZT5cbiAgPGRpdj5cbiAgICB7e21vZGVsLmxhYmVsfX1cbiAgPC9kaXY+XG4gIDxDb21wIHYtZm9yPVwiaXRlbSBpbiBtb2RlbC5jaGlsZHJlblwiIDptb2RlbD1cIml0ZW1cIj48L0NvbXA+XG4gIDxjb21wMj48L2NvbXAyPlxuPC90ZW1wbGF0ZT5cbjxzY3JpcHQ+XG5cdGV4cG9ydCBkZWZhdWx0IHtcbiAgICBuYW1lOiAnQ29tcCcsXG4gICAgcHJvcHM6IHtcbiAgICAgIG1vZGVsOiBPYmplY3RcbiAgICB9LFxuICAgIGNvbXBvbmVudHM6IHtcbiAgICAgIGNvbXAyOiB7XG4gICAgICAgIHJlbmRlcigpe31cbiAgICAgIH1cbiAgICB9XG4gIH1cbjwvc2NyaXB0PiJ9")
-
-* * *
-
-## 30-异步组件是什么？使用场景有哪些？
-
-### 分析
-
-因为异步路由的存在，我们使用异步组件的次数比较少，因此还是有必要两者的不同。
-
-### 体验
-
-大型应用中，我们需要分割应用为更小的块，并且在需要组件时再加载它们。
-
-> In large applications, we may need to divide the app into smaller chunks and only load a component from the server when it's needed.
-
-```javascript
-import { defineAsyncComponent } from 'vue'
-// defineAsyncComponent定义异步组件
-const AsyncComp = defineAsyncComponent(() => {
-  // 加载函数返回Promise
-  return new Promise((resolve, reject) => {
-    // ...可以从服务器加载组件
-    resolve(/* loaded component */)
-  })
-})
-// 借助打包工具实现ES模块动态导入
-const AsyncComp = defineAsyncComponent(() =>
-  import('./components/MyComponent.vue')
-)
-```
-
-* * *
-
-### 思路
-
-0.  异步组件作用
-1.  何时使用异步组件
-2.  使用细节
-3.  和路由懒加载的不同
-
-* * *
-
-### 范例
-
-0.  在大型应用中，我们需要分割应用为更小的块，并且在需要组件时再加载它们。
-1.  我们不仅可以在路由切换时懒加载组件，还可以在页面组件中继续使用异步组件，从而实现更细的分割粒度。
-2.  使用异步组件最简单的方式是直接给defineAsyncComponent指定一个loader函数，结合ES模块动态导入函数import可以快速实现。我们甚至可以指定loadingComponent和errorComponent选项从而给用户一个很好的加载反馈。另外Vue3中还可以结合Suspense组件使用异步组件。
-3.  异步组件容易和路由懒加载混淆，实际上不是一个东西。异步组件不能被用于定义懒加载路由上，处理它的是vue框架，处理路由组件加载的是vue-router。但是可以在懒加载的路由组件中使用异步组件。
-
-* * *
-
-### 知其所以然
-
-defineAsyncComponent定义了一个高阶组件，返回一个包装组件。包装组件根据加载器的状态决定渲染什么内容。
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiAsyncComponent.ts#L43-L44 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiAsyncComponent.ts#L43-L44")
-
-* * *
-
-## 31-你是怎么处理vue项目中的错误的？
-
-### 分析
-
-这是一个综合应用题目，在项目中我们常常需要将App的异常上报，此时错误处理就很重要了。
-
-这里要区分错误的类型，针对性做收集。
-
-然后是将收集的的错误信息上报服务器。
-
-* * *
-
-### 思路
-
-0.  首先区分错误类型
-1.  根据错误不同类型做相应收集
-2.  收集的错误是如何上报服务器的
-
-* * *
-
-### 回答范例
-
-0.  应用中的错误类型分为"`接口异常`"和“`代码逻辑异常`”
-1.  我们需要根据不同错误类型做相应处理：`接口异常`是我们请求后端接口过程中发生的异常，可能是请求失败，也可能是请求获得了服务器响应，但是返回的是错误状态。以Axios为例，这类异常我们可以通过封装Axios，在拦截器中统一处理整个应用中请求的错误。`代码逻辑异常`是我们编写的前端代码中存在逻辑上的错误造成的异常，vue应用中最常见的方式是使用全局错误处理函数`app.config.errorHandler`收集错误。
-2.  收集到错误之后，需要统一处理这些异常：分析错误，获取需要错误信息和数据。这里应该有效区分错误类型，如果是请求错误，需要上报接口信息，参数，状态码等；对于前端逻辑异常，获取错误名称和详情即可。另外还可以收集应用名称、环境、版本、用户信息，所在页面等。这些信息可以通过vuex存储的全局状态和路由信息获取。
-
-* * *
-
-### 实践
-
-axios拦截器中处理捕获异常：
-
-```vbscript
-// 响应拦截器
-instance.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
-  (error) => {
-    // 存在response说明服务器有响应
-    if (error.response) {
-      let response = error.response;
-      if (response.status >= 400) {
-        handleError(response);
-      }
-    } else {
-      handleError(null);
-    }
-    return Promise.reject(error);
-  },
-);
-```
-
-* * *
-
-vue中全局捕获异常：
-
-```javascript
-import { createApp } from 'vue'
-
-const app = createApp(...)
-
-app.config.errorHandler = (err, instance, info) => {
-  // report error to tracking services
-}
-```
-
-* * *
-
-处理接口请求错误：
-
-```lua
-function handleError(error, type) {
-  if(type == 1) {
-    // 接口错误，从config字段中获取请求信息
-    let { url, method, params, data } = error.config
-    let err_data = {
-       url, method,
-       params: { query: params, body: data },
-       error: error.data?.message || JSON.stringify(error.data),
-    })
-  }
-}
-```
-
-* * *
-
-处理前端逻辑错误：
-
-```go
-function handleError(error, type) {
-  if(type == 2) {
-    let errData = null
-    // 逻辑错误
-    if(error instanceof Error) {
-      let { name, message } = error
-      errData = {
-        type: name,
-        error: message
-      }
-    } else {
-      errData = {
-        type: 'other',
-        error: JSON.strigify(error)
-      }
-    }
-  }
-}
-```
-
-* * *
-
-
-## 32-History模式和Hash模式有何区别？
-
-### 分析
-
-vue-router有3个模式，其中两个更为常用，那便是history和hash。
-
-两者差别主要在显示形式和部署上。
-
-* * *
-
-### 体验
-
-vue-router4.x中设置模式已经变化：
-
-```bash
-const router = createRouter({
-  history: createWebHashHistory(), // hash模式
-  history: createWebHistory(),     // history模式
-})
-```
-
-用起来一模一样
-
-```ini
-<router-link to="/about">Go to About</router-link>
-```
-
-区别只在url形式
-
-```ruby
-// hash
-// 浏览器里的形态：http://xx.com/#/about
-// history
-// 浏览器里的形态：http://xx.com/about
-```
-
-### 思路
-
-+   区别
-+   详细阐述
-+   实现
-
-* * *
-
-### 回答范例
-
-+   vue-router有3个模式，其中history和hash更为常用。两者差别主要在显示形式、seo和部署上。
-+   hash模式在地址栏显示的时候是已哈希的形式：#/xxx，这种方式使用和部署简单，但是不会被搜索引擎处理，seo有问题；history模式则建议用在大部分web项目上，但是它要求应用在部署时做特殊配置，服务器需要做回退处理，否则会出现刷新页面404的问题。
-+   底层实现上其实hash是一种特殊的history实现。
-
-* * *
-
-### 知其所以然
-
-hash是一种特殊的history实现：
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32 "https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32")
-
-* * *
-
-
-## 33-Composition API 与 Options API 有什么不同
-
-### 分析
-
-Vue3最重要更新之一就是Composition API，它具有一些列优点，其中不少是针对Options API暴露的一些问题量身打造。是Vue3推荐的写法，因此掌握好Composition API应用对掌握好Vue3至关重要。
-
-![image-20220629182639250](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8b7b4bfafa5c4507be726d273161c3c2~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-[vuejs.org/guide/extra…](https://vuejs.org/guide/extras/composition-api-faq.html "https://vuejs.org/guide/extras/composition-api-faq.html")
-
-* * *
-
-### 体验
-
-Composition API能更好的组织代码，下面这个代码用options api实现
-
-![image-20220629183203082](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a280d15533ad4481a6121064940eae1b~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-如果用composition api可以提取为useCount()，用于组合、复用
-
-![image-20220629184919471](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1aa01aeeff224815bef1356b773fae2d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-### 思路
-
-+   总述不同点
-+   composition api动机
-+   两者选择
-
-* * *
-
-### 回答范例
-
-+   `Composition API`是一组API，包括：Reactivity API、生命周期钩子、依赖注入，使用户可以通过导入函数方式编写vue组件。而`Options API`则通过声明组件选项的对象形式编写组件。
-+   `Composition API`最主要作用是能够简洁、高效复用逻辑。解决了过去`Options API`中`mixins`的各种缺点；另外`Composition API`具有更加敏捷的代码组织能力，很多用户喜欢`Options API`，认为所有东西都有固定位置的选项放置代码，但是单个组件增长过大之后这反而成为限制，一个逻辑关注点分散在组件各处，形成代码碎片，维护时需要反复横跳，`Composition API`则可以将它们有效组织在一起。最后`Composition API`拥有更好的类型推断，对ts支持更友好，`Options API`在设计之初并未考虑类型推断因素，虽然官方为此做了很多复杂的类型体操，确保用户可以在使用`Options API`时获得类型推断，然而还是没办法用在mixins和provide/inject上。
-+   Vue3首推`Composition API`，但是这会让我们在代码组织上多花点心思，因此在选择上，如果我们项目属于中低复杂度的场景，`Options API`仍是一个好选择。对于那些大型，高扩展，强维护的项目上，`Composition API`会获得更大收益。
-
-* * *
-
-### 可能的追问
-
-+   `Composition API`能否和`Options API`一起使用？
-
-* * *
-
-
-# Vue2 API
-
-参考: [vue 2.x](vue2.md)
-
-# Vue3 API
-
-参考: [vue 3.x](vue3.md)
 
 ## 1 - 你知道哪些vue3新特性
 
@@ -2744,6 +2697,66 @@ function defineReactive(obj, key, val) {
 # Vue Router
 
 参考: [vue router](vue_router.md)
+
+## 32-History模式和Hash模式有何区别？
+
+### 分析
+
+vue-router有3个模式，其中两个更为常用，那便是history和hash。
+
+两者差别主要在显示形式和部署上。
+
+* * *
+
+### 体验
+
+vue-router4.x中设置模式已经变化：
+
+```bash
+const router = createRouter({
+  history: createWebHashHistory(), // hash模式
+  history: createWebHistory(),     // history模式
+})
+```
+
+用起来一模一样
+
+```ini
+<router-link to="/about">Go to About</router-link>
+```
+
+区别只在url形式
+
+```ruby
+// hash
+// 浏览器里的形态：http://xx.com/#/about
+// history
+// 浏览器里的形态：http://xx.com/about
+```
+
+### 思路
+
++   区别
++   详细阐述
++   实现
+
+* * *
+
+### 回答范例
+
++   vue-router有3个模式，其中history和hash更为常用。两者差别主要在显示形式、seo和部署上。
++   hash模式在地址栏显示的时候是已哈希的形式：#/xxx，这种方式使用和部署简单，但是不会被搜索引擎处理，seo有问题；history模式则建议用在大部分web项目上，但是它要求应用在部署时做特殊配置，服务器需要做回退处理，否则会出现刷新页面404的问题。
++   底层实现上其实hash是一种特殊的history实现。
+
+* * *
+
+### 知其所以然
+
+hash是一种特殊的history实现：
+
+[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32 "https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32")
+
+* * *
 
 ## 1 - 怎么定义动态路由？怎么获取传过来的动态参数？
 
