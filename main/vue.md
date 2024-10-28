@@ -98,14 +98,31 @@
 
 * * *
 
-## 3 说一下 Vue 子组件和父组件创建和挂载顺序
+## 3. 说一下 Vue 子组件和父组件创建和挂载顺序
 
-1.  创建过程自上而下，挂载过程自下而上；即：
-    +   parent created
-    +   child created
-    +   child mounted
-    +   parent mounted
-2.  之所以会这样是因为Vue创建过程是一个递归过程，先创建父组件，有子组件就会创建子组件，因此创建时先有父组件再有子组件；子组件首次创建时会添加mounted钩子到队列，等到patch结束再执行它们，可见子组件的mounted钩子是先进入到队列中的，因此等到patch结束执行这些钩子时也先执行。
+创建先父后子，挂载先子后父
+
+### Vue 2 中，父子组件的生命周期顺序：
+    父组件的 beforeCreate
+    父组件的 created
+    父组件的 beforeMount
+    子组件的 beforeCreate
+    子组件的 created
+    子组件的 beforeMount
+    子组件的 mounted
+    父组件的 mounted
+
+###  Vue 3 中，父子组件的生命周期顺序：
+
+    父组件的 beforeCreate
+    父组件的 created
+    子组件的 beforeCreate
+    子组件的 created
+    子组件的 beforeMount
+    子组件的 mounted
+    父组件的 beforeMount
+    父组件的 mounted
+
 
 * * *
 
@@ -124,9 +141,9 @@
 
 ## 5. Vue组件为什么只能有一个根元素?
 
-+   `vue2`中组件确实只能有一个根，但`vue3`中组件已经可以多根节点了。
-+   之所以需要这样是因为`vdom`是一颗单根树形结构，`patch`方法在遍历的时候从根节点开始遍历，它要求只有一个根节点。组件也会转换为一个`vdom`，自然应该满足这个要求。
-+   `vue3`中之所以可以写多个根节点，是因为引入了`Fragment`的概念，这是一个抽象的节点，如果发现组件是多根的，就创建一个Fragment节点，把多个根节点作为它的children。将来patch的时候，如果发现是一个Fragment节点，则直接遍历children创建或更新。
++   `vue2`组件只能有一个根元素，但`vue3`可以多根元素
++   组件模板会转化为`vdom`,而虚拟DOM是一颗单根树形结构，且`patch`方法在遍历的时候从根节点开始遍历。
++   `vue3`可写多个根节点，编译时自动使用`Fragment`虚拟节点进行包裹，把多个根节点作为它的children,进行patch时直接遍历children创建或更新。
 
 * * *
 
