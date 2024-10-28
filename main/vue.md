@@ -2,10 +2,11 @@
 
 * * *
 
-## API参考: [vue 2.x](vue2.md)
+## [1. Vue 2.x API参考](vue2.md)
 
+***
 
-## 19-Vue实例挂载的过程中发生了什么?
+## 2. Vue实例挂载的过程中发生了什么?
 
 ### vue2 挂载过程
 1. 调用 `new Vue(options)` 创建一个 Vue 实例，并传入选项对象（例如 `data`、`methods`、`computed` 等）,在内部初始化一些实例属性($set\$mount等)。
@@ -52,9 +53,9 @@
 
 ***
 
-## 3. 简述 Vue 的生命周期以及每个阶段做的事
+## 2. 简述 Vue 的生命周期以及每个阶段做的事
 
-Vue生命周期总共可以分为8个阶段：**创建前后, 载入前后, 更新前后, 销毁前后**，以及一些特殊场景的生命周期。vue3中新增了三个用于调试和服务端渲染场景。
+分为8个阶段：**创建前后, 载入前后, 更新前后, 销毁前后**，特殊场景的生命周期。
 
 * * *
 
@@ -80,23 +81,18 @@ Vue生命周期总共可以分为8个阶段：**创建前后, 载入前后, 更�
 | \-            | **renderTriggered** | 调试钩子，响应式依赖被触发时调用         |
 | \-            | **serverPrefetch**  | ssr only，组件实例在服务器上被渲染前调用 |
 
-* * *
 
-3.[`Vue`生命周期流程图](https://cn.vuejs.org/guide/essentials/lifecycle.html)：
-
-![Component lifecycle diagram](https://cn.vuejs.org/assets/lifecycle_zh-CN.W0MNXI0C.png)
+![vue3 生命周期图](https://cn.vuejs.org/assets/lifecycle_zh-CN.W0MNXI0C.png)
 
 * * *
 
-1. 数据请求在created和mouted的区别
++ 生命周期中的数据请求
 
-   created是在组件实例一旦创建完成的时候立刻调用，这时候页面dom节点并未生成；mounted是在页面dom节点渲染完毕之后就立刻执行的。触发时机上created是比mounted要更早的，两者的相同点：都能拿到实例对象的属性和方法。 讨论这个问题本质就是触发的时机，放在mounted中的请求有可能导致页面闪动（因为此时页面dom结构已经生成），但如果在页面加载前完成请求，则不会出现此情况。建议对页面内容的改动放在created生命周期当中.
+    vue2中适合在created中请求,更早调用. 在mounted中请求可能会造成页面闪动.
 
-2. setup和created谁先执行？
+    vue3中在setup中直接请求,因为这个调用在所有生命周期之前.
 
-   Vue3中组合式 API 中的 setup() 钩子会在所有选项式 API 钩子之前调用，beforeCreate() 也不例外.
-
-3. setup中为什么没有beforeCreate和created？
++ setup中为什么没有beforeCreate和created？
 
    setup 函数最先执行,本身已经承担了初始化阶段的职责，因此 beforeCreate 和 created 钩子不再单独存在。
 
