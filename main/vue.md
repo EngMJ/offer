@@ -175,32 +175,16 @@
 ## 7.子组件可以直接改变父组件的数据么，说明原因
 
 + 原因: vue组件化开发遵循**单项数据流原则**，如果能互相修改将状态就难以控制与朔源,修改props也会报错.
-+ 正规修改方法: 事件传递/~~$parent~~
++ 正规修改方法: 事件传递/$parent
 
 * * *
 
 ## 8.Vue中如何扩展一个组件
-
-1.  按照逻辑扩展和内容扩展来列举，
-
-    +   逻辑扩展有：mixins、extends、composition api；
-
-    +   内容扩展有slots；
-
-2.  分别说出他们使用方法、场景差异和问题。
-
-3.  作为扩展，还可以说说vue3中新引入的composition api带来的变化
-
-
-* * *
-
-### 回答范例：
-
-1.  常见的组件扩展方法有：mixins，slots，extends等
-
-2.  混入mixins是分发 Vue 组件中可复用功能的非常灵活的方式。混入对象可以包含任意组件选项。当组件使用混入对象时，所有混入对象的选项将被混入该组件本身的选项。
++   逻辑扩展：mixins、extends、composition api
++   内容扩展: slots
 
     ```js
+    // 混入mixins
     // 复用代码：它是一个配置对象，选项和组件里面一样
     const mymixin = {
        methods: {
@@ -216,35 +200,21 @@
     }
     ```
 
-
-* * *
-
-3.  插槽主要用于vue组件中的内容分发，也可以用于组件扩展。
-
-    子组件Child
-
     ```html
+    <!--插槽 slots-->
+    <!--子组件-->
     <div>
-      <slot>这个内容会被父组件传递的内容替换</slot>
+      <slot></slot>
+    </div>
+    
+    <!--父组件-->
+    <div>
+       <Child>插槽内容</Child>
     </div>
     ```
-
-    父组件Parent
-
-    ```html
-    <div>
-       <Child>来自老爹的内容</Child>
-    </div>
-    ```
-
-    如果要精确分发到不同位置可以使用具名插槽，如果要使用子组件中的数据可以使用作用域插槽。
-
-
-* * *
-
-4.  组件选项中还有一个不太常用的选项extends，也可以起到扩展组件的目的
 
     ```js
+    // extends
     // 扩展对象
     const myextends = {
        methods: {
@@ -259,79 +229,15 @@
     }
     ```
 
-
 * * *
 
-5.  混入的数据和方法**不能明确判断来源**且可能和当前组件内变量**产生命名冲突**，vue3中引入的composition api，可以很好解决这些问题，利用独立出来的响应式模块可以很方便的编写独立逻辑并提供响应式的数据，然后在setup选项中组合使用，增强代码的可读性和维护性。例如：
+## 9.怎么缓存当前的组件？缓存后怎么更新？
 
-    ```js
-    // 复用逻辑1
-    function useXX() {}
-    // 复用逻辑2
-    function useYY() {}
-    // 逻辑组合
-    const Comp = {
-       setup() {
-          const {xx} = useXX()
-          const {yy} = useYY()
-          return {xx, yy}
-       }
-    }
-    ```
+开发中缓存组件使用keep-alive组件，keep-alive是vue内置组件，keep-alive包裹动态组件component时，会缓存不活动的组件实例，而不是销毁它们，这样在组件切换过程中将状态保留在内存中，防止重复渲染DOM
 
-
-* * *
-
-### 可能的追问
-
-Vue.extend方法你用过吗？它能用来做组件扩展吗？
-
-* * *
-
-### 知其所以然
-
-mixins原理：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L232-L233 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L232-L233")
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L545 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentOptions.ts#L545")
-
-slots原理：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentSlots.ts#L129-L130 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/componentSlots.ts#L129-L130")
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1373-L1374 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1373-L1374")
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/renderSlot.ts#L23-L24 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/renderSlot.ts#L23-L24")
-
-* * *
-
-## 15-怎么缓存当前的组件？缓存后怎么更新？
-
-缓存组件使用keep-alive组件，这是一个非常常见且有用的优化手段，vue3中keep-alive有比较大的更新，能说的点比较多。
-
-### 思路
-
-1.  缓存用keep-alive，它的作用与用法
-2.  使用细节，例如缓存指定/排除、结合router和transition
-3.  组件缓存后更新可以利用activated或者beforeRouteEnter
-4.  原理阐述
-
-* * *
-
-### 回答范例
-
-1.  开发中缓存组件使用keep-alive组件，keep-alive是vue内置组件，keep-alive包裹动态组件component时，会缓存不活动的组件实例，而不是销毁它们，这样在组件切换过程中将状态保留在内存中，防止重复渲染DOM。
-
++ vue3中结合vue-router时变化较大，之前是`keep-alive`包裹`router-view`，现在需要反过来用`router-view`包裹`keep-alive`：
     ```vue
-    <keep-alive>
-      <component :is="view"></component>
-    </keep-alive>
-    ```
-
-2.  结合属性include和exclude可以明确指定缓存哪些组件或排除缓存指定组件。vue3中结合vue-router时变化较大，之前是`keep-alive`包裹`router-view`，现在需要反过来用`router-view`包裹`keep-alive`：
-
-    ```vue
+    // 结合属性include和exclude可以明确指定缓存哪些组件或排除缓存指定组件。
     <router-view v-slot="{ Component }">
       <keep-alive>
         <component :is="Component"></component>
@@ -339,76 +245,34 @@ slots原理：
     </router-view>
     ```
 
++ 缓存后获取数据
+
+    ```js
+    // beforeRouteEnter 路由进入前触发
+    beforeRouteEnter(to, from, next) {
+      next(vm=>{
+        console.log(vm)
+        // 每次进入路由执行
+        vm.getData()  // 获取数据
+      })
+    }
+    ```
+  
+    ```js
+    // 在`keep-alive`缓存的组件被激活的时候
+    activated(){
+          this.getData() // 获取数据
+    }
+    ```
 
 * * *
 
-3.  缓存后如果要获取数据，解决方案可以有以下两种：
+## 10. 什么是递归组件？举个例子说明下？
 
-    +   beforeRouteEnter：在有vue-router的项目，每次进入路由的时候，都会执行`beforeRouteEnter`
+组件通过组件名称引用它自己，这种情况就是递归组件,必须要设置组件 `name`。
+实际开发中类似Tree、Menu这类组件，它们的节点往往包含子节点，子节点结构和父节点往往是相同的。这类组件的数据往往也是树形结构，这种都是使用递归组件的典型场景。
 
-        ```js
-        beforeRouteEnter(to, from, next){
-          next(vm=>{
-            console.log(vm)
-            // 每次进入路由执行
-            vm.getData()  // 获取数据
-          })
-        },
-        ```
-
-    +   actived：在`keep-alive`缓存的组件被激活的时候，都会执行`actived`钩子
-
-        ```js
-        activated(){
-        	  this.getData() // 获取数据
-        },
-        ```
-
-
-* * *
-
-4.  keep-alive是一个通用组件，它内部定义了一个map，缓存创建过的组件实例，它返回的渲染函数内部会查找内嵌的component组件对应组件的vnode，如果该组件在map中存在就直接返回它。由于component的is属性是个响应式数据，因此只要它变化，keep-alive的render函数就会重新执行。
-
-
-* * *
-
-### 知其所以然
-
-KeepAlive定义
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L73-L74 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L73-L74")
-
-缓存定义
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L102-L103 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L102-L103")
-
-缓存组件
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L215-L216 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L215-L216")
-
-获取缓存组件
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L241-L242 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/components/KeepAlive.ts#L241-L242")
-
-测试缓存特性，test-v3.html
-
-* * *
-
-## 29-什么是递归组件？举个例子说明下？
-
-### 分析
-
-递归组件我们用的比较少，但是在Tree、Menu这类组件中会被用到。
-
-* * *
-
-### 体验
-
-组件通过组件名称引用它自己，这种情况就是递归组件。
-
-> An SFC can implicitly refer to itself via its filename.
-
-```xml
+```vue
 <template>
   <li>
     <div> {{ model.name }}</div>
@@ -421,6 +285,7 @@ KeepAlive定义
       </TreeItem>
     </ul>
   </li>
+</template>
 <script>
 export default {
   name: 'TreeItem',
@@ -431,77 +296,14 @@ export default {
 
 * * *
 
-### 思路
+## 11. 异步组件是什么？使用场景有哪些？
 
-+   下定义
-+   使用场景
-+   使用细节
-+   原理阐述
-
-* * *
-
-### 回答范例
-
-0.  如果某个组件通过组件名称引用它自己，这种情况就是递归组件。
-1.  实际开发中类似Tree、Menu这类组件，它们的节点往往包含子节点，子节点结构和父节点往往是相同的。这类组件的数据往往也是树形结构，这种都是使用递归组件的典型场景。
-2.  使用递归组件时，由于我们并未也不能在组件内部导入它自己，所以设置组件`name`属性，用来查找组件定义，如果使用SFC，则可以通过SFC文件名推断。组件内部通常也要有递归结束条件，比如model.children这样的判断。
-3.  查看生成渲染函数可知，递归组件查找时会传递一个布尔值给`resolveComponent`，这样实际获取的组件就是当前组件本身。
-
-* * *
-
-### 知其所以然
-
-递归组件编译结果中，获取组件时会传递一个标识符 `_resolveComponent("Comp", true)`
-
-```ini
-const _component_Comp = _resolveComponent("Comp", true)
-```
-
-就是在传递`maybeSelfReference`
-
-```typescript
-export function resolveComponent(
-  name: string,
-  maybeSelfReference?: boolean
-): ConcreteComponent | string {
-  return resolveAsset(COMPONENTS, name, true, maybeSelfReference) || name
-}
-```
-
-resolveAsset中最终返回的是组件自身：
-
-```kotlin
-if (!res && maybeSelfReference) {
-    // fallback to implicit self-reference
-    return Component
-}
-```
-
-* * *
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L22-L23 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L22-L23")
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L110-L111 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/helpers/resolveAssets.ts#L110-L111")
-
-[sfc.vuejs.org/#eyJBcHAudn…](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBjb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ+mAkuW9kue7hOS7ticpXG5jb25zdCBtb2RlbCA9IHtcbiAgbGFiZWw6ICdub2RlLTEnLFxuICBjaGlsZHJlbjogW1xuICAgIHtsYWJlbDogJ25vZGUtMS0xJ30sXG4gICAge2xhYmVsOiAnbm9kZS0xLTInfVxuICBdXG59XG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgOm1vZGVsPVwibW9kZWxcIj48L2NvbXA+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0iLCJDb21wLnZ1ZSI6Ijx0ZW1wbGF0ZT5cbiAgPGRpdj5cbiAgICB7e21vZGVsLmxhYmVsfX1cbiAgPC9kaXY+XG4gIDxDb21wIHYtZm9yPVwiaXRlbSBpbiBtb2RlbC5jaGlsZHJlblwiIDptb2RlbD1cIml0ZW1cIj48L0NvbXA+XG4gIDxjb21wMj48L2NvbXAyPlxuPC90ZW1wbGF0ZT5cbjxzY3JpcHQ+XG5cdGV4cG9ydCBkZWZhdWx0IHtcbiAgICBuYW1lOiAnQ29tcCcsXG4gICAgcHJvcHM6IHtcbiAgICAgIG1vZGVsOiBPYmplY3RcbiAgICB9LFxuICAgIGNvbXBvbmVudHM6IHtcbiAgICAgIGNvbXAyOiB7XG4gICAgICAgIHJlbmRlcigpe31cbiAgICAgIH1cbiAgICB9XG4gIH1cbjwvc2NyaXB0PiJ9 "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBjb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ+mAkuW9kue7hOS7ticpXG5jb25zdCBtb2RlbCA9IHtcbiAgbGFiZWw6ICdub2RlLTEnLFxuICBjaGlsZHJlbjogW1xuICAgIHtsYWJlbDogJ25vZGUtMS0xJ30sXG4gICAge2xhYmVsOiAnbm9kZS0xLTInfVxuICBdXG59XG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgOm1vZGVsPVwibW9kZWxcIj48L2NvbXA+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0iLCJDb21wLnZ1ZSI6Ijx0ZW1wbGF0ZT5cbiAgPGRpdj5cbiAgICB7e21vZGVsLmxhYmVsfX1cbiAgPC9kaXY+XG4gIDxDb21wIHYtZm9yPVwiaXRlbSBpbiBtb2RlbC5jaGlsZHJlblwiIDptb2RlbD1cIml0ZW1cIj48L0NvbXA+XG4gIDxjb21wMj48L2NvbXAyPlxuPC90ZW1wbGF0ZT5cbjxzY3JpcHQ+XG5cdGV4cG9ydCBkZWZhdWx0IHtcbiAgICBuYW1lOiAnQ29tcCcsXG4gICAgcHJvcHM6IHtcbiAgICAgIG1vZGVsOiBPYmplY3RcbiAgICB9LFxuICAgIGNvbXBvbmVudHM6IHtcbiAgICAgIGNvbXAyOiB7XG4gICAgICAgIHJlbmRlcigpe31cbiAgICAgIH1cbiAgICB9XG4gIH1cbjwvc2NyaXB0PiJ9")
-
-* * *
-
-## 30-异步组件是什么？使用场景有哪些？
-
-### 分析
-
-因为异步路由的存在，我们使用异步组件的次数比较少，因此还是有必要两者的不同。
-
-### 体验
-
-大型应用中，我们需要分割应用为更小的块，并且在需要组件时再加载它们。
-
-> In large applications, we may need to divide the app into smaller chunks and only load a component from the server when it's needed.
+异步组件,可以控制懒加载,利于打包器的代码分割。
 
 ```javascript
 import { defineAsyncComponent } from 'vue'
-// defineAsyncComponent定义异步组件
+
+// 方式1: defineAsyncComponent定义异步组件
 const AsyncComp = defineAsyncComponent(() => {
   // 加载函数返回Promise
   return new Promise((resolve, reject) => {
@@ -509,7 +311,8 @@ const AsyncComp = defineAsyncComponent(() => {
     resolve(/* loaded component */)
   })
 })
-// 借助打包工具实现ES模块动态导入
+
+// 方式2: import函数
 const AsyncComp = defineAsyncComponent(() =>
   import('./components/MyComponent.vue')
 )
@@ -517,51 +320,13 @@ const AsyncComp = defineAsyncComponent(() =>
 
 * * *
 
-### 思路
-
-0.  异步组件作用
-1.  何时使用异步组件
-2.  使用细节
-3.  和路由懒加载的不同
+## 12. 组件与插件的区别
++ 组件：用于构建 UI,独立单元可复用，局部或全局注册，主要用于页面渲染。
++ 插件：用于扩展 Vue 的全局功能，通过 Vue.use() 注册，一般作用于整个应用。
 
 * * *
 
-### 范例
-
-0.  在大型应用中，我们需要分割应用为更小的块，并且在需要组件时再加载它们。
-1.  我们不仅可以在路由切换时懒加载组件，还可以在页面组件中继续使用异步组件，从而实现更细的分割粒度。
-2.  使用异步组件最简单的方式是直接给defineAsyncComponent指定一个loader函数，结合ES模块动态导入函数import可以快速实现。我们甚至可以指定loadingComponent和errorComponent选项从而给用户一个很好的加载反馈。另外Vue3中还可以结合Suspense组件使用异步组件。
-3.  异步组件容易和路由懒加载混淆，实际上不是一个东西。异步组件不能被用于定义懒加载路由上，处理它的是vue框架，处理路由组件加载的是vue-router。但是可以在懒加载的路由组件中使用异步组件。
-
-* * *
-
-### 知其所以然
-
-defineAsyncComponent定义了一个高阶组件，返回一个包装组件。包装组件根据加载器的状态决定渲染什么内容。
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiAsyncComponent.ts#L43-L44 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiAsyncComponent.ts#L43-L44")
-
-* * *
-
-## 组件与插件的区别
-
-
-## 09 - 说说你对虚拟 DOM 的理解？
-
-### 分析
-
-现有框架几乎都引入了虚拟 DOM 来对真实 DOM 进行抽象，也就是现在大家所熟知的 VNode 和 VDOM，那么为什么需要引入虚拟 DOM 呢？围绕这个疑问来解答即可！
-
-### 思路
-
-1.  vdom是什么
-2.  引入vdom的好处
-3.  vdom如何生成，又如何成为dom
-4.  在后续的diff中的作用
-
-* * *
-
-### 回答范例
+## 13.说说你对虚拟 DOM 的理解？
 
 1.  虚拟dom顾名思义就是虚拟的dom对象，它本身就是一个 `JavaScript` 对象，只不过它是通过不同的属性去描述一个视图结构。
 
@@ -584,41 +349,6 @@ defineAsyncComponent定义了一个高阶组件，返回一个包装组件。包
     ![image-20220209153820845](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/80b653050433436da876459a26ab5a65~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
 4.  挂载过程结束后，vue程序进入更新流程。如果某些响应式数据发生变化，将会引起组件重新render，此时就会生成新的vdom，和上一次的渲染结果diff就能得到变化的地方，从而转换为最小量的dom操作，高效更新视图。
-
-
-* * *
-
-### 知其所以然
-
-vnode定义：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L127-L128 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L127-L128")
-
-观察渲染函数：21-vdom/test-render-v3.html
-
-创建vnode：
-
-+   createElementBlock:
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L291-L292 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L291-L292")
-
-+   createVnode:
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L486-L487 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L486-L487")
-
-+   首次调用时刻：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L283-L284 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiCreateApp.ts#L283-L284")
-
-* * *
-
-mount:
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1171-L1172 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1171-L1172")
-
-调试mount过程：mountComponent
-
-21-vdom/test-render-v3.html
 
 * * *
 
