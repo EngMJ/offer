@@ -558,7 +558,7 @@ Vue 3 在 Vue 2 的基础上对 diff 算法做了以下优化，具体对比过�
 
 ---
 
-### 3. **对比总结**
+### 4. **对比总结**
 
 | 特性          | Vue 2                      | Vue 3                |
 |-------------|----------------------------|----------------------|
@@ -581,6 +581,7 @@ Vue 3 在 Vue 2 的基础上对 diff 算法做了以下优化，具体对比过�
 
 ```html
 // 默认使用
+// v-model是语法糖，默认情况下相当于`:value`和`@input`。
 <input v-model="message">
 
 // 自定义使用
@@ -608,7 +609,6 @@ Vue.component('my-checkbox', {
 });
 
 ```
-- `v-model`是语法糖，默认情况下相当于`:value`和`@input`。
 
 **底层原理**
 
@@ -638,7 +638,7 @@ Vue2 响应式的局限：
 // 默认使用
 <input v-model="message">
 
-// 自定义使用
+// 无setup自定义使用
 <template>
     <input type="checkbox" :checked="checked" @change="$emit('update:checked', $event.target.checked)" />
 </template>
@@ -669,7 +669,7 @@ Vue2 响应式的局限：
     }
 </script>
 
-// 使用defineModel
+// 推荐使用defineModel
 <!-- Child.vue -->
 <script setup>
     // model代表父组件传入属性countModel
@@ -678,22 +678,30 @@ Vue2 响应式的局限：
     function update() {
         model.value++
     }
+    // 自定动态绑定
+    defineProps(['modelValue'])
+    defineEmits(['update:modelValue'])
 </script>
 
 <template>
     <div>Parent bound v-model is: {{ model }}</div>
     <button @click="update">Increment</button>
+    <!--自定动态绑定-->
+    <!--v-model是语法糖，默认情况下相当于`:modelValue`和`@update:modelValue`。-->
+    <input :value="modelValue" @input="emit('update:modelValue', $event.target.value)"/>
 </template>
 
 <!-- Parent.vue -->
 <Child v-model="countModel" />
+<!--自定动态绑定-->
+<Child :modelValue="countModel" @update:modelValue="$event => (countModel = $event)"/>
+<Child v-model:modelValue="countModel" />
 
 ```
-- `v-model`是语法糖，默认情况下相当于`:modelValue`和`@update:modelValue`。
 
 **底层原理**
 
-Vue3 的响应式系统是基于 **Proxy** 实现的。与 Vue2 不同，Vue3 不再需要递归地遍历对象的每个属性，而是`通过 Proxy 对整个data对象进行拦截`，这样可以实现对对象新增属性和数组变化的自动响应式支持。
+Vue3 的响应式系统是基于 **Proxy** 实现的。与 Vue2 不同，Vue3 不再需要递归地遍历对象的每个属性，而是`通过 Proxy 对整个data/ref/reactive进行拦截`，这样可以实现对对象新增属性和数组变化的自动响应式支持。
 
 - **Proxy** 拦截对对象的访问（如读取、修改、删除等），并相应地处理依赖收集和更新。
 - 相比于 Vue2 的 `Object.defineProperty`，`Proxy` 提供了更强大的功能，可以直接监听对象的结构变化（如新增属性或删除属性），从而更高效地实现双向绑定和响应式系统。
