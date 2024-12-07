@@ -900,24 +900,26 @@ export default {
 
 ## 21. v-if和v-for哪个优先级更高？
 
-两个指令一起使用,会造成性能浪费,因vue2版本中v-for优先于v-if执行.
+元素同时使用两个指令,vue2版本中v-for优先于v-if执行.vue3中则是v-if先与v-for执行.
 
-* * *
+1. **vue2 使用该错误用法**
 
-1.  文档中明确指出**永远不要把 `v-if` 和 `v-for` 同时用在同一个元素上**
+先执行v-for后执行v-if, 造成极大的`性能浪费`.
 
-2.  在**vue2中**，**v-for的优先级是高于v-if**，先执行循环再判断条件，造成浪费；在**vue3中则完全相反，v-if的优先级高于v-for**，所以v-if执行时，v-for产生的变量还不存在，就会导致报错.
+2. **vue3 使用该错误用法**
 
-3.  处理方法：
+先执行v-if后执行v-for, 可能引发if中的`判断错误`因为此时v-for所定义的变量并未生成.
 
-    +   使用computed或js提前过滤列表数据
+3. **处理方法：**
 
-    +   外层包裹template或div执行v-if判断
+    +   使用计算属性或提前过滤数据
 
-4.  问题原因: vue源码判断循序造成的，vue2 判断中el.for快于el.if,vue3正好相反.
+    +   将两个指令不要放在同一元素
+
+4. **问题原因:** vue源码判断循序造成的，vue2 判断中el.for快于el.if,vue3正好相反.
 
 ```js
-// vue 2x
+// vue 2x 代码示例
 // \vue-dev\src\compiler\codegen\index.js
 export function genElement (el: ASTElement, state: CodegenState): string {
     if (el.parent) {
