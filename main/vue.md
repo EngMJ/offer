@@ -1276,180 +1276,72 @@ export default {
 
 ## 26. 说说nextTick的使用和原理？
 
-### 分析
+`nextTick` 是 Vue 中用于延迟执行某个回调函数的 API，它会在下次 DOM 更新循环结束后执行，确保在执行时，DOM 已经被更新。
 
-这道题及考察使用，有考察原理，nextTick在开发过程中应用的也较少，原理上和vue异步更新有密切关系，对于面试者考查很有区分度，如果能够很好回答此题，对面试效果有极大帮助。
+**使用场景：**
++   created中想要获取DOM时
++   响应式数据变化后获取DOM更新后的状态,如在更新数据后进行元素的滚动或焦点操作。
++   vue3可在组件外部使用时，不依赖于 Vue 实例
 
-### 答题思路
+### **Vue 2 使用nextTick**
 
-1.  nextTick是做什么的？
-2.  为什么需要它呢？
-3.  开发时何时使用它？抓抓头，想想你在平时开发中使用它的地方
-4.  下面介绍一下如何使用nextTick
-5.  原理解读，结合异步更新和nextTick生效方式，会显得你格外优秀
+在 Vue 2 中，`nextTick` 是 Vue 实例的方法，可以在 Vue 实例的上下文中使用，也可以通过 `Vue.nextTick()` 来调用。
 
-* * *
+**使用示例**：
+```javascript
+// Vue 实例上下文中
+this.$nextTick(() => {
+  console.log('DOM 已更新');
+});
 
-### 回答范例：
+// 全局使用
+Vue.nextTick(() => {
+  console.log('DOM 已更新');
+});
+```
 
-1.  [nextTick](https://staging-cn.vuejs.org/api/general.html#nexttick "https://staging-cn.vuejs.org/api/general.html#nexttick")是等待下一次 DOM 更新刷新的工具方法。
-
-2.  Vue有个异步更新策略，意思是如果数据变化，Vue不会立刻更新DOM，而是开启一个队列，把组件更新函数保存在队列中，在同一事件循环中发生的所有数据变更会异步的批量更新。这一策略导致我们对数据的修改不会立刻体现在DOM上，此时如果想要获取更新后的DOM状态，就需要使用nextTick。
-
-3.  开发时，有两个场景我们会用到nextTick：
-
-
-+   created中想要获取DOM时；
-+   响应式数据变化后获取DOM更新后的状态，比如希望获取列表更新后的高度。
-
-4.  nextTick签名如下：`function nextTick(callback?: () => void): Promise<void>`
-
-    所以我们只需要在传入的回调函数中访问最新DOM状态即可，或者我们可以await nextTick()方法返回的Promise之后做这件事。
-
-5.  在Vue内部，nextTick之所以能够让我们看到DOM更新后的结果，是因为我们传入的callback会被添加到队列刷新函数(flushSchedulerQueue)的后面，这样等队列内部的更新函数都执行完毕，所有DOM操作也就结束了，callback自然能够获取到最新的DOM值。
+**Vue 2 的实现原理**
+1. Vue 内部对数据的修改触发了 DOM 更新。
+2. `nextTick` 将回调函数加入一个队列，等待当前调用栈清空。
+3. 浏览器在下一个宏任务中调用 `setTimeout` 或 `MutationObserver` 来触发 `nextTick` 的回调。
 
 
-* * *
+### **Vue 3 使用nextTick**
 
-### 知其所以然：
+在 Vue 3 中，`nextTick` 是从 `vue` 包中导出的独立函数，而不是 Vue 实例的方法。
 
-1.  源码解读:
+**使用示例**：
+```javascript
+import { nextTick } from 'vue';
 
-组件更新函数入队：
+nextTick(() => {
+  console.log('DOM 已更新');
+});
+```
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1547-L1548 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1547-L1548")
-
-入队函数：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L84-L85 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L84-L85")
-
-nextTick定义：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L58-L59 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/scheduler.ts#L58-L59")
-
-2.  测试案例，test-v3.html
+**Vue 3 的实现原理**
+1. Vue 3 的响应式系统检测到数据变化并更新虚拟 DOM。
+2. `nextTick` 将回调加入微任务队列（通过 `Promise`）或宏任务队列（通过 `MutationObserver` / `setTimeout`）。
+3. 在当前任务结束后，`nextTick` 的回调被执行，确保 DOM 已更新。
 
 * * *
 
 ## 27. 能说说key的作用吗？
 
-### 分析：
+**`key` 的作用:**
 
-这是一道特别常见的问题，主要考查大家对虚拟DOM和patch细节的掌握程度，能够反映面试者理解层次。
+- **唯一标识,性能优化**：`key` 是用于标识虚拟 DOM 节点的唯一标识符,提升复用,降低比对算法开销。
+- **避免不必要的重新渲染**：在动态渲染列表时，`key` 帮助 Vue 正确地匹配和更新元素，而不会将整个列表重渲染或进行错误的元素重新排列。
+- **避免使用索引key**：会导致倒序插入页面更新错误问题等。
 
-* * *
+**使用场景**
+`key` 主要用于 `v-for` 指令中，以确保每个子元素具有唯一标识符。
 
-### 思路分析：
+**规范使用:**
 
-1.  给出结论，key的作用是用于优化patch性能
-2.  key的必要性
-3.  实际使用方式
-4.  总结：可从源码层面描述一下vue如何判断两个节点是否相同
-
-* * *
-
-### 回答范例：
-
-1.  key的作用主要是为了更高效的更新虚拟DOM。
-2.  vue在patch过程中**判断两个节点是否是相同节点是key是一个必要条件**，渲染一组列表时，key往往是唯一标识，所以如果不定义key的话，vue只能认为比较的两个节点是同一个，哪怕它们实际上不是，这导致了频繁更新元素，使得整个patch过程比较低效，影响性能。
-3.  实际使用中在渲染一组列表时key必须设置，而且必须是唯一标识，应该避免使用数组索引作为key，这可能导致一些隐蔽的bug；vue中在使用相同标签元素过渡切换时，也会使用key属性，其目的也是为了让vue可以区分它们，否则vue只会替换其内部属性而不会触发过渡效果。
-4.  从源码中可以知道，vue判断两个节点是否相同时主要判断两者的key和元素类型等，因此如果不设置key，它的值就是undefined，则可能永远认为这是两个相同节点，只能去做更新操作，这造成了大量的dom更新操作，明显是不可取的。
-
-* * *
-
-### 知其所以然
-
-测试代码，[test-v3.html](https://juejin.cn/post/test-v3.html "./test-v3.html")
-
-上面案例重现的是以下过程
-
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3d6750831c024116bcac3ece9497b597~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-不使用key
-
-![image-20220214110059028](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d393bc0c4a8946a9a20973b64633852f~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-如果使用key
-
-```js
-// 首次循环patch A
-A B C D E
-A B F C D E
-
-// 第2次循环patch B
-B C D E
-B F C D E
-
-// 第3次循环patch E
-C D E
-F C D E
-
-// 第4次循环patch D
-C D
-F C D
-
-// 第5次循环patch C
-C 
-F C
-
-// oldCh全部处理结束，newCh中剩下的F，创建F并插入到C前面
-```
-
-* * *
-
-源码中找答案：
-
-判断是否为相同节点
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L342-L343 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L342-L343")
-
-更新时的处理
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1752-L1753 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1752-L1753")
-
-* * *
-
-不使用key
-
-![image-20220214110059028](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/39eb54d8c667473ca344382782f7042a~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-如果使用key
-
-```js
-// 首次循环patch A
-A B C D E
-A B F C D E
-
-// 第2次循环patch B
-B C D E
-B F C D E
-
-// 第3次循环patch E
-C D E
-F C D E
-
-// 第4次循环patch D
-C D
-F C D
-
-// 第5次循环patch C
-C 
-F C
-
-// oldCh全部处理结束，newCh中剩下的F，创建F并插入到C前面
-```
-
-源码中找答案：
-
-判断是否为相同节点
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L342-L343 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/vnode.ts#L342-L343")
-
-更新时的处理
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1752-L1753 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/renderer.ts#L1752-L1753")
+- **唯一性**：`key` 应该是列表中每个元素的唯一标识符，最好使用数据中的唯一 ID（如数据库中的主键）作为 `key`。
+- **避免使用索引**：尽量避免使用数组的索引作为 `key`，因为在数据动态变化时（例如插入或删除元素），使用索引会导致 `key` 的重复或不稳定，可能引发渲染错误或性能问题。
+- **稳定性**：`key` 应该是稳定的，不会随时间改变的属性。
 
 * * *
 
