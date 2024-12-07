@@ -842,7 +842,7 @@ Vue.component("counter", {
 
 ---
 
-## **二、Vue 3 的 `reactive` (替代 `observable`)**
+### **二、Vue 3 的 `reactive` (替代 `observable`)**
 
 在 Vue 3 中`observable` 不再被推荐使用，使用基于`proxy`的 **`reactive`** 取代。
 
@@ -884,7 +884,7 @@ export default {
 
 ---
 
-## **1. `v-show` 和 `v-if` 的核心区别**
+### **1. `v-show` 和 `v-if` 的核心区别**
 
 | **特性**       | **`v-show`**                             | **`v-if`**                             |
 |--------------|------------------------------------------|---------------------------------------|
@@ -946,138 +946,21 @@ export function genElement (el: ASTElement, state: CodegenState): string {
 
 * * *
 
-## 22. v-once的使用场景有哪些？
+## 22. v-once/v-memo的使用场景有哪些？
 
-### 分析
+| 特性             | **`v-once`**      | **`v-memo`**                              |
+|------------------|-------------------|------------------------------------------|
+| **功能**         | 一次性渲染，永不更新        | 按依赖项缓存，依赖变化时重新渲染          |
+| **更新条件**     | 不会更新              | 依赖项变化时重新渲染                     |
+| **适用场景**     | 完全静态的内容(版权/固定文本等) | 复杂逻辑、条件性更新                      |
+| **性能优化**     | 初次渲染后跳过后续的依赖跟踪    | 根据依赖项避免不必要的渲染               |
+| **支持的 Vue 版本** | Vue 2 和 Vue 3     | Vue 3                                    |
+| **灵活性**       | 固定（不可更新）          | 灵活（依赖变化时更新）                   |
 
-`v-once`是Vue中内置指令，很有用的API，在优化方面经常会用到，不过小伙伴们平时可能容易忽略它。
-
-* * *
-
-### 体验
-
-仅渲染元素和组件一次，并且跳过未来更新
-
-> Render the element and component once only, and skip future updates.
-
-```xml
-<!-- single element -->
-<span v-once>This will never change: {{msg}}</span>
-<!-- the element have children -->
-<div v-once>
-  <h1>comment</h1>
-  <p>{{msg}}</p>
-</div>
-<!-- component -->
-<my-component v-once :comment="msg"></my-component>
-<!-- `v-for` directive -->
-<ul>
-  <li v-for="i in list" v-once>{{i}}</li>
-</ul>
-```
 
 * * *
 
-### 思路
-
-0.  `v-once`是什么
-1.  什么时候使用
-2.  如何使用
-3.  扩展`v-memo`
-4.  探索原理
-
-* * *
-
-### 回答范例
-
-0.  `v-once`是vue的内置指令，作用是仅渲染指定组件或元素一次，并跳过未来对其更新。
-1.  如果我们有一些元素或者组件在初始化渲染之后不再需要变化，这种情况下适合使用`v-once`，这样哪怕这些数据变化，vue也会跳过更新，是一种代码优化手段。
-2.  我们只需要作用的组件或元素上加上v-once即可。
-3.  vue3.2之后，又增加了`v-memo`指令，可以有条件缓存部分模板并控制它们的更新，可以说控制力更强了。
-4.  编译器发现元素上面有v-once时，会将首次计算结果存入缓存对象，组件再次渲染时就会从缓存获取，从而避免再次计算。
-
-* * *
-
-### 知其所以然
-
-下面例子使用了v-once：
-
-```xml
-<script setup>
-import { ref } from 'vue'
-
-const msg = ref('Hello World!')
-</script>
-
-<template>
-  <h1 v-once>{{ msg }}</h1>
-  <input v-model="msg">
-</template>
-```
-
-我们发现v-once出现后，编译器会缓存作用元素或组件，从而避免以后更新时重新计算这一部分：
-
-```scss
-// ...
-return (_ctx, _cache) => {
-  return (_openBlock(), _createElementBlock(_Fragment, null, [
-    // 从缓存获取vnode
-    _cache[0] || (
-      _setBlockTracking(-1),
-      _cache[0] = _createElementVNode("h1", null, [
-        _createTextVNode(_toDisplayString(msg.value), 1 /* TEXT */)
-      ]),
-      _setBlockTracking(1),
-      _cache[0]
-    ),
-// ...
-```
-
-* * *
-
-## 26-你写过自定义指令吗？使用场景有哪些？
-
-### 分析
-
-这是一道API题，我们可能写的自定义指令少，但是我们用的多呀，多举几个例子就行。
-
-* * *
-
-### 体验
-
-定义一个包含类似组件生命周期钩子的对象，钩子函数会接收指令挂钩的dom元素：
-
-```javascript
-const focus = {
-  mounted: (el) => el.focus()
-}
-
-export default {
-  directives: {
-    // enables v-focus in template
-    focus
-  }
-}
-<input v-focus />
-```
-
-```css
-<input v-focus />
-```
-
-* * *
-
-### 思路
-
-0.  定义
-1.  何时用
-2.  如何用
-3.  常用指令
-4.  vue3变化
-
-* * *
-
-### 回答范例
+## 23. 你写过自定义指令吗？使用场景有哪些？
 
 0.  Vue有一组默认指令，比如`v-mode`l或`v-for`，同时Vue也允许用户注册自定义指令来扩展Vue能力
 
@@ -1102,16 +985,7 @@ export default {
 
 * * *
 
-### 知其所以然
-
-编译后的自定义指令会被withDirective函数装饰，进一步处理生成的vnode，添加到特定属性中。
-
-[sfc.vuejs.org/#eyJBcHAudn…](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuXG5jb25zdCB2Rm9jdXMgPSB7XG4gIG1vdW50ZWQoZWwpIHtcbiAgICAvLyDojrflj5ZpbnB1dO+8jOW5tuiwg+eUqOWFtmZvY3VzKCnmlrnms5VcbiAgICBlbC5mb2N1cygpXG4gIH1cbn1cbjwvc2NyaXB0PlxuXG48dGVtcGxhdGU+XG4gIDxoMT57eyBtc2cgfX08L2gxPlxuICA8aW5wdXQgdi1tb2RlbD1cIm1zZ1wiIHYtZm9jdXM+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ== "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuXG5jb25zdCB2Rm9jdXMgPSB7XG4gIG1vdW50ZWQoZWwpIHtcbiAgICAvLyDojrflj5ZpbnB1dO+8jOW5tuiwg+eUqOWFtmZvY3VzKCnmlrnms5VcbiAgICBlbC5mb2N1cygpXG4gIH1cbn1cbjwvc2NyaXB0PlxuXG48dGVtcGxhdGU+XG4gIDxoMT57eyBtc2cgfX08L2gxPlxuICA8aW5wdXQgdi1tb2RlbD1cIm1zZ1wiIHYtZm9jdXM+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ==")
-
-* * *
-
-
-## 27-说下$attrs和$listeners的使用场景
+## 24. 说下$attrs和$listeners的使用场景
 
 ### 分析
 
@@ -1190,7 +1064,7 @@ _createVNode(Comp, {
 
 * * *
 
-## 13-watch和computed的区别以及选择?
+## 25. watch和computed的区别以及选择?
 
 两个重要API，反应应聘者熟练程度。
 
@@ -1271,7 +1145,7 @@ watch的实现
 
 * * *
 
-## 12-说说nextTick的使用和原理？
+## 26. 说说nextTick的使用和原理？
 
 ### 分析
 
@@ -1328,7 +1202,7 @@ nextTick定义：
 
 * * *
 
-## 11-能说说key的作用吗？
+## 27. 能说说key的作用吗？
 
 ### 分析：
 
@@ -1450,7 +1324,7 @@ F C
 
 * * *
 
-## 31-你是怎么处理vue项目中的错误的？
+## 28. 你是怎么处理vue项目中的错误的？
 
 ### 分析
 
@@ -1562,7 +1436,7 @@ function handleError(error, type) {
 
 * * *
 
-## 07-Vue要做权限管理该怎么做？控制到按钮级别的权限怎么做？
+## 29. Vue要做权限管理该怎么做？控制到按钮级别的权限怎么做？
 
 ### 分析
 
@@ -1656,7 +1530,7 @@ function handleError(error, type) {
 
 * * *
 
-## 24-SPA、SSR的区别是什么
+## 30. SPA、SSR的区别是什么
 
 我们现在编写的Vue、React和Angular应用大多数情况下都会在一个页面中，点击链接跳转页面通常是内容切换而非页面跳转，由于良好的用户体验逐渐成为主流的开发模式。但同时也会有首屏加载时间长，SEO不友好的问题，因此有了SSR，这也是为什么面试中会问到两者的区别。
 
@@ -1700,7 +1574,7 @@ SPA
 
 * * *
 
-## 20-你了解哪些Vue性能优化方法？
+## 31. 你了解哪些Vue性能优化方法？
 
 ### 分析
 
@@ -1929,9 +1803,9 @@ SPA
 
 * * *
 
-## 面试官：vue项目本地开发完成后部署到服务器后报404是什么原因呢？
+## 32. 面试官：vue项目本地开发完成后部署到服务器后报404是什么原因呢？
 
-## 25-vue-loader是什么？它有什么作用？
+## 33. vue-loader是什么？它有什么作用？
 
 ### 分析
 
@@ -2062,7 +1936,7 @@ import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loa
 
 * * *
 
-## 16-从0到1自己构架一个vue项目，说说有哪些步骤、哪些重要插件、目录结构你会怎么组织
+## 34. 从0到1自己构架一个vue项目，说说有哪些步骤、哪些重要插件、目录结构你会怎么组织
 
 综合实践类题目，考查实战能力。没有什么绝对的正确答案，把平时工作的重点有条理的描述一下即可。
 
@@ -2121,7 +1995,7 @@ import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loa
 
 * * *
 
-## 17-实际工作中，你总结的vue最佳实践有哪些？
+## 35. 实际工作中，你总结的vue最佳实践有哪些？
 
 看到这样的题目，可以用以下图片来回答：
 
@@ -2177,7 +2051,7 @@ import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loa
 
 ## API参考: [vue 3.x](vue3.md)
 
-## 33-Composition API 与 Options API 有什么不同
+## 36. Composition API 与 Options API 有什么不同
 
 ### 分析
 
@@ -2223,7 +2097,7 @@ Composition API能更好的组织代码，下面这个代码用options api实现
 
 * * *
 
-## 22-ref和reactive异同
+## 37. ref和reactive异同
 
 这是`Vue3`数据响应式中非常重要的两个概念，自然的，跟我们写代码关系也很大。
 
@@ -2284,7 +2158,7 @@ ref实现响应式：
 
 * * *
 
-## 23-watch和watchEffect异同
+## 38. watch和watchEffect异同
 
 我们经常性需要侦测响应式数据的变化，vue3中除了watch之外又出现了watchEffect，不少同学会混淆这两个api。
 
@@ -2373,7 +2247,7 @@ export function watch<T = any, Immediate extends Readonly<boolean> = false>(
 
 * * *
 
-## 1 - 你知道哪些vue3新特性
+## 39. 你知道哪些vue3新特性
 
 ### 分析
 
@@ -2429,7 +2303,7 @@ reactive实现
 
 * * *
 
-## 2-Vue 3.0的设计目标是什么？做了哪些优化?
+## 40. Vue 3.0的设计目标是什么？做了哪些优化?
 
 ### 分析
 
@@ -2462,7 +2336,7 @@ reactive实现
 
 * * *
 
-## 3-Vue3.0 性能提升体现在哪些方面？
+## 41. Vue3.0 性能提升体现在哪些方面？
 
 ### 分析
 
@@ -2503,7 +2377,7 @@ vue3在设计时有几个目标：更小、更快、更友好，这些多数适�
 
 [github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20")
 
-## 4-Vue3.0里为什么要用 Proxy 替代 defineProperty ？
+## 42. Vue3.0里为什么要用 Proxy 替代 defineProperty ？
 
 ### 分析
 
@@ -2558,7 +2432,7 @@ function defineReactive(obj, key, val) {
 
 ## API参考: [vue router](vue_router.md)
 
-## 32-History模式和Hash模式有何区别？
+## 43. History模式和Hash模式有何区别？
 
 ### 分析
 
@@ -2618,7 +2492,7 @@ hash是一种特殊的history实现：
 
 * * *
 
-## 1 - 怎么定义动态路由？怎么获取传过来的动态参数？
+## 44. 怎么定义动态路由？怎么获取传过来的动态参数？
 
 ### 分析
 
@@ -2654,7 +2528,7 @@ API题目，考查基础能力，不容有失，尽可能说的详细。
 
 * * *
 
-## 2-如果让你从零开始写一个vue路由，说说你的思路
+## 45. 如果让你从零开始写一个vue路由，说说你的思路
 
 ### 思路分析：
 
@@ -2700,7 +2574,7 @@ API题目，考查基础能力，不容有失，尽可能说的详细。
 
 * * *
 
-## 3-怎么实现路由懒加载呢？
+## 46. 怎么实现路由懒加载呢？
 
 ### 分析
 
@@ -2758,7 +2632,7 @@ const router = createRouter({
 
 * * *
 
-## 4-router-link和router-view是如何起作用的？
+## 47. router-link和router-view是如何起作用的？
 
 ### 分析
 
@@ -2786,7 +2660,7 @@ vue-router中两个重要组件`router-link`和`router-view`，分别起到导�
 
 [github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44")
 
-## 5-Vue-router 除了 router-link 怎么实现跳转
+## 48. Vue-router 除了 router-link 怎么实现跳转
 
 ### 分析
 
@@ -2845,7 +2719,7 @@ routerlink点击跳转，调用的是navigate方法
 
 navigate内部依然调用的push
 
-## 6-在什么场景下会用到嵌套路由？
+## 49. 在什么场景下会用到嵌套路由？
 
 ### 分析
 
@@ -2907,7 +2781,7 @@ router-view获取自己所在的深度：默认0，加1之后传给后代，同�
 
 * * *
 
-## 7-vue-router中如何保护路由？
+## 50. vue-router中如何保护路由？
 
 ### 分析
 
@@ -2988,11 +2862,13 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 
 
 
-# Vuex
+# Vuex & Pinia
 
-## API参考: [vuex](vuex.md)
+## Vuex API参考: [vuex](vuex.md)
 
-## 1 - 简单说一说你对vuex理解？
+## Pinia API参考: [pinia](pinia.md)
+
+## 51 - 简单说一说你对vuex理解？
 
 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cb128aee87e5424a83511deee98f1702~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
@@ -3021,7 +2897,7 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 
 * * *
 
-## 2-你有使用过vuex的module吗？
+## 52-你有使用过vuex的module吗？
 
 这是基本应用能力考察，稍微上点规模的项目都要拆分vuex模块便于维护。
 
@@ -3082,7 +2958,7 @@ store.dispatch('e') // -> 能同时触发子模块中同名action
 
 * * *
 
-## 3-如果让你从零开始写一个vuex，说说你的思路
+## 53-如果让你从零开始写一个vuex，说说你的思路
 
 ### 思路分析
 
@@ -3128,7 +3004,7 @@ Vuex中Store的实现：
 
 [github1s.com/vuejs/vuex/…](https://github1s.com/vuejs/vuex/blob/HEAD/src/store.js#L19-L20 "https://github1s.com/vuejs/vuex/blob/HEAD/src/store.js#L19-L20")
 
-## 4-vuex中actions和mutations有什么区别？
+## 54-vuex中actions和mutations有什么区别？
 
 ### 题目分析
 
@@ -3204,7 +3080,7 @@ class Store {
 }
 ```
 
-## 5-使用vue渲染大量数据时应该怎么优化？说下你的思路！
+## 55-使用vue渲染大量数据时应该怎么优化？说下你的思路！
 
 ### 分析
 
@@ -3230,7 +3106,7 @@ class Store {
 2.  总之，还是要看具体需求，首先从设计上避免大数据获取和渲染；实在需要这样做可以采用虚表的方式优化渲染；最后优化更新，如果不需要更新可以v-once处理，需要更新可以v-memo进一步优化大数据更新性能。其他可以采用的是交互方式优化，无线滚动、懒加载等方案。
 
 
-## 6-怎么监听vuex数据的变化？
+## 56-怎么监听vuex数据的变化？
 
 ### 分析
 
@@ -3283,7 +3159,7 @@ subscribe方式：
   })
 ```
 
-## 7-页面刷新后vuex的state数据丢失怎么解决？
+## 57-页面刷新后vuex的state数据丢失怎么解决？
 
 ### 分析
 
@@ -3342,7 +3218,7 @@ localStorage.setItem('count', store.state.count)
 
 * * *
 
-## 8-你觉得vuex有什么缺点？
+## 58-你觉得vuex有什么缺点？
 
 ### 分析
 
@@ -3410,5 +3286,3 @@ if (!isRoot && !hot) {
 
 * * *
 
-# Pinia
-参考: [pinia](pinia.md)
