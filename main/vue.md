@@ -962,105 +962,300 @@ export function genElement (el: ASTElement, state: CodegenState): string {
 
 ## 23. 你写过自定义指令吗？使用场景有哪些？
 
-0.  Vue有一组默认指令，比如`v-mode`l或`v-for`，同时Vue也允许用户注册自定义指令来扩展Vue能力
+### **Vue 2 中的自定义指令**
 
-1.  自定义指令主要完成一些可复用低层级DOM操作
+1. **全局指令**
+```javascript
+// 注册全局指令
+Vue.directive('focus', {
+  // 钩子函数
+  inserted(el) {
+    el.focus();
+  },
+});
+```
 
-2.  使用自定义指令分为定义、注册和使用三步：
+2. **局部指令**
+```javascript
+export default {
+  directives: {
+    focus: {
+      inserted(el) {
+        el.focus();
+      },
+    },
+  },
+};
+```
 
-    +   定义自定义指令有两种方式：对象和函数形式，前者类似组件定义，有各种生命周期；后者只会在mounted和updated时执行
-    +   注册自定义指令类似组件，可以使用app.directive()全局注册，使用{directives:{xxx}}局部注册
-    +   使用时在注册名称前加上v-即可，比如v-focus
-3.  我在项目中常用到一些自定义指令，例如：
+3. **使用方式**
+```vue
+<template>
+  <input v-focus />
+</template>
+```
 
-    +   复制粘贴 v-copy
-    +   长按 v-longpress
-    +   防抖 v-debounce
-    +   图片懒加载 v-lazy
-    +   按钮权限 v-premission
-    +   页面水印 v-waterMarker
-    +   拖拽指令 v-draggable
-4.  vue3中指令定义发生了比较大的变化，主要是钩子的名称保持和组件一致，这样开发人员容易记忆，不易犯错。另外在v3.2之后，可以在setup中以一个小写v开头方便的定义自定义指令，更简单了！
+---
 
+### **Vue 3 中的自定义指令**
+
+1. **全局指令**
+```javascript
+const app = Vue.createApp({});
+
+app.directive('focus', {
+  mounted(el) {
+    el.focus();
+  },
+});
+```
+
+2. **局部指令**
+```javascript
+// 选项式
+export default {
+  directives: {
+    focus: {
+      mounted(el) {
+        el.focus();
+      },
+    },
+  },
+};
+```
+
+```vue
+// 组合式
+<script setup>
+// 完整自定义指令
+const vFocus = {
+   // 在绑定元素的 attribute 前
+   // 或事件监听器应用前调用
+   created(el, binding, vnode) {
+   },
+   // 在元素被插入到 DOM 前调用
+   beforeMount(el, binding, vnode) {},
+   // 在绑定元素的父组件
+   // 及他自己的所有子节点都挂载完成后调用
+   mounted(el, binding, vnode) {},
+   // 绑定元素的父组件更新前调用
+   beforeUpdate(el, binding, vnode, prevVnode) {},
+   // 在绑定元素的父组件
+   // 及他自己的所有子节点都更新后调用
+   updated(el, binding, vnode, prevVnode) {
+      // el: 元素DOM
+      // binding: { arg: 'foo', modifiers: { bar: true },value: 'baz 的值',oldValue: '上一次更新时 baz 的值', instance: '使用该指令的组件实例', dir: '指令的定义对象'} 
+      // vnode: 代表绑定元素的底层 VNode
+      // prevVnode：代表之前的渲染中指令所绑定元素的 VNode
+   },
+   // 绑定元素的父组件卸载前调用
+   beforeUnmount(el, binding, vnode) {},
+   // 绑定元素的父组件卸载后调用
+   unmounted(el, binding, vnode) {}
+}
+</script>
+```
+
+3. **使用方式**
+```vue
+<template>
+  <div v-focus:foo.bar="baz"> </div>
+</template>
+```
+
+---
+
+### **钩子函数对比**
+
+| 钩子函数         | Vue 2                     | Vue 3                     | 说明                                                                 |
+|------------------|---------------------------|---------------------------|----------------------------------------------------------------------|
+| **初始化**       | `bind(el, binding)`       | `created(el, binding)`    | 在元素绑定指令时调用。                                               |
+| **插入到 DOM**   | `inserted(el)`            | `mounted(el)`             | 在绑定元素插入父节点时调用。                                         |
+| **更新时**       | `update(el, binding)`     | `updated(el, binding)`    | 在绑定元素更新时调用（不包括子节点）。                              |
+| **后续更新完成** | `componentUpdated(el)`    | -                         | Vue 3 中已移除该钩子，推荐使用 `updated` 代替。                     |
+| **解绑**         | `unbind(el)`              | `beforeUnmount(el)`       | 在指令与元素解绑时调用。                                             |
+
+---
+
+
+### **使用场景**
+
+- **自动聚焦：**
+```javascript
+app.directive('focus', {
+  mounted(el) {
+    el.focus();
+  },
+});
+```
+
+- **懒加载图片：**
+```javascript
+app.directive('lazy-load', {
+  mounted(el, binding) {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        el.src = binding.value;
+        observer.unobserve(el);
+      }
+    });
+    observer.observe(el);
+  },
+});
+```
+
+- **拖拽功能**
+实现元素的拖拽功能：
+```javascript
+app.directive('draggable', {
+  mounted(el) {
+    el.style.position = 'absolute';
+    el.onmousedown = (event) => {
+      const shiftX = event.clientX - el.getBoundingClientRect().left;
+      const shiftY = event.clientY - el.getBoundingClientRect().top;
+
+      const moveAt = (pageX, pageY) => {
+        el.style.left = `${pageX - shiftX}px`;
+        el.style.top = `${pageY - shiftY}px`;
+      };
+
+      const onMouseMove = (event) => moveAt(event.pageX, event.pageY);
+
+      document.addEventListener('mousemove', onMouseMove);
+
+      el.onmouseup = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        el.onmouseup = null;
+      };
+    };
+  },
+});
+```
+
+- **权限控制**
+根据用户权限动态控制元素的显示：
+```javascript
+app.directive('permission', {
+  mounted(el, binding) {
+    const userPermissions = getUserPermissions(); // 假设获取用户权限的方法
+    if (!userPermissions.includes(binding.value)) {
+      el.parentNode?.removeChild(el);
+    }
+  },
+});
+```
+使用：
+```html
+<button v-permission="'admin'">Delete</button>
+```
+
+- **淡入淡出效果**
+为元素添加进入/离开动画：
+```javascript
+app.directive('fade', {
+  mounted(el) {
+    el.style.transition = 'opacity 0.5s';
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.style.opacity = '1';
+    }, 0);
+  },
+});
+```
 
 * * *
 
 ## 24. 说下$attrs和$listeners的使用场景
 
-### 分析
+`$attrs` 父子组件中`传递未显式声明的属性`.
 
-API考察，但$attrs和$listeners是比较少用的边界知识，而且vue3有变化，$listeners已经移除，还是有细节可说的。
+`$listeners` 父子组件中传递`事件监听器`.
 
-* * *
+### Vue2 `$attrs`和`$listeners`
+**`$attrs`**
+- **Vue 2**: `$attrs` 是一个对象，包含**未被组件声明为 `props`** 的特性（包括动态绑定的属性）。
+- **Vue 3**: 移除`$listeners`,`$attrs` 的功能不变，但同时包含了 `$listeners` 的功能。
 
-### 思路
-
-0.  这两个api的作用
-1.  使用场景分析
-2.  使用方式和细节
-3.  vue3变化
-
-* * *
-
-### 体验
-
-一个包含组件透传属性的对象。
-
-> An object that contains the component's fallthrough attributes.
-
-```xml
+**使用场景:**
+**动态传递未声明的属性**
+用于将父组件传递的非 `props` 属性绑定到子组件或其 DOM 上。
+```vue
+<!-- 父组件 -->
 <template>
-    <child-component v-bind="$attrs">
-        将非属性特性透传给内部的子组件
-    </child-component>
+  <ChildComponent id="my-id" title="Hello" class="custom-class" />
 </template>
 ```
 
-* * *
-
-### 范例
-
-0.  我们可能会有一些属性和事件没有在props中定义，这类称为非属性特性，结合v-bind指令可以直接透传给内部的子组件。
-1.  这类“属性透传”常常用于包装高阶组件时往内部传递属性，常用于爷孙组件之间传参。比如我在扩展A组件时创建了组件B组件，然后在C组件中使用B，此时传递给C的属性中只有props里面声明的属性是给B使用的，其他的都是A需要的，此时就可以利用v-bind="$attrs"透传下去。
-2.  最常见用法是结合v-bind做展开；$attrs本身不是响应式的，除非访问的属性本身是响应式对象。
-3.  vue2中使用listeners获取事件，vue3中已移除，均合并到listeners获取事件，vue3中已移除，均合并到attrs中，使用起来更简单了。
-
-* * *
-
-### 原理
-
-查看透传属性foo和普通属性bar，发现vnode结构完全相同，这说明vue3中将分辨两者工作由框架完成而非用户指定：
-
-```xml
+```vue
+<!-- 子组件 -->
 <template>
-  <h1>{{ msg }}</h1>
-  <comp foo="foo" bar="bar" />
+  // 将`id` 和 `class` 绑定到元素
+  <div v-bind="$attrs">I'm a child!</div>
 </template>
-```
 
-```xml
-<template>
-  <div>
-    {{$attrs.foo}} {{bar}}
-  </div>
-</template>
-<script setup>
-defineProps({
-  bar: String
-})
+<script>
+export default {
+  props: ['title'], // `title` 被声明为 `props`，`id` 和 `class` 会存放在 `$attrs` 中。 
+};
 </script>
 ```
 
-```php
-_createVNode(Comp, {
-    foo: "foo",
-    bar: "bar"
-})
+---
+
+**高阶组件 (HOC) 属性透传**
+在封装组件时，需要透传父组件传入的所有非 `props` 属性到底层组件。
+
+**示例：属性透传**
+```vue
+<template>
+  <BaseInput v-bind="$attrs" />
+</template>
+
+<script>
+export default {
+  inheritAttrs: false, // 禁用自动绑定到根元素
+};
+</script>
 ```
 
-* * *
+---
 
-[sfc.vuejs.org/#eyJBcHAudn…](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBDb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ0hlbGxvIFdvcmxkIScpXG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgZm9vPVwiZm9vXCIgYmFyPVwiYmFyXCIgLz5cbjwvdGVtcGxhdGU+IiwiaW1wb3J0LW1hcC5qc29uIjoie1xuICBcImltcG9ydHNcIjoge1xuICAgIFwidnVlXCI6IFwiaHR0cHM6Ly9zZmMudnVlanMub3JnL3Z1ZS5ydW50aW1lLmVzbS1icm93c2VyLmpzXCJcbiAgfVxufSIsIkNvbXAudnVlIjoiPHRlbXBsYXRlPlxuXHQ8ZGl2PlxuICAgIHt7JGF0dHJzLmZvb319IHt7YmFyfX1cbiAgPC9kaXY+XG48L3RlbXBsYXRlPlxuPHNjcmlwdCBzZXR1cD5cbmRlZmluZVByb3BzKHtcbiAgYmFyOiBTdHJpbmdcbn0pXG48L3NjcmlwdD4ifQ== "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcbmltcG9ydCBDb21wIGZyb20gJy4vQ29tcC52dWUnXG5jb25zdCBtc2cgPSByZWYoJ0hlbGxvIFdvcmxkIScpXG48L3NjcmlwdD5cblxuPHRlbXBsYXRlPlxuICA8aDE+e3sgbXNnIH19PC9oMT5cbiAgPGNvbXAgZm9vPVwiZm9vXCIgYmFyPVwiYmFyXCIgLz5cbjwvdGVtcGxhdGU+IiwiaW1wb3J0LW1hcC5qc29uIjoie1xuICBcImltcG9ydHNcIjoge1xuICAgIFwidnVlXCI6IFwiaHR0cHM6Ly9zZmMudnVlanMub3JnL3Z1ZS5ydW50aW1lLmVzbS1icm93c2VyLmpzXCJcbiAgfVxufSIsIkNvbXAudnVlIjoiPHRlbXBsYXRlPlxuXHQ8ZGl2PlxuICAgIHt7JGF0dHJzLmZvb319IHt7YmFyfX1cbiAgPC9kaXY+XG48L3RlbXBsYXRlPlxuPHNjcmlwdCBzZXR1cD5cbmRlZmluZVByb3BzKHtcbiAgYmFyOiBTdHJpbmdcbn0pXG48L3NjcmlwdD4ifQ==")
+**`$listeners`**
+
+- `$listeners` 是一个对象，包含传递给组件但未显式绑定的**事件监听器**。
+
+**使用场景:**
+** 动态传递事件监听器**
+用于将父组件传递的事件动态绑定到子组件。
+```vue
+<!-- 父组件 -->
+<template>
+  <ChildComponent @click="handleClick" @focus="handleFocus" />
+</template>
+```
+
+```vue
+<!-- 子组件 -->
+<template>
+  // 父组件的 `@click` 和 `@focus` 会被动态绑定到按钮上
+  <button v-on="$listeners">Click me</button>
+</template>
+```
+---
+
+### **Vue 3 使用 `$attrs` `$listeners`**
+在 Vue 3 中，**`$listeners` 被移除**，相关功能被整合进 `$attrs`。
+
+- `$attrs` 包含：
+    - 未声明的 `props`。
+    - 事件监听器（如 `@click`、`@focus` 等）。
+
+**Vue 3 示例：事件与属性同时透传**
+```vue
+<template>
+  <button v-bind="$attrs">Click me</button>
+</template>
+```
 
 * * *
 
