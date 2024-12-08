@@ -1525,466 +1525,168 @@ export default instance;
 
 ## 30. SPA、SSR的区别是什么
 
-我们现在编写的Vue、React和Angular应用大多数情况下都会在一个页面中，点击链接跳转页面通常是内容切换而非页面跳转，由于良好的用户体验逐渐成为主流的开发模式。但同时也会有首屏加载时间长，SEO不友好的问题，因此有了SSR，这也是为什么面试中会问到两者的区别。
+| 特性                | **SPA（单页应用）**                 | **SSR（服务端渲染）**               |
+|-------------------|-------------------------------|------------------------------|
+| **定义**            | 通常由一个 HTML 页面组成，页面内容的更新通过 JavaScript 动态加载并渲染        | 服务端生成完整的 HTML 页面并直接发送到客户端浏览器 |
+| **页面渲染**          | 前端渲染（浏览器执行 JavaScript）        | 服务端渲染（HTML 在服务器生成）           |
+| **首屏加载速度**        | 较慢（需要加载 JavaScript）           | 较快（直接返回 HTML）                |
+| **SEO 支持**        | 较差（需要额外的优化，如 prerender 或动态渲染） | 良好（服务端返回完整 HTML）             |
+| **用户体验**          | 页面切换流畅，无需刷新                   | 页面切换可能需要重新加载                 |
+| **开发复杂度**         | 较低                            | 较高（需要同构或特定框架支持）              |
+| **服务器压力**         | 低（静态资源可缓存，渲染在客户端完成）           | 高（每次请求需服务端生成 HTML）           |
+| **JavaScript 依赖** | 强（必须支持 JavaScript）            | 弱（基本内容可无 JS 支持，动态交互需 JS）     |
+| **适用场景**          | SEO要求不高的页面,如后台管理              | SEO要求高,如电商网站、新闻网站、博客         |
 
-### 思路分析
 
-0.  两者概念
-1.  两者优缺点分析
-2.  使用场景差异
-3.  其他选择
-
-* * *
-
-### 回答范例
-
-0.  SPA（Single Page Application）即**单页面应用**。一般也称为 **客户端渲染**（Client Side Render）， 简称 CSR。SSR（Server Side Render）即 **服务端渲染**。一般也称为 **多页面应用**（Mulpile Page Application），简称 MPA。
-1.  SPA应用只会首次请求html文件，后续只需要请求JSON数据即可，因此用户体验更好，节约流量，服务端压力也较小。但是首屏加载的时间会变长，而且SEO不友好。为了解决以上缺点，就有了SSR方案，由于HTML内容在服务器一次性生成出来，首屏加载快，搜索引擎也可以很方便的抓取页面信息。但同时SSR方案也会有性能，开发受限等问题。
-2.  在选择上，如果我们的应用存在首屏加载优化需求，SEO需求时，就可以考虑SSR。
-3.  但并不是只有这一种替代方案，比如对一些不常变化的静态网站，SSR反而浪费资源，我们可以考虑[预渲染](https://github.com/chrisvfritz/prerender-spa-plugin "https://github.com/chrisvfritz/prerender-spa-plugin")（prerender）方案。另外nuxt.js/next.js中给我们提供了SSG（Static Site Generate）静态网站生成方案也是很好的静态站点解决方案，结合一些CI手段，可以起到很好的优化效果，且能节约服务器资源。
-
-* * *
-
-### 知其所以然
-
-内容生成上的区别：
-
-SSR
-
-![ss](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f486234794794c8baf4f44496d8e824f~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-SPA
-
-![sp](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5171c9f5a94447fc8f12d644ab31e078~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-部署上的区别
-
-![部署上区别](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3af3e8cc8da34394bf7d4c3d75bf9ec8~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+**替代方案:**
++ 混合模式(SSR + SPA): 使用Nuxt.js 和 Next.js,首屏采用 SSR,其他页面使用SPA.
++ 预渲染: webpack打包时调用插件直接渲染静态内容,降低客户端开销.
 
 * * *
 
 ## 31. 你了解哪些Vue性能优化方法？
 
-### 分析
++   路由懒加载/异步组件,利于代码分割
 
-这是一道综合实践题目，写过一定数量的代码之后小伙伴们自然会开始关注一些优化方法，答得越多肯定实践经验也越丰富，是很好的题目。
++   `keep-alive`缓存组件
 
-### 答题思路：
++   条件渲染频繁的使用`v-show`
 
-根据题目描述，这里主要探讨Vue代码层面的优化
++   避免元素同时使用`v-for` / `v-if`
 
-* * *
++   避免不必要的深度监听`watch`
 
-### 回答范例
++   使用v-once和v-memo忽略更新
 
-+   我这里主要从Vue代码编写层面说一些优化手段，例如：代码分割、服务端渲染、组件缓存、长列表优化等
++   长列表性能优化(虚拟列表/分片渲染)
 
-+   最常见的路由懒加载：有效拆分App尺寸，访问时才异步加载
-
-    ```css
-    const router = createRouter({
-      routes: [
-        // 借助webpack的import()实现异步组件
-        { path: '/foo', component: () => import('./Foo.vue') }
-      ]
-    })
-    ```
-
-
-* * *
-
-+   `keep-alive`缓存页面：避免重复创建组件实例，且能保留缓存组件状态
-
-    ```ruby
-    <router-view v-slot="{ Component }">
-        <keep-alive>
-        <component :is="Component"></component>
-      </keep-alive>
-    </router-view>
-    ```
-
-
-* * *
-
-+   使用`v-show`复用DOM：避免重复创建组件
-
-    ```xml
-    <template>
-      <div class="cell">
-        <!-- 这种情况用v-show复用DOM，比v-if效果好 -->
-        <div v-show="value" class="on">
-          <Heavy :n="10000"/>
-        </div>
-        <section v-show="!value" class="off">
-          <Heavy :n="10000"/>
-        </section>
-      </div>
-    </template>
-    ```
-
-
-* * *
-
-+   `v-for` 遍历避免同时使用 `v-if`：实际上在Vue3中已经是个错误写法
-
-    ```xml
-    <template>
-        <ul>
-          <li
-            v-for="user in activeUsers"
-            <!-- 避免同时使用，vue3中会报错 -->
-            <!-- v-if="user.isActive" -->
-            :key="user.id">
-            {{ user.name }}
-          </li>
-        </ul>
-    </template>
-    <script>
-      export default {
-        computed: {
-          activeUsers: function () {
-            return this.users.filter(user => user.isActive)
-          }
-        }
-      }
-    </script>
-    ```
-
-
-* * *
-
-+   v-once和v-memo：不再变化的数据使用`v-once`
-
-    ```xml
-    <!-- single element -->
-    <span v-once>This will never change: {{msg}}</span>
-    <!-- the element have children -->
-    <div v-once>
-      <h1>comment</h1>
-      <p>{{msg}}</p>
-    </div>
-    <!-- component -->
-    <my-component v-once :comment="msg"></my-component>
-    <!-- `v-for` directive -->
-    <ul>
-      <li v-for="i in list" v-once>{{i}}</li>
-    </ul>
-    ```
-
-    按条件跳过更新时使用`v-memo`：下面这个列表只会更新选中状态变化项
-
-    ```css
-    <div v-for="item in list" :key="item.id" v-memo="[item.id === selected]">
-      <p>ID: {{ item.id }} - selected: {{ item.id === selected }}</p>
-      <p>...more child nodes</p>
-    </div>
-    ```
-
-    > [vuejs.org/api/built-i…](https://vuejs.org/api/built-in-directives.html#v-memo "https://vuejs.org/api/built-in-directives.html#v-memo")
-
-
-* * *
-
-+   长列表性能优化：如果是大数据长列表，可采用虚拟滚动，只渲染少部分区域的内容
-
-    ```ini
-    <recycle-scroller
-      class="items"
-      :items="items"
-      :item-size="24"
-    >
-      <template v-slot="{ item }">
-        <FetchItemView
-          :item="item"
-          @vote="voteItem(item)"
-        />
-      </template>
-    </recycle-scroller>
-    ```
-
-    > 一些开源库：
-    >
-    > +   [vue-virtual-scroller](https://github.com/Akryum/vue-virtual-scroller "https://github.com/Akryum/vue-virtual-scroller")
-    > +   [vue-virtual-scroll-grid](https://github.com/rocwang/vue-virtual-scroll-grid "https://github.com/rocwang/vue-virtual-scroll-grid")
-
-
-* * *
-
-+   事件的销毁：Vue 组件销毁时，会自动解绑它的全部指令及事件监听器，但是仅限于组件本身的事件。
-
-    ```javascript
-    export default {
-      created() {
-        this.timer = setInterval(this.refresh, 2000)
-      },
-      beforeUnmount() {
-        clearInterval(this.timer)
-      }
-    }
-    ```
-
-
-* * *
++   组件销毁时,清除定时器/事件等.
 
 +   图片懒加载
 
-    对于图片过多的页面，为了加速页面加载速度，所以很多时候我们需要将页面内未出现在可视区域内的图片先不做加载， 等到滚动到可视区域后再去加载。
-
-    ```ini
-    <img v-lazy="/static/img/1.png">
-    ```
-
-    > 参考项目：[vue-lazyload](https://github.com/hilongjw/vue-lazyload "https://github.com/hilongjw/vue-lazyload")
-
-
-* * *
-
 +   第三方插件按需引入
 
-    像`element-plus`这样的第三方组件库可以按需引入避免体积太大。
++   复杂组件分割为小组件
 
-    ```javascript
-    import { createApp } from 'vue';
-    import { Button, Select } from 'element-plus';
-    
-    const app = createApp()
-    app.use(Button)
-    app.use(Select)
-    ```
++   服务端渲染/静态网站生成
 
++   vue3 使用使用 `shallowRef 或 shallowReactive`，避免深层次数据监听
 
-* * *
++   vue3 使用`Teleport`,将复杂 DOM 或性能敏感的元素移出当前 DOM 层级，减少影响
 
-+   子组件分割策略：较重的状态组件适合拆分
++   vue3 使用`Fragment`,减少无意义的 DOM 节点
 
-    ```xml
-    <template>
-      <div>
-        <ChildComp/>
-      </div>
-    </template>
-    
-    <script>
-    export default {
-      components: {
-        ChildComp: {
-          methods: {
-            heavy () { /* 耗时任务 */ }
-          },
-          render (h) {
-            return h('div', this.heavy())
-          }
-        }
-      }
-    }
-    </script>
-    ```
++   vue3 使用`Suspense`, 延迟渲染组件，提升性能
 
-    但同时也不宜过度拆分组件，尤其是为了所谓组件抽象将一些不需要渲染的组件特意抽出来，组件实例消耗远大于纯dom节点。参考：[vuejs.org/guide/best-…](https://vuejs.org/guide/best-practices/performance.html#avoid-unnecessary-component-abstractions "https://vuejs.org/guide/best-practices/performance.html#avoid-unnecessary-component-abstractions")
-
-
-* * *
-
-+   服务端渲染/静态网站生成：SSR/SSG
-
-    如果SPA应用有首屏渲染慢的问题，可以考虑SSR、SSG方案优化。参考[SSR Guide](https://vuejs.org/guide/scaling-up/ssr.html "https://vuejs.org/guide/scaling-up/ssr.html")
 
 
 * * *
 
 ## 32. 面试官：vue项目本地开发完成后部署到服务器后报404是什么原因呢？
+**原因:** 单页面应用只有一个HTML,在页面切换时nginx就会去访问对应HTML,这些HTML不存在所以404.
+
+当路由为HASH模式时即使不进行以下配置,依然能够正确访问,因为HASH改变页面并不会去访问新的HTML.
+
+**SPA nginx正确配置:**
+```text
+server {
+  listen  80;
+  server_name  www.xxx.com;
+
+  location / {
+    /* 不论访问任何路由,都是使用以下路径的HTML作为返回 */
+    index  /data/dist/index.html;
+    try_files $uri $uri/ /index.html;
+  }
+}
+```
+
 
 ## 33. vue-loader是什么？它有什么作用？
 
-### 分析
+`vue-loader` 是 Webpack 的一个加载器 (Loader)，专门用于处理 `.vue` 文件,将 Vue 单文件组件 (Single File Components, SFC) 转换成标准的 JavaScript 模块，便于浏览器执行。
 
-这是一道工具类的原理题目，相当有深度，具有不错的人才区分度。
+**工作流程:**
 
-* * *
+1. **解析 `.vue` 文件：**
+    - 将文件分为 `<template>`、`<script>` 和 `<style>` 等块。
 
-### 体验
+2. **分块处理：**
+    - 每个块通过不同的 Loader 处理：
+        - `<template>`：使用 `vue-template-compiler` 编译为渲染函数。
+        - `<script>`：交由 `babel-loader` 或 `ts-loader` 编译。
+        - `<style>`：使用 `css-loader`、`postcss-loader`、`sass-loader` 等处理。
 
-使用官方提供的SFC playground可以很好的体验`vue-loader`。
+3. **生成模块：**
+    - 将处理后的模板、脚本、样式合并为一个 JavaScript 模块，供 Webpack 使用。
 
-[sfc.vuejs.org](https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuPC9zY3JpcHQ+XG5cbjx0ZW1wbGF0ZT5cbiAgPGgxPnt7IG1zZyB9fTwvaDE+XG4gIDxpbnB1dCB2LW1vZGVsPVwibXNnXCI+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ== "https://sfc.vuejs.org/#eyJBcHAudnVlIjoiPHNjcmlwdCBzZXR1cD5cbmltcG9ydCB7IHJlZiB9IGZyb20gJ3Z1ZSdcblxuY29uc3QgbXNnID0gcmVmKCdIZWxsbyBXb3JsZCEnKVxuPC9zY3JpcHQ+XG5cbjx0ZW1wbGF0ZT5cbiAgPGgxPnt7IG1zZyB9fTwvaDE+XG4gIDxpbnB1dCB2LW1vZGVsPVwibXNnXCI+XG48L3RlbXBsYXRlPiIsImltcG9ydC1tYXAuanNvbiI6IntcbiAgXCJpbXBvcnRzXCI6IHtcbiAgICBcInZ1ZVwiOiBcImh0dHBzOi8vc2ZjLnZ1ZWpzLm9yZy92dWUucnVudGltZS5lc20tYnJvd3Nlci5qc1wiXG4gIH1cbn0ifQ==")
 
-* * *
-
-有了`vue-loader`加持，我们才可以以SFC的方式快速编写代码。
-
-```xml
-<template>
-  <div class="example">{{ msg }}</div>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      msg: 'Hello world!',
-    }
-  },
-}
-</script>
-
-<style>
-.example {
-  color: red;
-}
-</style>
-```
-
-* * *
-
-### 思路
-
-+   `vue-loader`是什么东东
-+   `vue-loader`是做什么用的
-+   `vue-loader`何时生效
-+   `vue-loader`如何工作
-
-* * *
-
-### 回答范例
-
-0.  `vue-loader`是用于处理单文件组件（SFC，Single-File Component）的webpack loader
-1.  因为有了`vue-loader`，我们就可以在项目中编写SFC格式的Vue组件，我们可以把代码分割为<template>、<script>和<style>，代码会异常清晰。结合其他loader我们还可以用Pug编写<template>，用SASS编写<style>，用TS编写<script>。我们的<style>还可以单独作用当前组件。
-2.  webpack打包时，会以loader的方式调用`vue-loader`
-3.  `vue-loader`被执行时，它会对SFC中的每个语言块用单独的loader链处理。最后将这些单独的块装配成最终的组件模块。
-
-* * *
-
-### 知其所以然
-
-0.  `vue-loader`会调用`@vue/compiler-sfc`模块解析SFC源码为一个描述符（Descriptor），然后为每个语言块生成import代码，返回的代码类似下面：
-
-```javascript
-// source.vue被vue-loader处理之后返回的代码
-
-// import the <template> block
-import render from 'source.vue?vue&type=template'
-// import the <script> block
-import script from 'source.vue?vue&type=script'
-export * from 'source.vue?vue&type=script'
-// import <style> blocks
-import 'source.vue?vue&type=style&index=1'
-
-script.render = render
-export default script
-```
-
-* * *
-
-2.  我们想要script块中的内容被作为js处理（当然如果是`<script lang="ts">`被作为ts处理），这样我们想要webpack把配置中跟.js匹配的规则都应用到形如`source.vue?vue&type=script`的这个请求上。例如我们对所有\*.js配置了babel-loader，这个规则将被克隆并应用到所在Vue SFC的
-
-```javascript
-import script from 'source.vue?vue&type=script'
-```
-
-将被展开为：
-
-```javascript
-import script from 'babel-loader!vue-loader!source.vue?vue&type=script'
-```
-
-类似的，如果我们对`.sass`文件配置了`style-loader` + `css-loader` + `sass-loader`，对下面的代码：
-
-```ini
-<style scoped lang="scss">
-```
-
-`vue-loader`将会返回给我们下面结果：
-
-```arduino
-import 'source.vue?vue&type=style&index=1&scoped&lang=scss'
-```
-
-* * *
-
-然后webpack会展开如下：
-
-```arduino
-import 'style-loader!css-loader!sass-loader!vue-loader!source.vue?vue&type=style&index=1&scoped&lang=scss'
-```
-
-0.  当处理展开请求时，`vue-loader`将被再次调用。这次，loader将会关注那些有查询串的请求，且仅针对特定块，它会选中特定块内部的内容并传递给后面匹配的loader。
-1.  对于`<script>`块，处理到这就可以了，但是`<template>` 和 `<style>`还有一些额外任务要做，比如：
-
-+   需要用Vue 模板编译器编译template，从而得到render函数
-+   需要对`<style scoped>`中的CSS做后处理（post-process），该操作在css-loader之后但在style-loader之前
-
-实现上这些附加的loader需要被注入到已经展开的loader链上，最终的请求会像下面这样：
-
-```arduino
-// <template lang="pug">
-import 'vue-loader/template-loader!pug-loader!source.vue?vue&type=template'
-
-// <style scoped lang="scss">
-import 'style-loader!vue-loader/style-post-loader!css-loader!sass-loader!vue-loader!source.vue?vue&type=style&index=1&scoped&lang=scss'
-```
+| 功能             | 作用                                               |
+|----------------|--------------------------------------------------|
+| **处理 `.vue` 文件** | 将 Vue 单文件组件拆分并转换为 JavaScript 模块。                 |
+| **模板编译**      | 将`<template>`模板转为渲染函数，提高渲染性能。                              |
+| **支持 CSS 预处理器** | 允许在 `<style>` 中使用 SCSS、LESS 等工具。                 |
+| **样式作用域**      | 通过 `scoped` 属性确保组件样式隔离。                          |
+| **自定义块扩展**     | 支持解析 `.vue` 文件中的自定义块(如 `<docs>`、`<i18n>`)，增强灵活性。 |
+| **热模块替换 (HMR)** | 实现开发环境下的热更新，无需手动刷新页面。                            |
 
 * * *
 
 ## 34. 从0到1自己构架一个vue项目，说说有哪些步骤、哪些重要插件、目录结构你会怎么组织
 
-综合实践类题目，考查实战能力。没有什么绝对的正确答案，把平时工作的重点有条理的描述一下即可。
+**项目构建:**
 
-### 思路
++ pnpm create-vue
 
-1.  构建项目，创建项目基本结构
-2.  引入必要的插件：
-3.  代码规范：prettier，eslint
-4.  提交规范：husky，lint-staged
-5.  其他常用：svg-loader，vueuse，nprogress
-6.  常见目录结构
++ 必要插件：vue-router,vuex/pinia,ui库,axios
 
-* * *
++ 常用库: vueuse, nprogress,图标vite-svg-loader
 
-### 回答范例
++ 代码规范：使用prettier/eslint
 
-1.  从0创建一个项目我大致会做以下事情：项目构建、引入必要插件、代码规范、提交规范、常用库和组件
++ 提交规范: 使用husky/lint-staged/commitlint
 
-2.  目前vue3项目我会用vite或者create-vue创建项目
+**推荐目录结构:**
 
-3.  接下来引入必要插件：路由插件vue-router、状态管理vuex/pinia、ui库我比较喜欢element-plus和antd-vue、http工具我会选axios
-
-4.  其他比较常用的库有vueuse，nprogress，图标可以使用vite-svg-loader
-
-5.  下面是代码规范：结合prettier和eslint即可
-
-6.  最后是提交规范，可以使用husky，lint-staged，commitlint
-
-
-* * *
-
-7.  目录结构我有如下习惯： `.vscode`：用来放项目中的 vscode 配置
-
-    `plugins`：用来放 vite 插件的 plugin 配置
-
-    `public`：用来放一些诸如 页头icon 之类的公共文件，会被打包到dist根目录下
-
-    `src`：用来放项目代码文件
-
-    `api`：用来放http的一些接口配置
-
-    `assets`：用来放一些 CSS 之类的静态资源
-
-    `components`：用来放项目通用组件
-
-    `layout`：用来放项目的布局
-
-    `router`：用来放项目的路由配置
-
-    `store`：用来放状态管理Pinia的配置
-
-    `utils`：用来放项目中的工具方法类
-
-    `views`：用来放项目的页面文件
-
+```plaintext
+├── public/               # 静态资源文件，直接输出到最终打包目录
+│   ├── favicon.ico       # 网站图标
+│   └── robots.txt        # 爬虫配置文件
+├── src/                  # 源代码
+│   ├── assets/           # 静态资源，经过 Webpack/Vite 构建处理
+│   │   ├── images/       # 图片资源
+│   │   ├── styles/       # 全局样式
+│   │   └── fonts/        # 字体文件
+│   ├── components/       # 公共组件（通用组件）
+│   │   ├── base/         # 基础组件（如 Button、Input 等）
+│   │   └── layout/       # 布局组件（如 Header、Footer 等）
+│   ├── composables/      # 可复用的 Composition API 函数
+│   │   └── useAuth.js    # 用户认证函数
+│   ├── directives/       # 自定义指令
+│   │   └── v-focus.js    # 示例：自动聚焦指令
+│   ├── layouts/          # 页面布局文件（如多种页面结构的模板）
+│   │   └── DefaultLayout.vue
+│   ├── pages/            # 页面级组件
+│   │   ├── Home.vue
+│   │   └── NotFound.vue  # 404 页面
+│   ├── router/           # 路由配置
+│   │   └── index.js
+│   ├── store/            # 状态管理（如 Vuex 或 Pinia）
+│   │   ├── index.js      # 状态管理入口
+│   │   └── auth.js       # 示例：用户状态模块
+│   ├── utils/            # 工具函数
+│   │   ├── helpers.js    # 示例：通用工具函数
+│   │   └── validators.js # 示例：表单验证
+│   ├── api/              # HTTP接口配置
+│   ├── App.vue           # 根组件
+│   ├── main.js           # 应用入口文件
+│   └── env.d.ts          # 环境变量类型声明（如使用 TypeScript）
+├── .env                  # 环境变量文件
+├── .gitignore            # Git 忽略配置
+├── package.json          # 项目依赖和脚本配置
+├── vite.config.js        # Vite 配置文件
+└── tsconfig.json         # TypeScript 配置文件（如使用 TS）
+```
 
 * * *
 
