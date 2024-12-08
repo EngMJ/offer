@@ -1347,207 +1347,179 @@ nextTick(() => {
 
 ## 28. 你是怎么处理vue项目中的错误的？
 
-### 分析
+分为`逻辑错误`与`请求错误`,再根据错误类型进行`捕获上报`.
 
-这是一个综合应用题目，在项目中我们常常需要将App的异常上报，此时错误处理就很重要了。
+### **Vue 2 项目中的错误处理**
 
-这里要区分错误的类型，针对性做收集。
-
-然后是将收集的的错误信息上报服务器。
-
-* * *
-
-### 思路
-
-0.  首先区分错误类型
-1.  根据错误不同类型做相应收集
-2.  收集的错误是如何上报服务器的
-
-* * *
-
-### 回答范例
-
-0.  应用中的错误类型分为"`接口异常`"和“`代码逻辑异常`”
-1.  我们需要根据不同错误类型做相应处理：`接口异常`是我们请求后端接口过程中发生的异常，可能是请求失败，也可能是请求获得了服务器响应，但是返回的是错误状态。以Axios为例，这类异常我们可以通过封装Axios，在拦截器中统一处理整个应用中请求的错误。`代码逻辑异常`是我们编写的前端代码中存在逻辑上的错误造成的异常，vue应用中最常见的方式是使用全局错误处理函数`app.config.errorHandler`收集错误。
-2.  收集到错误之后，需要统一处理这些异常：分析错误，获取需要错误信息和数据。这里应该有效区分错误类型，如果是请求错误，需要上报接口信息，参数，状态码等；对于前端逻辑异常，获取错误名称和详情即可。另外还可以收集应用名称、环境、版本、用户信息，所在页面等。这些信息可以通过vuex存储的全局状态和路由信息获取。
-
-* * *
-
-### 实践
-
-axios拦截器中处理捕获异常：
-
-```vbscript
-// 响应拦截器
-instance.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
-  (error) => {
-    // 存在response说明服务器有响应
-    if (error.response) {
-      let response = error.response;
-      if (response.status >= 400) {
-        handleError(response);
-      }
-    } else {
-      handleError(null);
-    }
-    return Promise.reject(error);
-  },
-);
-```
-
-* * *
-
-vue中全局捕获异常：
++ **全局错误处理**
+使用 Vue 提供的 `Vue.config.errorHandler` 方法，可以捕获所有未被处理的错误。
 
 ```javascript
-import { createApp } from 'vue'
+import Vue from 'vue';
 
-const app = createApp(...)
+Vue.config.errorHandler = (err, vm, info) => {
+  console.error(`[Vue error]: ${err.message}`);
+  console.error(`[Component name]: ${vm.$options.name || 'anonymous'}`);
+  console.error(`[Error info]: ${info}`);
+  // 可以上报错误到服务端
+};
+```
+
++ **组件级错误处理**
+在单个组件中，可以使用 `errorCaptured` 钩子捕获子组件抛出的错误。
+
+```javascript
+export default {
+  name: 'MyComponent',
+  errorCaptured(err, vm, info) {
+    console.error(`[Captured error]: ${err.message}`);
+    // 返回 false 阻止错误向上传递
+    return false;
+  },
+};
+```
+
+---
+
+### **Vue 3 项目中的错误处理**
+
++ **全局错误处理**
+在 Vue 3 中，可以通过 `app.config.errorHandler` 设置全局错误处理逻辑。
+
+```javascript
+import { createApp } from 'vue';
+import App from './App.vue';
+
+const app = createApp(App);
 
 app.config.errorHandler = (err, instance, info) => {
-  // report error to tracking services
-}
+  console.error(`[Vue error]: ${err.message}`);
+  console.error(`[Component name]: ${instance?.$options?.name || 'anonymous'}`);
+  console.error(`[Error info]: ${info}`);
+  // 错误上报
+};
+
+app.mount('#app');
 ```
 
-* * *
++ **选项式组件级错误处理 errorCaptured**
 
-处理接口请求错误：
+```javascript
+export default {
+  name: 'MyComponent',
+  errorCaptured(err, instance, info) {
+    console.error(`[Captured error]: ${err.message}`);
+    return false;
+  },
+};
+```
 
-```lua
-function handleError(error, type) {
-  if(type == 1) {
-    // 接口错误，从config字段中获取请求信息
-    let { url, method, params, data } = error.config
-    let err_data = {
-       url, method,
-       params: { query: params, body: data },
-       error: error.data?.message || JSON.stringify(error.data),
-    })
++ **组合式组件级错误处理 onErrorCaptured**
+
+```vue
+<script setup> 
+import { onErrorCaptured } from 'vue';
+
+// 在捕获了后代组件传递的错误时调用
+// 捕获以下错误:
+// 组件渲染
+// 事件处理器
+// 生命周期钩子
+// setup() 函数
+// 侦听器
+// 自定义指令钩子
+// 过渡钩子
+onErrorCaptured((err, instance, info)=>{
+  // err 错误对象
+  // instance 触发该错误组件实例
+  // info 错误信息
+
+  // 错误传递方式:
+  // 1. 正常错误将逐层传递onErrorCaptured,最终到达全局错误处理app.config.errorHandler
+  // 2. 返回false将不再向上传递错误
+  // 3. 当onErrorCaptured出现错误,将直接传递给全局错误处理app.config.errorHandler
+
+  // 返回false,就停止向上传递错误
+  return false;
+})
+
+</script>
+```
+
+---
+
+### **Promise 错误处理**
+监听未捕获的 Promise 错误：
+
+```javascript
+window.addEventListener('unhandledrejection', (event) => {
+  console.error(`[Unhandled promise rejection]: ${event.reason}`);
+});
+```
+
+---
+
+### **Axios全局网络请求错误处理**
+
+```javascript
+import axios from 'axios';
+
+const instance = axios.create({
+  baseURL: '/api',
+  timeout: 10000,
+});
+
+// 请求拦截器
+instance.interceptors.request.use(
+  (config) => {
+    // 添加全局请求逻辑
+    return config;
+  },
+  (error) => {
+    console.error(`[Request error]: ${error.message}`);
+    return Promise.reject(error);
   }
-}
-```
+);
 
-* * *
-
-处理前端逻辑错误：
-
-```go
-function handleError(error, type) {
-  if(type == 2) {
-    let errData = null
-    // 逻辑错误
-    if(error instanceof Error) {
-      let { name, message } = error
-      errData = {
-        type: name,
-        error: message
-      }
-    } else {
-      errData = {
-        type: 'other',
-        error: JSON.strigify(error)
-      }
-    }
+// 响应拦截器
+instance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error(`[Response error]: ${error.response?.data?.message || error.message}`);
+    // 可以在这里进行统一的错误提示或上报
+    return Promise.reject(error);
   }
-}
+);
+
+export default instance;
 ```
+
+---
+
+### **区别总结**
+
+| 功能                | Vue 2                                                  | Vue 3                                   |
+|---------------------|--------------------------------------------------------|-----------------------------------------|
+| 全局错误处理         | `Vue.config.errorHandler`                              | `app.config.errorHandler`               |
+| 组件级错误捕获       | `errorCaptured`                                        | 选项式`errorCaptured`,组合式`onErrorCaptured` |
+| 未捕获 Promise 错误  | `window.addEventListener('unhandledrejection',()=>{})` | `window.addEventListener('unhandledrejection',()=>{})`               |
+
 
 * * *
 
 ## 29. Vue要做权限管理该怎么做？控制到按钮级别的权限怎么做？
 
-### 分析
++ **页面权限**
 
-综合实践题目，实际开发中经常需要面临权限管理的需求，考查实际应用能力。
+    `前端方案:`**前端存储所有路由信息**，通过`路由守卫`要求用户登录，用户**登录后根据角色过滤出路由表**,最后通过`router.addRoutes(accessRoutes)`方式动态添加路由。
 
-权限管理一般需求是两个：页面权限和按钮权限，从这两个方面论述即可。
+    `后端方案:`**把所有页面路由信息存在数据库**中，用户登录的时候根据其角色**查询得到其能访问的所有页面路由信息**返回给前端，前端**再通过`addRoutes`动态添加路由**信息
+    
+    `可维护性:`前端方案实现简单,后续修改需重新打包. 后端方案实现较为复杂,但是维护方便.
 
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/631e5a9510f349e488227498ec6212e9~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-### 思路
-
-1.  权限管理需求分析：页面和按钮权限
-2.  权限管理的实现方案：分后端方案和前端方案阐述
-3.  说说各自的优缺点
-
-* * *
-
-### 回答范例
-
-1.  权限管理一般需求是**页面权限**和**按钮权限**的管理
-
-2.  具体实现的时候分后端和前端两种方案：
-
-    前端方案会**把所有路由信息在前端配置**，通过路由守卫要求用户登录，用户**登录后根据角色过滤出路由表**。比如我会配置一个`asyncRoutes`数组，需要认证的页面在其路由的`meta`中添加一个`roles`字段，等获取用户角色之后取两者的交集，若结果不为空则说明可以访问。此过滤过程结束，剩下的路由就是该用户能访问的页面，**最后通过`router.addRoutes(accessRoutes)`方式动态添加路由**即可。
-
-    后端方案会**把所有页面路由信息存在数据库**中，用户登录的时候根据其角色**查询得到其能访问的所有页面路由信息**返回给前端，前端**再通过`addRoutes`动态添加路由**信息
++ **按钮权限**
 
     按钮权限的控制通常会**实现一个指令**，例如`v-permission`，**将按钮要求角色通过值传给v-permission指令**，在指令的`moutned`钩子中可以**判断当前用户角色和按钮是否存在交集**，有则保留按钮，无则移除按钮。
-
-3.  纯前端方案的优点是实现简单，不需要额外权限管理页面，但是维护起来问题比较大，有新的页面和角色需求就要修改前端代码重新打包部署；服务端方案就不存在这个问题，通过专门的角色和权限管理页面，配置页面和按钮权限信息到数据库，应用每次登陆时获取的都是最新的路由信息，可谓一劳永逸！
-
-
-* * *
-
-### 知其所以然
-
-路由守卫
-
-[github1s.com/PanJiaChen/…](https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L13-L14 "https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L13-L14")
-
-路由生成
-
-[github1s.com/PanJiaChen/…](https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/store/modules/permission.js#L50-L51 "https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/store/modules/permission.js#L50-L51")
-
-动态追加路由
-
-[github1s.com/PanJiaChen/…](https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L43-L44 "https://github1s.com/PanJiaChen/vue-element-admin/blob/HEAD/src/permission.js#L43-L44")
-
-* * *
-
-### 可能的追问
-
-1.  类似`Tabs`这类组件能不能使用`v-permission`指令实现按钮权限控制？
-
-    ```html
-    <el-tabs> 
-      <el-tab-pane label="⽤户管理" name="first">⽤户管理</el-tab-pane> 
-    	<el-tab-pane label="⻆⾊管理" name="third">⻆⾊管理</el-tab-pane>
-    </el-tabs>
-    ```
-
-
-* * *
-
-2.  服务端返回的路由信息如何添加到路由器中？
-
-    ```js
-    // 前端组件名和组件映射表
-    const map = {
-      //xx: require('@/views/xx.vue').default // 同步的⽅式
-      xx: () => import('@/views/xx.vue') // 异步的⽅式
-    }
-    // 服务端返回的asyncRoutes
-    const asyncRoutes = [
-      { path: '/xx', component: 'xx',... }
-    ]
-    // 遍历asyncRoutes，将component替换为map[component]
-    function mapComponent(asyncRoutes) {
-      asyncRoutes.forEach(route => {
-        route.component = map[route.component];
-        if(route.children) {
-          route.children.map(child => mapComponent(child))
-        }
-    	})
-    }
-    mapComponent(asyncRoutes)
-    ```
-
 
 * * *
 
