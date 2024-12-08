@@ -1717,47 +1717,17 @@ server {
 
 ## 36. Composition API 与 Options API 有什么不同
 
-### 分析
+| **特性**     | **选项式 API**                                     | **组合式 API**                      |
+|------------|------------------------------------------------|----------------------------------|
+| **代码组织方式** | 按功能类型分组，例如 `data`、`methods` 等               | 按逻辑分组，将相关逻辑集中在一起。                |
+| **逻辑复用**   | 通过 `mixins` 或 `extends` 实现，但可能会导致命名冲突或难以追踪 | 使用自定义复用逻辑，清晰且易于管理。  |
+| **类型支持**   | 较弱，对 TypeScript 支持有限                          | 原生支持 TypeScript，类型推断更强大。         |
+| **学习曲线**   | 易于上手，适合初学者                                  | 需要学习 Composition API，适合复杂项目和高级开发者。 |
+| **代码可读性**  | 简单场景下代码易读，但复杂逻辑会分散在多个选项中               | 复杂逻辑集中，代码更清晰，但初学者可能不习惯。          |
+| **性能**     | 两者性能无明显差异，底层运行机制相同                     | 性能与选项式 API 相同，主要提供更好的组织逻辑能力。     |
+| **适用场景**   |          小型项目或简单组件            | 中大型项目                            |
 
-Vue3最重要更新之一就是Composition API，它具有一些列优点，其中不少是针对Options API暴露的一些问题量身打造。是Vue3推荐的写法，因此掌握好Composition API应用对掌握好Vue3至关重要。
-
-![image-20220629182639250](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8b7b4bfafa5c4507be726d273161c3c2~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-[vuejs.org/guide/extra…](https://vuejs.org/guide/extras/composition-api-faq.html "https://vuejs.org/guide/extras/composition-api-faq.html")
-
-* * *
-
-### 体验
-
-Composition API能更好的组织代码，下面这个代码用options api实现
-
-![image-20220629183203082](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a280d15533ad4481a6121064940eae1b~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-如果用composition api可以提取为useCount()，用于组合、复用
-
-![image-20220629184919471](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1aa01aeeff224815bef1356b773fae2d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-### 思路
-
-+   总述不同点
-+   composition api动机
-+   两者选择
-
-* * *
-
-### 回答范例
-
-+   `Composition API`是一组API，包括：Reactivity API、生命周期钩子、依赖注入，使用户可以通过导入函数方式编写vue组件。而`Options API`则通过声明组件选项的对象形式编写组件。
-+   `Composition API`最主要作用是能够简洁、高效复用逻辑。解决了过去`Options API`中`mixins`的各种缺点；另外`Composition API`具有更加敏捷的代码组织能力，很多用户喜欢`Options API`，认为所有东西都有固定位置的选项放置代码，但是单个组件增长过大之后这反而成为限制，一个逻辑关注点分散在组件各处，形成代码碎片，维护时需要反复横跳，`Composition API`则可以将它们有效组织在一起。最后`Composition API`拥有更好的类型推断，对ts支持更友好，`Options API`在设计之初并未考虑类型推断因素，虽然官方为此做了很多复杂的类型体操，确保用户可以在使用`Options API`时获得类型推断，然而还是没办法用在mixins和provide/inject上。
-+   Vue3首推`Composition API`，但是这会让我们在代码组织上多花点心思，因此在选择上，如果我们项目属于中低复杂度的场景，`Options API`仍是一个好选择。对于那些大型，高扩展，强维护的项目上，`Composition API`会获得更大收益。
-
-* * *
-
-### 可能的追问
-
-+   `Composition API`能否和`Options API`一起使用？
+**注意:** `Composition API`能和`Options API`可以一起使用, 但是作用域并不共享,不推荐使用.
 
 * * *
 
