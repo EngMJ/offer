@@ -1804,7 +1804,7 @@ server {
 
 * * *
 
-## 41. Vue3.0 性能提升体现在哪些方面？
+## 39. Vue3.0 性能提升体现在哪些方面？
 
 | **优化点**                     | **提升效果**                               |
 |-------------------------------|----------------------------------------|
@@ -1821,7 +1821,7 @@ server {
 
 
 
-## 42. Vue3.0里为什么要用 Proxy 替代 defineProperty ？
+## 40. Vue3.0里为什么要用 Proxy 替代 defineProperty ？
 
 **1.常用数据劫持方式区别:**
 
@@ -1845,233 +1845,143 @@ server {
 
 ## API参考: [vue router](vue_router.md)
 
-## 43. History模式和Hash模式有何区别？
+## 41. History模式和Hash模式有何区别？
 
-### 分析
-
-vue-router有3个模式，其中两个更为常用，那便是history和hash。
-
-两者差别主要在显示形式和部署上。
+| **模式**      | **API**                    | **URL 格式**         | **刷新页面支持** | **SEO 支持**  | **适用场景**                  |
+|-------------|----------------------------|----------------------|------------|---------------|------------------------------|
+| **History** | **`createWebHistory`**     | `/about`            | 需web服务器支持  | 支持           | SSR、SEO 友好的 Web 应用       |
+| **Hash**    | **`createWebHashHistory`** | `/#/about`         | 无需web服务器支持 | 不支持         | 纯前端项目，静态文件托管         |
+| **SSR**     | **`createMemoryHistory`**  | 不显示 URL         | 不适用        | 不适用         | SSR、测试环境                  |
 
 * * *
 
-### 体验
+## 42. 怎么定义动态路由？怎么获取传过来的动态参数？
 
-vue-router4.x中设置模式已经变化：
-
-```bash
-const router = createRouter({
-  history: createWebHashHistory(), // hash模式
-  history: createWebHistory(),     // history模式
-})
+**动态路由篇配置:**
+```text
+// :id 即为动态路由参数
+{ path: '/users/:id', component: User }
 ```
 
-用起来一模一样
+**获取:**
+```vue
+// 组合式
+<script setup>
+  import { useRouter } from 'vue-router';
+  const router = useRouter(); // 获取路由实例
+  console.log(router.currentRoute.params) // 输出:id值
+</script>
 
-```ini
-<router-link to="/about">Go to About</router-link>
 ```
 
-区别只在url形式
+```vue
+// 选项式
+<script>
+  export default {
+      mounted() {
+          console.log(this.$route.params) // 输出:id值
+      }
+  }
+</script>
 
-```ruby
-// hash
-// 浏览器里的形态：http://xx.com/#/about
-// history
-// 浏览器里的形态：http://xx.com/about
 ```
 
-### 思路
+**注意:**
 
-+   区别
-+   详细阐述
-+   实现
++ 通过watch router/route的变化,可以动态获取路由参数
 
-* * *
-
-### 回答范例
-
-+   vue-router有3个模式，其中history和hash更为常用。两者差别主要在显示形式、seo和部署上。
-+   hash模式在地址栏显示的时候是已哈希的形式：#/xxx，这种方式使用和部署简单，但是不会被搜索引擎处理，seo有问题；history模式则建议用在大部分web项目上，但是它要求应用在部署时做特殊配置，服务器需要做回退处理，否则会出现刷新页面404的问题。
-+   底层实现上其实hash是一种特殊的history实现。
++ 404页面通过`放置于路由列表最后`进行正则匹配
 
 * * *
 
-### 知其所以然
+## 43. 如果让你从零开始写一个vue路由，说说你的思路
 
-hash是一种特殊的history实现：
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32 "https://github1s.com/vuejs/router/blob/HEAD/src/history/hash.ts#L31-L32")
-
-* * *
-
-## 44. 怎么定义动态路由？怎么获取传过来的动态参数？
-
-### 分析
-
-API题目，考查基础能力，不容有失，尽可能说的详细。
-
-### 思路
-
-1.  什么是动态路由
-2.  什么时候使用动态路由，怎么定义动态路由
-3.  参数如何获取
-4.  细节、注意事项
++ 模块化路由配置：按功能模块划分路由，保持清晰和易维护。
++ 路由懒加载：优化性能，只加载用户访问的模块。
++ 命名路由和路径别名：便于管理和跳转。
++ 嵌套路由：适合复杂页面结构。
++ 404 处理：确保未匹配路由有友好的提示页面。
++ 路由守卫：添加全局、中间件或单个路由级别的守卫，增强安全性和功能性。
 
 * * *
 
-### 回答范例
+## 44. 怎么实现路由懒加载呢？
 
-1.  很多时候，我们需要**将给定匹配模式的路由映射到同一个组件**，这种情况就需要定义动态路由。
-2.  例如，我们可能有一个 `User` 组件，它应该对所有用户进行渲染，但用户 ID 不同。在 Vue Router 中，我们可以在路径中使用一个动态字段来实现，例如：`{ path: '/users/:id', component: User }`，其中`:id`就是路径参数
-3.  *路径参数* 用冒号 `:` 表示。当一个路由被匹配时，它的 *params* 的值将在每个组件中以 `this.$route.params` 的形式暴露出来。
-4.  参数还可以有多个，例如`/users/:username/posts/:postId`；除了 `$route.params` 之外，`$route` 对象还公开了其他有用的信息，如 `$route.query`、`$route.hash` 等。
-
-* * *
-
-### 可能的追问
-
-1.  如何响应动态路由参数的变化
-
-[router.vuejs.org/zh/guide/es…](https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E5%93%8D%E5%BA%94%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E7%9A%84%E5%8F%98%E5%8C%96 "https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E5%93%8D%E5%BA%94%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E7%9A%84%E5%8F%98%E5%8C%96")
-
-2.  我们如何处理404 Not Found路由
-
-[router.vuejs.org/zh/guide/es…](https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E6%8D%95%E8%8E%B7%E6%89%80%E6%9C%89%E8%B7%AF%E7%94%B1%E6%88%96-404-not-found-%E8%B7%AF%E7%94%B1 "https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E6%8D%95%E8%8E%B7%E6%89%80%E6%9C%89%E8%B7%AF%E7%94%B1%E6%88%96-404-not-found-%E8%B7%AF%E7%94%B1")
-
-* * *
-
-## 45. 如果让你从零开始写一个vue路由，说说你的思路
-
-### 思路分析：
-
-首先思考vue路由要解决的问题：用户点击跳转链接内容切换，页面不刷新。
-
-+   借助hash或者history api实现url跳转页面不刷新
-+   同时监听hashchange事件或者popstate事件处理跳转
-+   根据hash值或者state值从routes表中匹配对应component并渲染之
-
-* * *
-
-### 回答范例：
-
-一个SPA应用的路由需要解决的问题是**页面跳转内容改变同时不刷新**，同时路由还需要以插件形式存在，所以：
-
-1.  首先我会定义一个`createRouter`函数，返回路由器实例，实例内部做几件事：
-    +   保存用户传入的配置项
-    +   监听hash或者popstate事件
-    +   回调里根据path匹配对应路由
-2.  将router定义成一个Vue插件，即实现install方法，内部做两件事：
-    +   实现两个全局组件：router-link和router-view，分别实现页面跳转和内容显示
-    +   定义两个全局变量：$route和$router，组件内可以访问当前路由和路由器实例
-
-* * *
-
-### 知其所以然：
-
-+   createRouter如何创建实例
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/router.ts#L355-L356 "https://github1s.com/vuejs/router/blob/HEAD/src/router.ts#L355-L356")
-
-+   事件监听
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/history/html5.ts#L314-L315 "https://github1s.com/vuejs/router/blob/HEAD/src/history/html5.ts#L314-L315") RouterView
-
-+   页面跳转RouterLink
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185")
-
-+   内容显示RouterView
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44")
-
-* * *
-
-## 46. 怎么实现路由懒加载呢？
-
-### 分析
-
-这是一道应用题。当打包应用时，JavaScript 包会变得非常大，影响页面加载。如果我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问时才加载对应组件，这样就会更加高效。
+**优点:** 利于代码分割,仅加载用户浏览的模块,降低开销.
 
 ```javascript
-// 将
-// import UserDetails from './views/UserDetails'
-// 替换为
-const UserDetails = () => import('./views/UserDetails')
-
 const router = createRouter({
+  routes: [{ path: '/users/:id', component: () => import(/* webpackChunkName: "这个分割块的名字" */'./views/UserDetails') }],
   // ...
-  routes: [{ path: '/users/:id', component: UserDetails }],
 })
 ```
 
-参考[router.vuejs.org/zh/guide/ad…](https://router.vuejs.org/zh/guide/advanced/lazy-loading.html "https://router.vuejs.org/zh/guide/advanced/lazy-loading.html")
-
 * * *
 
-### 思路
+## 45. router-link和router-view是如何起作用的？
 
-0.  必要性
-1.  何时用
-2.  怎么用
-3.  使用细节
+### **<router-link>常用属性:**
+
+| 属性/事件         | 说明                                      |
+|-------------------|-----------------------------------------|
+| `to`             | 跳转目标，可以是路径字符串或路由对象       |
+| `replace`        | 替换当前历史记录，不会增加新记录           |
+| `custom`         | 是否自定义内容（用于完全自定义链接样式）    |
+| `active-class`   | 激活时的 CSS 类，默认 `router-link-active` |
+| `exact-active-class` | 精确匹配激活时的 CSS 类，默认 `router-link-exact-active` |
+| `v-slot` (custom) | 自定义内容时使用插槽                     |
+
+**示例:**
+```vue
+<template>
+  <div>
+    <!-- 基本用法 -->
+    <router-link to="/home">Go to Home</router-link>
+    
+    <!-- 路由对象用法 -->
+    <router-link :to="{ name: 'User', params: { id: 1 }}">User 1</router-link>
+    
+    <!-- 替换当前历史记录 -->
+    <router-link to="/about" replace>About (Replace)</router-link>
+    
+    <!-- 自定义样式 -->
+    <router-link to="/profile" active-class="active-link">Profile</router-link>
+  </div>
+</template>
+```
+
+
+### **<router-view>常用属性:**
+
+| 属性            | 说明                                         |
+|------------------|--------------------------------------------|
+| `name`          | 命名视图的名称（默认显示默认路由视图）        |
+| `v-slot`        | 用于自定义嵌套路由或视图内容                 |
+
+**示例:**
+```vue
+<template>
+  <div>
+    <!-- 默认视图 -->
+    <router-view></router-view>
+
+    <!-- 命名视图 -->
+    <router-view name="header"></router-view>
+    <router-view name="footer"></router-view>
+  </div>
+</template>
+```
+---
+
+### **作用与原理:**
+
+| **组件**      | **作用**                                                                                 | **实现原理**                                                   | **常用场景**                     |
+|---------------|-----------------------------------------------------------------------------------------|------------------------------------------------------------|-----------------------------------|
+| **`<router-link>`** | 创建导航链接，支持动态样式与行为，触发路由跳转                                           | 渲染为 `<a>`，绑定 `href` 属性，调用 `router.push` 或 `router.replace` | 导航菜单、面包屑、跳转按钮        |
+| **`<router-view>`** | 显示与当前路径匹配的组件，支持嵌套路由和命名视图                                          | 根据Vue Router 的 `matched` 路由记录,渲染对应路由组件，支持递归渲染子路由           | 页面主体内容展示，嵌套路由        |
+
 
 * * *
-
-### 回答范例
-
-0.  当打包构建应用时，JavaScript 包会变得非常大，影响页面加载。利用路由懒加载我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问的时候才加载对应组件，这样会更加高效，是一种优化手段。
-
-1.  一般来说，对所有的路由**都使用动态导入**是个好主意。
-
-2.  给`component`选项配置一个返回 Promise 组件的函数就可以定义懒加载路由。例如：
-
-    `{ path: '/users/:id', component: () => import('./views/UserDetails') }`
-
-3.  结合注释`() => import(/* webpackChunkName: "group-user" */ './UserDetails.vue')`可以做webpack代码分块
-
-    vite中结合[rollupOptions](https://router.vuejs.org/zh/guide/advanced/lazy-loading.html#%E4%BD%BF%E7%94%A8-vite "https://router.vuejs.org/zh/guide/advanced/lazy-loading.html#%E4%BD%BF%E7%94%A8-vite")定义分块
-
-4.  路由中不能使用异步组件
-
-
-* * *
-
-### 知其所以然
-
-`component` (和 `components`) 配置如果接收一个返回 Promise 组件的函数，Vue Router **只会在第一次进入页面时才会获取这个函数**，然后使用缓存数据。
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/navigationGuards.ts#L292-L293 "https://github1s.com/vuejs/router/blob/HEAD/src/navigationGuards.ts#L292-L293")
-
-* * *
-
-## 47. router-link和router-view是如何起作用的？
-
-### 分析
-
-vue-router中两个重要组件`router-link`和`router-view`，分别起到导航作用和内容渲染作用，但是回答如何生效还真有一定难度哪！
-
-### 思路
-
-+   两者作用
-+   阐述使用方式
-+   原理说明
-
-### 回答范例
-
-+   vue-router中两个重要组件`router-link`和`router-view`，分别起到路由导航作用和组件内容渲染作用
-+   使用中router-link默认生成一个a标签，设置to属性定义跳转path。实际上也可以通过custom和插槽自定义最终的展现形式。router-view是要显示组件的占位组件，可以嵌套，对应路由配置的嵌套关系，配合name可以显示具名组件，起到更强的布局作用。
-+   router-link组件内部根据custom属性判断如何渲染最终生成节点，内部提供导航方法navigate，用户点击之后实际调用的是该方法，此方法最终会修改响应式的路由变量，然后重新去routes匹配出数组结果，router-view则根据其所处深度deep在匹配数组结果中找到对应的路由并获取组件，最终将其渲染出来。
-
-### 知其所以然
-
-+   RouterLink定义
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L184-L185")
-
-+   RouterView定义
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterView.ts#L43-L44")
 
 ## 48. Vue-router 除了 router-link 怎么实现跳转
 
