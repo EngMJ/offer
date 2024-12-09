@@ -1733,332 +1733,111 @@ server {
 
 ## 37. ref和reactive异同
 
-这是`Vue3`数据响应式中非常重要的两个概念，自然的，跟我们写代码关系也很大。
+| **特性**      | **`ref`**                                    | **`reactive`**         |
+|-------------|----------------------------------------------|------------------------|
+| **模板解包**    | 自动解包,无需使用 `.value`                           | 自动解包                   |
+| **响应性**     | 可创建响应式数据                                     | 可创建响应式数据               |
+| **数据类型支持**  | 适合基本类型（如数字、字符串、布尔值），也可用于对象或数组（需通过 `.value`）。 | 适合对象和数组，直接操作内部属性。      |
+| **深度响应式**   | 对于对象和数组，只是引用响应式，需手动深层处理。                     | 默认对深层嵌套对象具有响应式支持。      |
+| **实现机制**    | 内部是一个包含 `value` 属性的已被getter/setter的对象。       | 使用 `Proxy` 实现对整个对象的代理。 |
+| **访问方式**    | 修改或读取值时需要使用 `.value`。                        | 直接访问或修改属性即可。           |
+| **解构后的响应性** | 解构后响应性失效，需显式解包。                              | 解构后依然保持响应性。            |
+| **适用场景**    | 管理单个变量或基本数据类型。                               | 管理复杂对象或数组。             |
+| **逻辑复用**    | 使用时需多次解包 `.value`，稍显繁琐。                      | 返回完整的响应式对象，操作更加方便。     |
+
 
 * * *
 
-### 体验
+## 38. 你知道哪些vue3新特性及优化
 
-ref：[vuejs.org/api/reactiv…](https://vuejs.org/api/reactivity-core.html#ref "https://vuejs.org/api/reactivity-core.html#ref")
+**新特性:**
 
-```scss
-const count = ref(0)
-console.log(count.value) // 0
+1. **Composition API**
+    - 更灵活的逻辑组织方式，支持逻辑复用。
+    - 提供 `ref`、`reactive`、`computed`、`watch` 等响应式工具。
 
-count.value++
-console.log(count.value) // 1
-```
+2. **新的响应式系统**
+    - 基于 `Proxy`，支持深层响应式，动态添加属性无需额外处理。
 
-* * *
+3. **Teleport**
+    - 内容可以渲染到 DOM 的任意位置，适用于模态框、通知等场景。
 
-reactive：[vuejs.org/api/reactiv…](https://vuejs.org/api/reactivity-core.html#reactive "https://vuejs.org/api/reactivity-core.html#reactive")
+4. **Fragments**
+    - 支持组件返回多个根节点，减少不必要的 DOM 层级。
 
-```ini
-const obj = reactive({ count: 0 })
-obj.count++
-```
+5. **Suspense**
+    - 异步组件渲染时提供加载占位内容的能力。
 
-* * *
+6. **新的全局 API**
+    - 将全局配置迁移到 `app` 实例，增强模块化。
 
-### 回答思路
+7. **Composition API Hooks**
+    - 提供 `onMounted`、`onUpdated` 等更灵活的生命周期管理。
 
-0.  两者概念
-1.  两者使用场景
-2.  两者异同
-3.  使用细节
-4.  原理
+8. **Emits 和 Props 验证**
+    - 显式定义事件和灵活的 `props` 验证，增强类型安全。
 
-* * *
+9. **增强单文件组件（SFC）**
+    - `<script setup>` 提供简洁语法。
+    - `<style scoped>` 支持 CSS Variables。
 
-### 回答范例
 
-0.  `ref`接收内部值（inner value）返回响应式`Ref`对象，`reactive`返回响应式代理对象
-1.  从定义上看`ref`通常用于处理单值的响应式，`reactive`用于处理对象类型的数据响应式
-2.  两者均是用于构造响应式数据，但是`ref`主要解决原始值的响应式问题
-3.  ref返回的响应式数据在JS中使用需要加上`.value`才能访问其值，在视图中使用会自动脱ref，不需要`.value`；ref可以接收对象或数组等非原始值，但内部依然是`reactive`实现响应式；reactive内部如果接收Ref对象会自动脱ref；使用展开运算符(...)展开reactive返回的响应式对象会使其失去响应性，可以结合toRefs()将值转换为Ref对象之后再展开。
-4.  reactive内部使用Proxy代理传入对象并拦截该对象各种操作（trap），从而实现响应式。ref内部封装一个RefImpl类，并设置get value/set value，拦截用户对值的访问，从而实现响应式。
+**优化:**
 
-* * *
+1. **性能提升**
+    - 编译器优化：静态提升、静态节点合并。
+    - 虚拟 DOM 改进：更高效的依赖追踪和更新。
 
-### 知其所以然
+2. **Tree-shaking 支持**
+    - 按需加载功能，减少打包体积。
 
-reactive实现响应式：
+3. **更小的运行时体积**
+    - 核心库经过优化，默认打包体积更小。
 
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/reactive.ts#L90-L91 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/reactive.ts#L90-L91")
+4. **TypeScript 支持**
+    - 内置支持更好的类型推导和开发体验。
 
-ref实现响应式：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/ref.ts#L73-L74 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/ref.ts#L73-L74")
-
-* * *
-
-## 38. watch和watchEffect异同
-
-我们经常性需要侦测响应式数据的变化，vue3中除了watch之外又出现了watchEffect，不少同学会混淆这两个api。
-
-* * *
-
-### 体验
-
-`watchEffect`立即运行一个函数，然后被动地追踪它的依赖，当这些依赖改变时重新执行该函数。
-
-> Runs a function immediately while reactively tracking its dependencies and re-runs it whenever the dependencies are changed.
-
-```scss
-const count = ref(0)
-
-watchEffect(() => console.log(count.value))
-// -> logs 0
-
-count.value++
-// -> logs 1
-```
-
-* * *
-
-`watch`侦测一个或多个响应式数据源并在数据源变化时调用一个回调函数。
-
-> Watches one or more reactive data sources and invokes a callback function when the sources change.
-
-```scss
-const state = reactive({ count: 0 })
-watch(
-  () => state.count,
-  (count, prevCount) => {
-    /* ... */
-  }
-)
-```
-
-* * *
-
-### 思路
-
-0.  给出两者定义
-1.  给出场景上的不同
-2.  给出使用方式和细节
-3.  原理阐述
-
-* * *
-
-### 范例
-
-0.  `watchEffect`立即运行一个函数，然后被动地追踪它的依赖，当这些依赖改变时重新执行该函数。`watch`侦测一个或多个响应式数据源并在数据源变化时调用一个回调函数。
-1.  `watchEffect(effect)`是一种特殊`watch`，传入的函数既是依赖收集的数据源，也是回调函数。如果我们不关心响应式数据变化前后的值，只是想拿这些数据做些事情，那么`watchEffect`就是我们需要的。watch更底层，可以接收多种数据源，包括用于依赖收集的getter函数，因此它完全可以实现watchEffect的功能，同时由于可以指定getter函数，依赖可以控制的更精确，还能获取数据变化前后的值，因此如果需要这些时我们会使用watch。
-2.  `watchEffect`在使用时，传入的函数会立刻执行一次。`watch`默认情况下并不会执行回调函数，除非我们手动设置`immediate`选项。
-3.  从实现上来说，`watchEffect(fn)`相当于`watch(fn,fn,{immediate:true})`
-
-* * *
-
-### 知其所以然
-
-`watchEffect`定义：[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiWatch.ts#L80-L81 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiWatch.ts#L80-L81")
-
-```javascript
-export function watchEffect(
-  effect: WatchEffect,
-  options?: WatchOptionsBase
-): WatchStopHandle {
-  return doWatch(effect, null, options)
-}
-```
-
-* * *
-
-`watch`定义如下：[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiWatch.ts#L158-L159 "https://github1s.com/vuejs/core/blob/HEAD/packages/runtime-core/src/apiWatch.ts#L158-L159")
-
-```typescript
-export function watch<T = any, Immediate extends Readonly<boolean> = false>(
-  source: T | WatchSource<T>,
-  cb: any,
-  options?: WatchOptions<Immediate>
-): WatchStopHandle {
-  return doWatch(source as any, cb, options)
-}
-```
-
-很明显`watchEffect`就是一种特殊的`watch`实现。
-
-* * *
-
-## 39. 你知道哪些vue3新特性
-
-### 分析
-
-官网列举的最值得注意的新特性：[v3-migration.vuejs.org/](https://v3-migration.vuejs.org/ "https://v3-migration.vuejs.org/")
-
-![image-20220210165307624](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5e52235d31934130914925042b96e3a7~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-也就是下面这些：
-
-+   Composition API
-+   SFC Composition API语法糖
-+   Teleport传送门
-+   Fragments片段
-+   Emits选项
-+   自定义渲染器
-+   SFC CSS变量
-+   Suspense
-
-以上这些是api相关，另外还有很多框架特性也不能落掉。
-
-* * *
-
-### 回答范例
-
-1.  api层面Vue3新特性主要包括：Composition API、SFC Composition API语法糖、Teleport传送门、Fragments 片段、Emits选项、自定义渲染器、SFC CSS变量、Suspense
-
-2.  另外，Vue3.0在框架层面也有很多亮眼的改进：
-
-
-+   更快
-    +   虚拟DOM重写
-    +   编译器优化：静态提升、patchFlags、block等
-    +   基于Proxy的响应式系统
-+   更小：更好的摇树优化
-+   更容易维护：TypeScript + 模块化
-+   更容易扩展
-    +   独立的响应化模块
-    +   自定义渲染器
-
-* * *
-
-### 知其所以然
-
-体验编译器优化
-
-[sfc.vuejs.org/](https://sfc.vuejs.org/ "https://sfc.vuejs.org/")
-
-reactive实现
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/reactive.ts#L90-L91 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/reactive.ts#L90-L91")
-
-* * *
-
-## 40. Vue 3.0的设计目标是什么？做了哪些优化?
-
-### 分析
-
-还是问新特性，陈述典型新特性，分析其给你带来的变化即可。
-
-* * *
-
-### 思路
-
-从以下几方面分门别类阐述：易用性、性能、扩展性、可维护性、开发体验等
-
-* * *
-
-### 范例
-
-0.  Vue3的最大设计目标是替代Vue2（皮一下），为了实现这一点，Vue3在以下几个方面做了很大改进，如：易用性、框架性能、扩展性、可维护性、开发体验等
-1.  易用性方面主要是API简化，比如`v-model`在Vue3中变成了Vue2中`v-model`和`sync`修饰符的结合体，用户不用区分两者不同，也不用选择困难。类似的简化还有用于渲染函数内部生成VNode的`h(type, props, children)`，其中`props`不用考虑区分属性、特性、事件等，框架替我们判断，易用性大增。
-2.  开发体验方面，新组件`Teleport`传送门、`Fragments` 、`Suspense`等都会简化特定场景的代码编写，`SFC Composition API`语法糖更是极大提升我们开发体验。
-3.  扩展性方面提升如独立的`reactivity`模块，`custom renderer` API等
-4.  可维护性方面主要是`Composition API`，更容易编写高复用性的业务逻辑。还有对TypeScript支持的提升。
-5.  性能方面的改进也很显著，例如编译期优化、基于`Proxy`的响应式系统
-6.  。。。
-
-* * *
-
-### 可能的追问
-
-0.  Vue3做了哪些编译优化？
-1.  `Proxy`和`defineProperty`有什么不同？
+5. **API易用/扩展性提升**
+    - `v-model`包含了`sync`修饰符的作用
+    - 独立的响应式创建(`reactivity`/`ref`)
+    - 提供自定义渲染器(`custom renderer`)
 
 * * *
 
 ## 41. Vue3.0 性能提升体现在哪些方面？
 
-### 分析
+| **优化点**                     | **提升效果**                               |
+|-------------------------------|----------------------------------------|
+| **Proxy 响应式**                | 动态属性、深层对象响应式性能提升，减少了初始化递归的开销。          |
+| **编译器优化**                  | 静态提升、静态节点合并和 Patch Flag 减少了渲染时的diff计算。 |
+| **虚拟 DOM 改进**               | 更精准的依赖追踪和更高效的 Diff 算法提高了更新性能。          |
+| **Tree-shaking 支持**           | 按需引入减少了打包体积，优化了加载性能。                   |
+| **运行时体积减少**               | 核心库更小，减轻了页面加载压力。                       |
+| **打包体积优化**            | 核心运行时更小，默认打包体积约 13KB gzip。             |
+| **Fragments**                  | 减少 DOM 层级，降低渲染复杂度。                     |
+| **异步加载优化（Suspense）**      | 更优雅的异步处理和首屏加载性能提升。                     |
+| **SSR 优化**              | 提升服务端渲染性能，支持流式渲染，降低白屏时间。               |
+| **依赖追踪机制优化**         | 精确依赖跟踪，减少冗余的响应式触发。                     |
 
-vue3在设计时有几个目标：更小、更快、更友好，这些多数适合性能相关，因此可以围绕介绍。
 
-* * *
-
-### 思路
-
-+   总述和性能相关的新特性
-+   逐个说细节
-+   能说点原理更佳
-
-* * *
-
-### 回答范例
-
-+   我分别从代码、编译、打包三方面介绍vue3性能方面的提升
-+   代码层面性能优化主要体现在全新响应式API，基于Proxy实现，初始化时间和内存占用均大幅改进；
-+   编译层面做了更多编译优化处理，比如静态提升、动态标记、事件缓存，区块等，可以有效跳过大量diff过程；
-+   打包时更好的支持tree-shaking，因此整体体积更小，加载更快
-
-* * *
-
-### 体验
-
-通过playground体验编译优化：[sfc.vuejs.org](https://sfc.vuejs.org/ "https://sfc.vuejs.org")
-
-* * *
-
-### 知其所以然
-
-为什么基于Proxy更快了：初始化时懒处理，用户访问才做拦截处理，初始化更快：
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/baseHandlers.ts#L136-L137 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/baseHandlers.ts#L136-L137")
-
-轻量的依赖关系保存：利用WeakMap、Map和Set保存响应式数据和副作用之间的依赖关系
-
-[github1s.com/vuejs/core/…](https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20 "https://github1s.com/vuejs/core/blob/HEAD/packages/reactivity/src/effect.ts#L19-L20")
 
 ## 42. Vue3.0里为什么要用 Proxy 替代 defineProperty ？
 
-### 分析
+**1.常用数据劫持方式区别:**
 
-Vue3中最重大的更新之一就是响应式模块`reactivity`的重写。主要的修改就是`Proxy`替换`defineProperty`实现响应式。
+| **劫持方式**     | **Object.defineProperty**                     | **Proxy**                             | **Getter/Setter**                   |
+|--------------|----------------------------------------------|---------------------------------------|-------------------------------------|
+| **拦截范围**     | 仅能拦截对象已存在的属性                      | 整个对象，包括新增/删除属性            | 特定属性，需显式定义                  |
+| **动态属性监听**   | 不支持                                      | 支持                                 | 不支持                              |
+| **深层嵌套对象支持** | 需递归实现                                  | 内置支持                             | 不支持                              |
+| **兼容性**      | 支持 IE9 及以上                              | 不支持 IE，需现代浏览器支持             | 支持 IE9 及以上                      |
+| **性能**       | 较优，适合较少操作的场景                      | 略低于 `defineProperty`，适合复杂场景 | 性能最佳，适合简单场景                |
+| **应用场景**     | Vue 2 响应式系统，单属性定制化拦截            | Vue 3 响应式系统，全面代理整个对象      | 简单属性控制（如计算属性、缓存属性） |
 
-此变化主要是从性能方面考量。
-
-### 思路
-
-+   属性拦截的几种方式
-+   defineProperty的问题
-+   Proxy的优点
-+   其他考量
-
-### 回答范例
-
-+   JS中做属性拦截常见的方式有三：: [defineProperty](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty")，[getter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get")/[setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set") 和[Proxies](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy").
-+   Vue2中使用`defineProperty`的原因是，2013年时只能用这种方式。由于该API存在一些局限性，比如对于数组的拦截有问题，为此vue需要专门为数组响应式做一套实现。另外不能拦截那些新增、删除属性；最后`defineProperty`方案在初始化时需要深度递归遍历待处理的对象才能对它进行完全拦截，明显增加了初始化的时间。
-+   以上两点在Proxy出现之后迎刃而解，不仅可以对数组实现拦截，还能对Map、Set实现拦截；另外Proxy的拦截也是懒处理行为，如果用户没有访问嵌套对象，那么也不会实施拦截，这就让初始化的速度和内存占用都改善了。
-+   当然Proxy是有兼容性问题的，IE完全不支持，所以如果需要IE兼容就不合适
-
-### 知其所以然
-
-Proxy属性拦截的原理：利用get、set、deleteProperty这三个trap实现拦截
-
-```javascript
-function reactive(obj) {
-    return new Proxy(obj, {
-        get(target, key) {},
-        set(target, key, val) {},
-        deleteProperty(target, key){}
-    })
-}
-```
-
-Object.defineProperty属性拦截原理：利用get、set这两个trap实现拦截
-
-```vbnet
-function defineReactive(obj, key, val) {
-    Object.defineReactive(obj, key, {
-        get(key) {},
-        set(key, val) {}
-    })
-}
-```
-
-很容易看出两者的区别！
+---
+**2.使用proxy的优势:**
++ 无需递归实现响应式,降低性能开销.
++ 能够动态监听属性,属性新增/删除都能自动监听. (defineProperty不会自动监听,vue2中需要手动调用 vue.set()/vue.delete())
 
 * * *
 
