@@ -1983,7 +1983,7 @@ const router = createRouter({
 
 * * *
 
-## 48. Vue-router 除了 router-link 怎么实现跳转
+## 46. Vue-router 除了 router-link 怎么实现跳转
 
 ### 分析
 
@@ -2042,7 +2042,7 @@ routerlink点击跳转，调用的是navigate方法
 
 navigate内部依然调用的push
 
-## 49. 在什么场景下会用到嵌套路由？
+## 47. 在什么场景下会用到嵌套路由？
 
 ### 分析
 
@@ -2104,7 +2104,7 @@ router-view获取自己所在的深度：默认0，加1之后传给后代，同�
 
 * * *
 
-## 50. vue-router中如何保护路由？
+## 48. vue-router中如何保护路由？
 
 ### 分析
 
@@ -2185,13 +2185,14 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 
 
 
-# Vuex & Pinia
+# Pinia & Vuex
+
+## vue3推荐状态管理 Pinia API参考: [pinia](pinia.md)
 
 ## Vuex API参考: [vuex](vuex.md)
 
-## Pinia API参考: [pinia](pinia.md)
 
-## 51 - 简单说一说你对vuex理解？
+## 49. 简单说一说你对vuex理解？
 
 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cb128aee87e5424a83511deee98f1702~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
@@ -2220,7 +2221,7 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 
 * * *
 
-## 52-你有使用过vuex的module吗？
+## 50. 你有使用过vuex的module吗？
 
 这是基本应用能力考察，稍微上点规模的项目都要拆分vuex模块便于维护。
 
@@ -2281,7 +2282,7 @@ store.dispatch('e') // -> 能同时触发子模块中同名action
 
 * * *
 
-## 53-如果让你从零开始写一个vuex，说说你的思路
+## 51. 如果让你从零开始写一个vuex，说说你的思路
 
 ### 思路分析
 
@@ -2327,7 +2328,7 @@ Vuex中Store的实现：
 
 [github1s.com/vuejs/vuex/…](https://github1s.com/vuejs/vuex/blob/HEAD/src/store.js#L19-L20 "https://github1s.com/vuejs/vuex/blob/HEAD/src/store.js#L19-L20")
 
-## 54-vuex中actions和mutations有什么区别？
+## 52. vuex中actions和mutations有什么区别？
 
 ### 题目分析
 
@@ -2403,7 +2404,7 @@ class Store {
 }
 ```
 
-## 55-使用vue渲染大量数据时应该怎么优化？说下你的思路！
+## 53. 使用vue渲染大量数据时应该怎么优化？说下你的思路！
 
 ### 分析
 
@@ -2429,7 +2430,7 @@ class Store {
 2.  总之，还是要看具体需求，首先从设计上避免大数据获取和渲染；实在需要这样做可以采用虚表的方式优化渲染；最后优化更新，如果不需要更新可以v-once处理，需要更新可以v-memo进一步优化大数据更新性能。其他可以采用的是交互方式优化，无线滚动、懒加载等方案。
 
 
-## 56-怎么监听vuex数据的变化？
+## 54.怎么监听vuex数据的变化？
 
 ### 分析
 
@@ -2482,7 +2483,7 @@ subscribe方式：
   })
 ```
 
-## 57-页面刷新后vuex的state数据丢失怎么解决？
+## 55. 页面刷新后vuex的state数据丢失怎么解决？
 
 ### 分析
 
@@ -2541,7 +2542,7 @@ localStorage.setItem('count', store.state.count)
 
 * * *
 
-## 58-你觉得vuex有什么缺点？
+## 56. 你觉得vuex有什么缺点？
 
 ### 分析
 
