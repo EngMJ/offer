@@ -2050,20 +2050,9 @@ const routes = [
 
 ## 48. vue-router中如何保护路由？
 
-[路由守卫](vue_router.md#导航守卫)
+参考:[路由守卫](vue_router.md#导航守卫)
 
 * * *
-
-### 知其所以然
-
-runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函数，通过则继续下一个级别的守卫，不通过进入catch流程取消原本导航。
-
-![image-20220630193341500](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a70d8c83e3254b39800e9d646731039d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/packages/router/src/router.ts#L808-L809 "https://github1s.com/vuejs/router/blob/HEAD/packages/router/src/router.ts#L808-L809")
-
-
-
 
 # Pinia & Vuex
 
@@ -2071,422 +2060,711 @@ runGuardQueue(guards)链式的执行用户在各级别注册的守卫钩子函�
 
 ## Vuex API参考: [vuex](vuex.md)
 
+## 49. pinia的作用与优缺点?
 
-## 49. 简单说一说你对vuex理解？
+Vue3 官方推荐的状态管理库，用来替代 Vuex，提供更轻量、更灵活的状态管理方案。
 
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cb128aee87e5424a83511deee98f1702~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+**作用:**
 
-### 思路
+1. **集中式状态管理**
+    - Pinia 和 Vuex 类似,但代码量更少，提供一个中心化的存储，用于跨组件共享和管理状态。
 
-1.  给定义
-2.  必要性阐述
-3.  何时使用
-4.  拓展：一些个人思考、实践经验等
+2. **模块化设计**
+    - 不再使用vuex命名空间模块,每个状态模块被定义为一个独立的 Store，对应不同的功能模块，方便组织和维护。
 
-* * *
+3. **动态模块注册**
+   - 支持动态创建和注册 store，适用于按需加载模块的场景。
 
-### 范例
+4. **响应式数据**
+    - Pinia 的状态是基于 Vue 的响应式系统实现的，数据变化时，所有依赖这些数据的组件会自动更新。
 
-1.  Vuex 是一个专为 Vue.js 应用开发的**状态管理模式 + 库**。它采用集中式存储，管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化。
-2.  我们期待以一种简单的“单向数据流”的方式管理应用，即状态 -> 视图 -> 操作单向循环的方式。但当我们的应用遇到**多个组件共享状态**时，比如：多个视图依赖于同一状态或者来自不同视图的行为需要变更同一状态。此时单向数据流的简洁性很容易被破坏。因此，我们有必要把组件的共享状态抽取出来，以一个全局单例模式管理。通过定义和隔离状态管理中的各种概念并通过强制规则维持视图和状态间的独立性，我们的代码将会变得更结构化且易维护。这是vuex存在的必要性，它和react生态中的redux之类是一个概念。
-3.  Vuex 解决状态管理的同时引入了不少概念：例如state、mutation、action等，是否需要引入还需要根据应用的实际情况衡量一下：如果不打算开发大型单页应用，使用 Vuex 反而是繁琐冗余的，一个简单的 [store 模式](https://v3.cn.vuejs.org/guide/state-management.html#%E4%BB%8E%E9%9B%B6%E6%89%93%E9%80%A0%E7%AE%80%E5%8D%95%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86 "https://v3.cn.vuejs.org/guide/state-management.html#%E4%BB%8E%E9%9B%B6%E6%89%93%E9%80%A0%E7%AE%80%E5%8D%95%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86")就足够了。但是，如果要构建一个中大型单页应用，Vuex 基本是标配。
-4.  我在使用vuex过程中感受到一些blabla
+5. **简化开发**
+    - Pinia 通过直观的 API 提供更简洁的状态定义和访问方式，如直接使用 `state` 和 `actions`，无需像 Vuex 那样强制使用 mutation。
+    - 支持函数式定义 store，方便开发者灵活地组织代码。
 
-* * *
+6. **Composition API 集成**
+   - Pinia 与 Vue 3 的 Composition API 无缝结合，使得状态管理与组件逻辑可以更自然地整合。
 
-### 可能的追问
+7. **支持服务端渲染**
+    - Pinia 完全支持 Vue 3 的服务端渲染 (SSR)，并且在这方面的实现更加简单。
 
-1.  vuex有什么缺点吗？你在开发过程中有遇到什么问题吗？
-2.  action和mutation的区别是什么？为什么要区分它们？
-
-* * *
-
-## 50. 你有使用过vuex的module吗？
-
-这是基本应用能力考察，稍微上点规模的项目都要拆分vuex模块便于维护。
-
-* * *
-
-### 体验
-
-[vuex.vuejs.org/zh/guide/mo…](https://vuex.vuejs.org/zh/guide/modules.html "https://vuex.vuejs.org/zh/guide/modules.html")
-
-```php
-const moduleA = {
-  state: () => ({ ... }),
-  mutations: { ... },
-  actions: { ... },
-  getters: { ... }
-}
-const moduleB = {
-  state: () => ({ ... }),
-  mutations: { ... },
-  actions: { ... }
-}
-const store = createStore({
-  modules: {
-    a: moduleA,
-    b: moduleB
-  }
-})
-store.state.a // -> moduleA 的状态
-store.state.b // -> moduleB 的状态
-store.getters.c // -> moduleA里的getters
-store.commit('d') // -> 能同时触发子模块中同名mutation
-store.dispatch('e') // -> 能同时触发子模块中同名action
-```
-
-* * *
-
-### 思路
-
-0.  概念和必要性
-1.  怎么拆
-2.  使用细节
-3.  优缺点
-
-* * *
-
-### 范例
-
-0.  用过module，项目规模变大之后，单独一个store对象会过于庞大臃肿，通过模块方式可以拆分开来便于维护
-1.  可以按之前规则单独编写子模块代码，然后在主文件中通过`modules`选项组织起来：`createStore({modules:{...}})`
-2.  不过使用时要注意访问子模块状态时需要加上注册时模块名：`store.state.a.xxx`，但同时`getters`、`mutations`和`actions`又在全局空间中，使用方式和之前一样。如果要做到完全拆分，需要在子模块加上`namespace`选项，此时再访问它们就要加上命名空间前缀。
-3.  很显然，模块的方式可以拆分代码，但是缺点也很明显，就是使用起来比较繁琐复杂，容易出错。而且类型系统支持很差，不能给我们带来帮助。pinia显然在这方面有了很大改进，是时候切换过去了。
-
-* * *
-
-### 可能的追问
-
-0.  用过pinia吗？都做了哪些改善？
-
-* * *
-
-## 51. 如果让你从零开始写一个vuex，说说你的思路
-
-### 思路分析
-
-这个题目很有难度，首先思考`vuex`解决的问题：存储用户全局状态并提供管理状态API。
-
-+   `vuex`需求分析
-+   如何实现这些需求
-
-* * *
-
-### 回答范例
-
-0.  官方说`vuex`是一个状态管理模式和库，并确保这些状态以可预期的方式变更。可见要实现一个`vuex`：
-
-    +   要实现一个`Store`存储全局状态
-    +   要提供修改状态所需API：`commit(type, payload)`, `dispatch(type, payload)`
-1.  实现`Store`时，可以定义Store类，构造函数接收选项options，设置属性state对外暴露状态，提供commit和dispatch修改属性state。这里需要设置state为响应式对象，同时将Store定义为一个Vue插件。
-
-2.  `commit(type, payload)`方法中可以获取用户传入`mutations`并执行它，这样可以按用户提供的方法修改状态。 `dispatch(type, payload)`类似，但需要注意它可能是异步的，需要返回一个Promise给用户以处理异步结果。
+8. **内置 TypeScript 支持**
+   - Pinia 的设计充分考虑了 TypeScript 支持，所有 API 都能通过类型推断实现高度类型安全。
 
 
-* * *
+---
 
-### 实践
+**Pinia 的缺点:**
 
-Store的实现：
+1. **与 Vue 2 的兼容性**
+    - Pinia 是为 Vue 3 设计的状态管理工具，虽然可以通过插件支持 Vue 2，但功能和体验不如 Vue 3 原生环境。
 
-```kotlin
-class Store {
-    constructor(options) {
-        this.state = reactive(options.state)
-        this.options = options
-    }
-    commit(type, payload) {
-        this.options.mutations[type].call(this, this.state, payload)
-    }
-}
-```
+2. **生态系统相对较小**
+    - 相较于 Vuex，Pinia 的社区生态和第三方插件支持还在发展中，部分功能可能需要自行实现。
 
-### 知其所以然
+3. **学习曲线（对 Vuex 用户）**
+    - 对已经熟悉 Vuex 的开发者来说，迁移到 Pinia 需要适应新的 API 和开发方式。
 
-Vuex中Store的实现：
+4. **潜在依赖问题**
+    - 由于 Pinia 完全依赖 Vue 3 的响应式系统，可能在某些复杂场景中出现意料之外的状态更新问题。
 
-[github1s.com/vuejs/vuex/…](https://github1s.com/vuejs/vuex/blob/HEAD/src/store.js#L19-L20 "https://github1s.com/vuejs/vuex/blob/HEAD/src/store.js#L19-L20")
+---
 
-## 52. vuex中actions和mutations有什么区别？
+**Pinia 与 Vuex 的区别**
 
-### 题目分析
+| 特性               | Vuex                         | Pinia                        |
+|--------------------|------------------------------|-----------------------------|
+| 定义复杂度         | 较高（state, getters, mutations, actions 分离） | 较低（actions 修改状态）      |
+| 类型支持           | 需要手动配置类型             | 内置 TypeScript 支持         |
+| 模块化支持         | 通过命名空间实现             | 原生模块化设计               |
+| 开发体验           | 偏繁琐                      | 简洁直观                    |
+| 响应式系统         | 基于 Vue.observable          | 基于 Vue 3 的响应式系统      |
 
-`mutations`和`actions`是`vuex`带来的两个独特的概念。新手程序员容易混淆，所以面试官喜欢问。
+---
 
-我们只需记住修改状态只能是`mutations`，`actions`只能通过提交`mutation`修改状态即可。
+
+
+
+## 50. 简单说一说你对vuex理解？
+
+Vuex 是 Vue2 官方提供的状态管理库，主要用于集中管理应用的状态（数据）和跨组件的状态共享。
+
+---
+
+**Vuex 的作用:**
+
+1. **集中式状态管理**
+    - Vuex 提供一个全局的 `store` 对象，用于存储应用中的共享状态，解决了组件之间的数据共享和传递问题。
+
+2. **响应式数据**
+    - Vuex 的状态是响应式的，当状态更新时，所有引用该状态的组件会自动重新渲染。
+
+3. **组件通信简化**
+    - 在复杂应用中，父子组件之间可以通过 props 和 events 通信，但对于跨层级或兄弟组件，通信会变得复杂。Vuex 提供了统一的状态管理，组件之间可以直接访问或修改全局状态，而无需层层传递。
+
+4. **统一的状态更新逻辑**
+    - Vuex 强制通过 **mutation** 来更新状态，并且可以在开发环境中追踪每次状态的变化，便于调试和维护。
+    - Vuex 的状态变更是透明的，所有状态更新通过 mutation 记录下来，可用 Vue DevTools 进行调试和时间旅行（time-travel debugging）。
+
+5. **模块化管理**
+    - Vuex 支持将状态、getters、mutations、actions 划分为多个模块，适合大型项目的组织和扩展。
+
+6. **适合中大型应用**
+    - 当应用规模增大，组件通信和状态管理变得复杂时，Vuex 提供了模块化的管理方案，使代码结构更清晰，逻辑更易维护。
+
+---
+
+**Vuex 的缺点:**
+
+1. **学习成本**
+    - 对于小型项目或新手来说，引入 Vuex 可能会显得复杂。需要理解 actions、mutations、getters 的概念及其配合使用的方式。
+
+2. **增加代码量**
+    - 使用 Vuex 会增加额外的模板代码，例如定义 state、mutation、action 等，这可能会让小型项目的开发变得繁琐。
+    - 获取对应模块的数据流程繁琐。
+
+    ```js
+    const store = createStore({
+      modules: {
+        a: moduleA
+      }
+    })
+    store.state.a // -> 要带上 moduleA 的key，内嵌模块的话会很长，不得不配合mapState使用
+    store.getters.c // -> moduleA里的getters，没有namespaced时又变成了全局的
+    store.getters['a/c'] // -> 有namespaced时要加path，使用模式又和state不一样
+    store.commit('d') // -> 没有namespaced时变成了全局的，能同时触发多个子模块中同名mutation
+    store.commit('a/d') // -> 有namespaced时要加path，配合mapMutations使用感觉也没简化
+    ```
+
+3. **灵活性有限**
+    - Vuex 强制使用 mutation 来同步更新状态，虽然有助于调试和控制，但在某些情况下会显得限制较多。例如，直接修改状态可能更简单快速。
+
+4. **性能问题**
+    - 当状态规模增大，且组件大量依赖全局状态时，可能会导致性能问题，因为状态的变化会触发相关组件的重新渲染。
+
+5. **支持有限**
+    - 在 Vue 3 中，**Composition API** 提供了一种更轻量的状态管理方式；此外，社区中也有更灵活的状态管理库（如 Pinia）作为 Vuex 的替代方案。
+    - 对typescript支持有限
+
 
 * * *
 
-### 体验
+## 51. pinia与vuex中 module作用与区别？
 
-看下面例子可知，`Action` 类似于 `mutation`，不同在于：
+**作用:** 在大型应用中，状态管理会随着功能的增多变得复杂,分割模块可提高可维护性.
 
-+   `Action` 提交的是 `mutation`，而不是直接变更状态。
-+   `Action` 可以包含任意异步操作。
+---
 
-```php
-const store = createStore({
-  state: {
-    count: 0
+### **Pinia 的模块化**
+
+**Pinia 模块化的特点:**
+
+- Pinia 的模块化是通过**独立 Store 定义**实现的，每个模块对应一个 Store，互相独立。
+- Store 是基于函数定义的，灵活且简单。
+- 模块化直接依赖文件系统结构，无需额外配置命名空间。
+
+**使用示例:**
+
+```javascript
+// 创建store
+// stores/counter.js
+import { defineStore } from 'pinia';
+
+export const useCounterStore = defineStore('counter', {
+  state: () => ({
+    count: 0,
+  }),
+  actions: {
+    increment() {
+      this.count++;
+    },
   },
+});
+
+// stores/user.js
+import { defineStore } from 'pinia';
+
+export const useUserStore = defineStore('user', {
+    state: () => ({
+        name: 'John Doe',
+        isLoggedIn: false,
+    }),
+    actions: {
+        login() {
+            this.isLoggedIn = true;
+        },
+        logout() {
+            this.isLoggedIn = false;
+        },
+    },
+});
+```
+
+```vue
+<!--在组件中使用多个 Store-->
+<template>
+  <div>
+    <h1>Counter: {{ counter.count }}</h1>
+    <button @click="counter.increment">Increase Counter</button>
+
+    <h1>User: {{ user.name }}</h1>
+    <button @click="user.login">Login</button>
+    <button @click="user.logout">Logout</button>
+  </div>
+</template>
+
+<script>
+import { useCounterStore } from '@/stores/counter';
+import { useUserStore } from '@/stores/user';
+
+export default {
+  setup() {
+    const counter = useCounterStore();
+    const user = useUserStore();
+
+    return { counter, user };
+  },
+};
+</script>
+```
+
+```javascript
+// 动态注册 Store, 适用于按需加载
+const userStore = useUserStore();
+if (!userStore.$state) {
+  userStore.$state = { name: '', isLoggedIn: false }; // 初始化状态
+}
+```
+
+---
+
+### **Vuex 的模块化**
+
+**Vuex 模块化的特点:**
+- Vuex 模块化通过 `modules` 属性实现。
+- 模块可以嵌套、定义命名空间（namespaced）。
+- Vuex 的模块化设计适合传统的命名空间式状态管理。
+
+**使用示例:**
+
+```javascript
+// vuex模块定义
+// store/modules/counter.js
+export const counterModule = {
+  namespaced: true,
+  state: () => ({
+    count: 0,
+  }),
   mutations: {
-    increment (state) {
-      state.count++
-    }
+    increment(state) {
+      state.count++;
+    },
   },
   actions: {
-    increment (context) {
-      context.commit('increment')
-    }
-  }
-})
+    asyncIncrement({ commit }) {
+      setTimeout(() => {
+        commit('increment');
+      }, 1000);
+    },
+  },
+  getters: {
+    doubleCount(state) {
+      return state.count * 2;
+    },
+  },
+};
+
+// store/modules/user.js
+export const userModule = {
+  namespaced: true,
+  state: () => ({
+    name: 'John Doe',
+    isLoggedIn: false,
+  }),
+  mutations: {
+    login(state) {
+      state.isLoggedIn = true;
+    },
+    logout(state) {
+      state.isLoggedIn = false;
+    },
+  },
+};
 ```
 
+```javascript
+// 注册模块
+// store/index.js
+import { createStore } from 'vuex';
+import { counterModule } from './modules/counter';
+import { userModule } from './modules/user';
+
+export const store = createStore({
+  modules: {
+    counter: counterModule,
+    user: userModule,
+  },
+});
+```
+
+```vue
+// 组件中使用
+<template>
+  <div>
+    <h1>Counter: {{ count }}</h1>
+    <button @click="increment">Increase Counter</button>
+
+    <h1>User: {{ name }}</h1>
+    <button @click="login">Login</button>
+    <button @click="logout">Logout</button>
+  </div>
+</template>
+
+<script>
+import { mapState, mapMutations } from 'vuex';
+
+export default {
+  computed: {
+    ...mapState('counter', ['count']),
+    ...mapState('user', ['name']),
+  },
+  methods: {
+    ...mapMutations('counter', ['increment']),
+    ...mapMutations('user', ['login', 'logout']),
+  },
+};
+</script>
+```
+
+---
+
+### **Pinia 与 Vuex 模块化的对比**
+
+| 特性      | Pinia                              | Vuex                     |
+|---------|------------------------------------|--------------------------|
+| 模块定义方式  | 独立文件，类似模块化 JavaScript    | 嵌套在 `modules` 中，需定义命名空间  |
+| API 简洁性 | 简洁，基于函数的方式              | 较复杂，需定义多种属性              |
+| 命名空间支持  | 无需手动设置命名空间，文件隔离即模块化 | 通过 `namespaced: true` 实现 |
+| TS支持    | 内置强类型支持                    | 需手动定义类型                  |
+| 动态加载    | 支持                              | 需手动实现                    |
+| vue3支持  | 支持                              | 有限支持                     |
+
+
 * * *
 
-### 答题思路
+## 52. 如果让你从零开始写一个vuex，说说你的思路
 
-0.  给出两者概念说明区别
-1.  举例说明应用场景
-2.  使用细节不同
-3.  简单阐述实现上差异
+**设计核心机制:**
+    - 状态存储 (`state`)：管理全局共享数据。
+    - 状态修改 (`mutation`)：定义更新状态的逻辑，确保状态变更是可追踪的。
+    - 异步操作 (`action`)：处理异步任务并最终通过 mutation 更新状态。
+    - 派发 (`dispatch`) 和 提交 (`commit`)：触发 action 和 mutation 的方法。
+    - 订阅和响应式更新：使用 Vue 的响应式系统，确保状态变化时组件能够重新渲染。
 
-* * *
 
-### 回答范例
+**Vuex 核心实现:**
 
-0.  官方文档说：更改 Vuex 的 store 中的状态的唯一方法是提交 `mutation`，`mutation` 非常类似于事件：每个 `mutation` 都有一个字符串的**类型 (type)**和一个** 回调函数 (handler)** 。`Action` 类似于 `mutation`，不同在于：`Action`可以包含任意异步操作，但它不能修改状态， 需要提交`mutation`才能变更状态。
-1.  因此，开发时，包含异步操作或者复杂业务组合时使用action；需要直接修改状态则提交mutation。但由于dispatch和commit是两个API，容易引起混淆，实践中也会采用统一使用dispatch action的方式。
-2.  调用dispatch和commit两个API时几乎完全一样，但是定义两者时却不甚相同，mutation的回调函数接收参数是state对象。action则是与Store实例具有相同方法和属性的上下文context对象，因此一般会解构它为`{commit, dispatch, state}`，从而方便编码。另外dispatch会返回Promise实例便于处理内部异步结果。
-3.  实现上commit(type)方法相当于调用`options.mutations[type](state)`；`dispatch(type)`方法相当于调用`options.actions[type](store)`，这样就很容易理解两者使用上的不同了。
-
-* * *
-
-### 知其所以然
-
-我们可以像下面这样简单实现`commit`和`dispatch`，从而辨别两者不同：
-
-```kotlin
+```javascript
+// 简单的 Vuex 实现
 class Store {
-    constructor(options) {
-        this.state = reactive(options.state)
-        this.options = options
+  constructor(options) {
+    // 保存状态
+    this.state = Vue.observable(options.state); // 响应式状态
+
+    // 保存 mutations
+    this._mutations = options.mutations;
+
+    // 保存 actions
+    this._actions = options.actions;
+
+    // 绑定上下文
+    this.commit = this.commit.bind(this);
+    this.dispatch = this.dispatch.bind(this);
+
+    // 处理 getters
+    this.getters = {};
+    const getters = options.getters || {};
+    Object.keys(getters).forEach((key) => {
+      Object.defineProperty(this.getters, key, {
+          get: () => getters[key](this.state),
+      });
+    });
+
+    // 模块化合并
+    this.state = Vue.observable(this._mergeModules(options.modules || {}, options.state));
+    this._mutations = this._mergeModules(options.modules || {}, options.mutations);
+    this._actions = this._mergeModules(options.modules || {}, options.actions);
+  }
+
+  // commit 方法：同步修改 state
+  commit(type, payload) {
+    const mutation = this._mutations[type];
+    if (!mutation) {
+      console.error(`[Vuex] Mutation not found: ${type}`);
+      return;
     }
-    commit(type, payload) {
-        // 传入上下文和参数1都是state对象
-        this.options.mutations[type].call(this.state, this.state, payload)
+    mutation(this.state, payload);
+  }
+
+  // dispatch 方法：处理异步逻辑
+  dispatch(type, payload) {
+    const action = this._actions[type];
+    if (!action) {
+      console.error(`[Vuex] Action not found: ${type}`);
+      return;
     }
-    dispatch(type, payload) {
-        // 传入上下文和参数1都是store本身
-        this.options.actions[type].call(this, this, payload)
+    return action(this, payload);
+  }
+
+  // 模块化
+    _mergeModules(modules, root) {
+        const merged = { ...root };
+        Object.keys(modules).forEach((key) => {
+            const module = modules[key];
+            Object.assign(merged, module);
+        });
+        return merged;
     }
 }
+
+// 简单的 Vuex 安装函数,实现响应式
+function install(Vue) {
+  Vue.mixin({
+    beforeCreate() {
+      if (this.$options.store) {
+        Vue.prototype.$store = this.$options.store;
+      }
+    },
+  });
+}
+
+// 导出 Vuex 模拟
+export default { Store, install };
 ```
 
-## 53. 使用vue渲染大量数据时应该怎么优化？说下你的思路！
+---
 
-### 分析
+```javascript
+import Vue from 'vue';
+import Vuex from './simple-vuex'; // 使用我们自定义的简单 Vuex
 
-企业级项目中渲染大量数据的情况比较常见，因此这是一道非常好的综合实践题目。
+Vue.use(Vuex);
 
-### 思路
+// 创建 Store 实例
+const store = new Vuex.Store({
+  state: {
+    count: 0,
+  },
+  mutations: {
+    increment(state) {
+      state.count++;
+    },
+    decrement(state) {
+      state.count--;
+    },
+  },
+  actions: {
+    asyncIncrement({ commit }) {
+      setTimeout(() => {
+        commit('increment');
+      }, 1000);
+    },
+  },
+  getters: {
+      doubleCount(state) {
+          return state.count * 2;
+      },
+  },
+});
 
-0.  描述大数据量带来的问题
-1.  分不同情况做不同处理
-2.  总结一下
+export default store;
+```
 
-### 回答
+```vue
+<template>
+  <div>
+    <p>Count: {{ $store.state.count }}</p>
+    <button @click="$store.commit('increment')">Increment</button>
+    <button @click="$store.commit('decrement')">Decrement</button>
+    <button @click="$store.dispatch('asyncIncrement')">Async Increment</button>
+  </div>
+</template>
 
-0.  在大型企业级项目中经常需要渲染大量数据，此时很容易出现卡顿的情况。比如大数据量的表格、树。
+<script>
+export default {
+  name: 'Counter',
+};
+</script>
+```
 
-1.  处理时要根据情况做不通处理：
+---
 
-    +   可以采取分页的方式获取，避免渲染大量数据
-    +   [vue-virtual-scroller](https://github.com/Akryum/vue-virtual-scroller "https://github.com/Akryum/vue-virtual-scroller")等虚拟滚动方案，只渲染视口范围内的数据
-    +   如果不需要更新，可以使用`v-once`方式只渲染一次
-    +   通过[v-memo](https://vuejs.org/api/built-in-directives.html#v-memo "https://vuejs.org/api/built-in-directives.html#v-memo")可以缓存结果，结合`v-for`使用，避免数据变化时不必要的VNode创建
-    +   可以采用懒加载方式，在用户需要的时候再加载数据，比如tree组件子树的懒加载
-2.  总之，还是要看具体需求，首先从设计上避免大数据获取和渲染；实在需要这样做可以采用虚表的方式优化渲染；最后优化更新，如果不需要更新可以v-once处理，需要更新可以v-memo进一步优化大数据更新性能。其他可以采用的是交互方式优化，无线滚动、懒加载等方案。
+## 53. 实现pinia的思路?
 
+[Pinia较为完整的实现及使用](create_pinia.md)
 
-## 54.怎么监听vuex数据的变化？
+**Pinia 核心设计思想:**
+1. **响应式状态 (`state`)**  
+   使用 Vue 3 的 `reactive` 或 `ref` 实现响应式数据管理。
 
-### 分析
+2. **派发 (`action`)**  
+   定义方法（函数）来封装业务逻辑，可以同步或异步修改状态。
 
-vuex数据状态是响应式的，所以状态变视图跟着变，但是有时还是需要知道数据状态变了从而做一些事情。
+3. **计算属性 (`getter`)**  
+   使用 Vue 的 `computed` 提供派生状态，简化组件的状态访问逻辑。
 
-既然状态都是响应式的，那自然可以`watch`，另外vuex也提供了订阅的API：`store.subscribe()`。
+4. **模块化 Store**  
+   每个模块是一个独立的 Store，可以单独注册和使用。
 
-* * *
+5. **动态注册 **
+    能够动态注册store.
 
-### 思路
+6. **类型安全（可选）**  
+   设计时考虑 TypeScript 支持，为开发者提供类型推断。
 
-+   总述知道的方法
-+   分别阐述用法
-+   选择和场景
+7. **插件支持**
+   扩展 Store 功能的灵活机制。
 
-* * *
+---
 
-### 回答范例
+**简单实现:**
 
-+   我知道几种方法：
+```javascript
+import { reactive, computed } from 'vue';
 
-    +   可以通过watch选项或者watch方法监听状态
-    +   可以使用vuex提供的API：store.subscribe()
-+   watch选项方式，可以以字符串形式监听`$store.state.xx`；subscribe方式，可以调用store.subscribe(cb),回调函数接收mutation对象和state对象，这样可以进一步判断mutation.type是否是期待的那个，从而进一步做后续处理。
+class Store {
+  constructor(options) {
+    // 创建响应式状态
+    this.$state = reactive(options.state ? options.state() : {});
 
-+   watch方式简单好用，且能获取变化前后值，首选；subscribe方法会被所有commit行为触发，因此还需要判断mutation.type，用起来略繁琐，一般用于vuex插件中。
-
-
-### 实践
-
-watch方式
-
-```arduino
-const app = createApp({
-    watch: {
-      '$store.state.counter'() {
-        console.log('counter change!');
+    // 创建 getters
+    this.getters = {};
+    if (options.getters) {
+      for (const [key, getterFn] of Object.entries(options.getters)) {
+        this.getters[key] = computed(() => getterFn(this.$state));
       }
     }
-  })
-```
 
-subscribe方式：
-
-```javascript
-  store.subscribe((mutation, state) => {
-    if (mutation.type === 'add') {
-      console.log('counter change in subscribe()!');
-    }
-  })
-```
-
-## 55. 页面刷新后vuex的state数据丢失怎么解决？
-
-### 分析
-
-这是一道应用题目，很容易想到使用`localStorage`或数据库存储并还原状态。
-
-但是如何优雅编写代码还是能体现认知水平。
-
-* * *
-
-### 体验
-
-可以从`localStorage`中获取作为状态初始值：
-
-```javascript
-const store = createStore({
-  state () {
-    return {
-      count: localStorage.getItem('count')
+    // 创建 actions
+    this.actions = {};
+    if (options.actions) {
+      for (const [key, actionFn] of Object.entries(options.actions)) {
+        this.actions[key] = actionFn.bind(this); // 绑定上下文
+      }
     }
   }
-})
-```
 
-业务代码中，提交修改状态同时保存最新值：虽说实现了，但是每次还要手动刷新localStorage不太优雅
-
-```javascript
-store.commit('increment')
-localStorage.setItem('count', store.state.count)
-```
-
-* * *
-
-### 思路
-
-+   问题描述
-+   解决方法
-+   谈个人理解
-+   三方库原理探讨
-
-* * *
-
-### 回答范例
-
-+   vuex只是在内存保存状态，刷新之后就会丢失，如果要持久化就要存起来。
-+   localStorage就很合适，提交mutation的时候同时存入localStorage，store中把值取出作为state的初始值即可。
-+   这里有两个问题，不是所有状态都需要持久化；如果需要保存的状态很多，编写的代码就不够优雅，每个提交的地方都要单独做保存处理。这里就可以利用vuex提供的subscribe方法做一个统一的处理。甚至可以封装一个vuex插件以便复用。
-+   类似的插件有vuex-persist、vuex-persistedstate，内部的实现就是通过订阅mutation变化做统一处理，通过插件的选项控制哪些需要持久化
-
-* * *
-
-### 知其所以然
-
-可以看一下vuex-persist内部确实是利用subscribe实现的
-
-[github.com/championswi…](https://github.com/championswimmer/vuex-persist/blob/master/src/index.ts#L277 "https://github.com/championswimmer/vuex-persist/blob/master/src/index.ts#L277")
-
-* * *
-
-## 56. 你觉得vuex有什么缺点？
-
-### 分析
-
-相较于redux，vuex已经相当简便好用了。但模块的使用比较繁琐，对ts支持也不好。
-
-* * *
-
-### 体验
-
-使用模块：用起来比较繁琐，使用模式也不统一，基本上得不到类型系统的任何支持
-
-```php
-const store = createStore({
-  modules: {
-    a: moduleA
+  // 提供对外访问接口
+  install(app) {
+    app.provide('store', this);
   }
-})
-store.state.a // -> 要带上 moduleA 的key，内嵌模块的话会很长，不得不配合mapState使用
-store.getters.c // -> moduleA里的getters，没有namespaced时又变成了全局的
-store.getters['a/c'] // -> 有namespaced时要加path，使用模式又和state不一样
-store.commit('d') // -> 没有namespaced时变成了全局的，能同时触发多个子模块中同名mutation
-store.commit('a/d') // -> 有namespaced时要加path，配合mapMutations使用感觉也没简化
-```
+}
 
-* * *
-
-### 思路
-
-+   先夸再贬
-+   使用感受
-+   解决方案
-
-* * *
-
-### 回答范例
-
-+   vuex利用响应式，使用起来已经相当方便快捷了。但是在使用过程中感觉模块化这一块做的过于复杂，用的时候容易出错，还要经常查看文档
-+   比如：访问state时要带上模块key，内嵌模块的话会很长，不得不配合mapState使用，加不加namespaced区别也很大，getters，mutations，actions这些默认是全局，加上之后必须用字符串类型的path来匹配，使用模式不统一，容易出错；对ts的支持也不友好，在使用模块时没有代码提示。
-+   之前Vue2项目中用过[vuex-module-decorators](https://github.com/championswimmer/vuex-module-decorators "https://github.com/championswimmer/vuex-module-decorators")的解决方案，虽然类型支持上有所改善，但又要学一套新东西，增加了学习成本。pinia出现之后使用体验好了很多，Vue3 + pinia会是更好的组合。
-
-* * *
-
-### 知其所以然
-
-下面我们来看看vuex中`store.state.x.y`这种嵌套的路径是怎么搞出来的。
-
-首先是子模块安装过程：父模块状态`parentState`上面设置了子模块名称`moduleName`，值为当前模块`state`对象。放在上面的例子中相当于：`store.state['x'] = moduleX.state`。此过程是递归的，那么`store.state.x.y`安装时就是：`store.state['x']['y'] = moduleY.state`。
-
-```scss
-if (!isRoot && !hot) {
-    // 获取父模块state
-    const parentState = getNestedState(rootState, path.slice(0, -1))
-    // 获取子模块名称
-    const moduleName = path[path.length - 1]
-    store._withCommit(() => {
-        // 把子模块state设置到父模块上
-        parentState[moduleName] = module.state
-    })
+export function createStore(options) {
+  return new Store(options);
 }
 ```
 
-这下大家明白了吧！
+* * *
 
-> 源码地址：[github1s.com/vuejs/vuex/…](https://github1s.com/vuejs/vuex/blob/HEAD/src/store-util.js#L102-L115 "https://github1s.com/vuejs/vuex/blob/HEAD/src/store-util.js#L102-L115")
+## 54. vuex中actions和mutations有什么区别？
+
+| 特性         | Mutations                | Actions                  |
+|------------|--------------------------|--------------------------|
+| **职责**     | 直接修改状态                   | 执行业务逻辑，分发 `mutations`    |
+| **操作类型**   | 必须是同步操作                  | 可以包含异步操作                 |
+| **调用方式**   | `commit('mutationName')` | `dispatch('actionName')` |
+| **调试支持**   | 可被 Vue DevTools 追踪       | 无法直接追踪状态修改               |
+| **是否修改状态** | 直接修改状态                   | 不直接修改状态，通过 `mutation`    |
+| **适用场景**   | 简单的同步操作                  | 复杂的业务逻辑或异步操作             |
+
 
 * * *
+
+## 55.怎么监听vuex / pinia 数据的变化？
+
+### 监听vuex数据变化
+
+1. 使用 Vue 的 `watch` 监听组件中的计算属性:
+
+```javascript
+import { mapState } from 'vuex';
+
+export default {
+  computed: {
+    ...mapState({
+      someState: state => state.someState, // 将 Vuex 的某个 state 映射到计算属性
+    }),
+  },
+  watch: {
+    someState(newValue, oldValue) {
+      console.log('someState 发生变化:', oldValue, '=>', newValue);
+    },
+  },
+};
+```
+
+2. 使用 `store.subscribe` 方法:
+
+```javascript
+import store from './store'; // 导入你的 Vuex store
+
+store.subscribe((mutation, state) => {
+  console.log('mutation 发生:', mutation.type, 'payload:', mutation.payload);
+  console.log('新的状态:', state);
+});
+```
+
+3. 使用 `store.watch` 方法:
+
+```javascript
+import store from './store'; // 导入你的 Vuex store
+
+const unwatch = store.watch(
+  (state) => state.someState, // 要监听的状态
+  (newValue, oldValue) => {
+    console.log('someState 变化:', oldValue, '=>', newValue);
+  }
+);
+
+// 停止监听
+// unwatch();
+```
+
+### 监听pinia的数据变化
+
+1. 使用 Vue 的 `watch` 函数:
+
+```javascript
+import { watch } from 'vue';
+import { useStore } from './stores/store'; // 导入你的 Pinia store
+
+const store = useStore();
+
+watch(
+  () => store.someState, // 监听 store 中的某个属性
+  (newValue, oldValue) => {
+    console.log('someState 发生变化:', oldValue, '=>', newValue);
+  }
+);
+```
+
+2. 使用 `store.$subscribe` 方法:
+
+```javascript
+import { useStore } from './stores/store'; // 导入你的 Pinia store
+
+const store = useStore();
+
+// 监听整个 store 的变化
+store.$subscribe((mutation, state) => {
+  console.log('store 状态变化:', mutation, state);
+});
+```
+
+3. 使用 `computed` 进行响应式绑定:
+
+```javascript
+import { computed } from 'vue';
+import { useStore } from './stores/store'; // 导入你的 Pinia store
+
+const store = useStore();
+
+const someState = computed(() => store.someState);
+
+// 在模板或逻辑中使用
+console.log('someState 的值:', someState.value);
+```
+
+## 56. 页面刷新后pinia/vuex的数据丢失怎么解决？
+可以通过将数据保存在浏览器的本地存储（如 `localStorage` 或 `sessionStorage`）中来实现。
+
+### **Vuex 数据持久化**
+
+1. 使用 `localStorage` 或 `sessionStorage`:
+
+```javascript
+// store.js
+const store = new Vuex.Store({
+  state: {
+    // 在 Vuex 的 `state` 中初始化时，从 `localStorage` 获取数据。
+    someState: JSON.parse(localStorage.getItem('someState')) || 'defaultValue',
+  },
+  mutations: {
+    setSomeState(state, payload) {
+      state.someState = payload;
+      localStorage.setItem('someState', JSON.stringify(state.someState)); // 在 `mutations` 中使用 `localStorage` 保存数据。
+    },
+  },
+});
+
+export default store;
+```
+
+2. 使用`插件`vuex-persist、vuex-persistedstate, 或使用vuex提供的`subscribe统一的处理`.
+
+
+
+### **Pinia 数据持久化**
+
+1.使用 `localStorage` 或 `sessionStorage`
+
+```javascript
+import { defineStore } from 'pinia';
+
+export const useStore = defineStore('store', {
+  state: () => ({
+    someState: JSON.parse(localStorage.getItem('someState')) || 'defaultValue',
+  }),
+  actions: {
+    setSomeState(payload) {
+      this.someState = payload;
+      localStorage.setItem('someState', JSON.stringify(this.someState));
+    },
+  },
+});
+```
+
+2. 使用插件 `pinia-plugin-persistedstate`,或使用pinia提供的`$subscribe统一处理`
+
 
