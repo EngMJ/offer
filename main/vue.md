@@ -1985,78 +1985,52 @@ const router = createRouter({
 
 ## 46. Vue-router 除了 router-link 怎么实现跳转
 
-### 分析
-
 vue-router导航有两种方式：`声明式导航`和`编程方式导航`
 
-* * *
+**声明式导航示例:**
 
-### 体验
-
-声明式导航
-
-```ini
+```text
 <router-link to="/about">Go to About</router-link>
 ```
 
-编程导航
+**编程导航示例:**
 
-```php
-// literal string path
-router.push('/users/eduardo')
+```vue
+// 选项式
+<script>
+  export default {
+      mounted(){
+        // literal string path
+        this.$router.push('/users/eduardo')
 
-// object with path
-router.push({ path: '/users/eduardo' })
+        // object with path
+        this.$router.push({ path: '/users/eduardo' })
 
-// named route with params to let the router build the url
-router.push({ name: 'user', params: { username: 'eduardo' } })
+        // named route with params to let the router build the url
+        this.$router.push({ name: 'user', params: { username: 'eduardo' } }) 
+      }
+  }
+</script>
 ```
 
-* * *
+```vue
+// 组合式
+<script setup>
+  import { useRouter } from 'vue-router'
+  let router = useRouter();
+  // literal string path
+  router.push('/users/eduardo')
+</script>
+```
 
-### 思路
-
-+   两种方式
-+   分别阐述使用方式
-+   区别和选择
-+   原理说明
-
-* * *
-
-### 回答范例
-
-+   vue-router导航有两种方式：`声明式导航`和`编程方式导航`
-+   声明式导航方式使用`router-link`组件，添加to属性导航；编程方式导航更加灵活，可传递调用router.push()，并传递path字符串或者RouteLocationRaw对象，指定path、name、params等信息
-+   如果页面中简单表示跳转链接，使用router-link最快捷，会渲染一个a标签；如果页面是个复杂的内容，比如商品信息，可以添加点击事件，使用编程式导航
-+   实际上内部两者调用的导航函数是一样的
-
-* * *
-
-### 知其所以然
-
-[github1s.com/vuejs/route…](https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L240-L241 "https://github1s.com/vuejs/router/blob/HEAD/src/RouterLink.ts#L240-L241")
-
-routerlink点击跳转，调用的是navigate方法
-
-![image-20220626173129790](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/015d1efe389c4f4391622876fd880b71~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-navigate内部依然调用的push
 
 ## 47. 在什么场景下会用到嵌套路由？
 
-### 分析
+适用公用的页面布局,如顶部导航栏/左侧菜单栏/主内容区等,部分内容跟随路由切换,而公用部分不变.
 
-应用的有些界面是由多层级组件组合而来的，这种情况下，url各部分通常对应某个嵌套的组件，vue-router中就可以使用嵌套路由表示这种关系：[router.vuejs.org/guide/essen…](https://router.vuejs.org/guide/essentials/nested-routes.html "https://router.vuejs.org/guide/essentials/nested-routes.html")
+**路由配置示例:**
 
-![image-20220628071220515](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3da6683da0204acda653d94fdedfd9c3~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
-### 体验
-
-定义嵌套路由，对应上图嵌套关系：
-
-```sql
+```js
 const routes = [
   {
     path: '/user/:id',
@@ -2067,11 +2041,6 @@ const routes = [
         path: 'profile',
         component: UserProfile,
       },
-      {
-        // UserPosts 会被渲染在 User 组件中的 <router-view> 里
-        path: 'posts',
-        component: UserPosts,
-      },
     ],
   },
 ]
@@ -2079,98 +2048,9 @@ const routes = [
 
 * * *
 
-### 思路
-
-+   概念和使用场景
-+   使用方式
-+   实现原理
-
-* * *
-
-### 回答范例
-
-+   平时开发中，应用的有些界面是由多层级组件组合而来的，这种情况下，url各部分通常对应某个嵌套的组件，vue-router中可以使用嵌套路由表示这种关系
-+   表现形式是在两个路由间切换时，它们有公用的视图内容。此时通常提取一个父组件，内部放上，从而形成物理上的嵌套，和逻辑上的嵌套对应起来
-+   定义嵌套路由时使用`children`属性组织嵌套关系
-+   原理上是在router-view组件内部判断当前router-view处于嵌套层级的深度，讲这个深度作为匹配组件数组matched的索引，获取对应渲染组件，渲染之
-
-* * *
-
-### 知其所以然
-
-router-view获取自己所在的深度：默认0，加1之后传给后代，同时根据深度获取匹配路由。
-
-![image-20220628074750827](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/edc6b0d7873640d5aa2cb73a9006a971~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
-
-* * *
-
 ## 48. vue-router中如何保护路由？
 
-### 分析
-
-路由保护在应用开发过程中非常重要，几乎每个应用都要做各种路由权限管理，因此相当考察使用者基本功。
-
-* * *
-
-### 体验
-
-全局守卫：
-
-```javascript
-const router = createRouter({ ... })
-
-router.beforeEach((to, from) => {
-  // ...
-  // 返回 false 以取消导航
-  return false
-})
-```
-
-路由独享守卫：
-
-```javascript
-const routes = [
-  {
-    path: '/users/:id',
-    component: UserDetails,
-    beforeEnter: (to, from) => {
-      // reject the navigation
-      return false
-    },
-  },
-]
-```
-
-组件内的守卫：
-
-```javascript
-const UserDetails = {
-  template: `...`,
-  beforeRouteEnter(to, from) {
-    // 在渲染该组件的对应路由被验证前调用
-  },
-  beforeRouteUpdate(to, from) {
-    // 在当前路由改变，但是该组件被复用时调用
-  },
-  beforeRouteLeave(to, from) {
-    // 在导航离开渲染该组件的对应路由时调用
-  },
-}
-```
-
-* * *
-
-### 思路
-
-+   路由守卫的概念
-+   路由守卫的使用
-+   路由守卫的原理
-
-* * *
-
-+   vue-router中保护路由的方法叫做路由守卫，主要用来通过跳转或取消的方式守卫导航。
-+   路由守卫有三个级别：全局，路由独享，组件级。影响范围由大到小，例如全局的router.beforeEach()，可以注册一个全局前置守卫，每次路由导航都会经过这个守卫，因此在其内部可以加入控制逻辑决定用户是否可以导航到目标路由；在路由注册的时候可以加入单路由独享的守卫，例如beforeEnter，守卫只在进入路由时触发，因此只会影响这个路由，控制更精确；我们还可以为路由组件添加守卫配置，例如beforeRouteEnter，会在渲染该组件的对应路由被验证前调用，控制的范围更精确了。
-+   用户的任何导航行为都会走navigate方法，内部有个guards队列按顺序执行用户注册的守卫钩子函数，如果没有通过验证逻辑则会取消原有的导航。
+[路由守卫](vue_router.md#导航守卫)
 
 * * *
 
