@@ -10,6 +10,6 @@
 #### 7. [Vite](main/vite.md)
 #### 8. [Http](main/http.md)
 #### 9. [Git](main/git.md)
-#### 10. [设计模式_todo](main/design.md)
+#### 10. [设计模式](main/design.md)
 #### 11. [TypeScript](main/typeScript.md)
 #### 12. [算法_todo](main/algorithm.md)
