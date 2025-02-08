@@ -91,106 +91,156 @@ js
 
 +   [从输入URL到浏览器显示页面过程中都发生了什么](url.md)
 
-### 对AMD、CMD的理解
+### 模块化的理解
 
-+   `CommonJS`是服务器端模块的规范，`Node.js`采用了这个规范。`CommonJS`规范加载模块是同步的，也就是说，只有加载完成，才能执行后面的操作。`AMD`规范则是非同步加载模块，允许指定回调函数
+常见模块化方案: **AMD**、**CMD**、**CommonJS** 和 **ES Modules (ESM)**
 
-+   `AMD`推荐的风格通过返回一个对象做为模块对象，`CommonJS`的风格通过对`module.exports`或`exports`的属性赋值来达到暴露模块对象的目的
-
-+   `AMD`
-
-
-**es6模块 CommonJS、AMD、CMD**
-
-+   `CommonJS` 的规范中，每个 `JavaScript` 文件就是一个独立的模块上下文（`module context`），在这个上下文中默认创建的属性都是私有的。也就是说，在一个文件定义的变量（还包括函数和类），都是私有的，对其他文件是不可见的。
-+   `CommonJS`是同步加载模块,在浏览器中会出现堵塞情况，所以不适用
-+   `AMD` 异步，需要定义回调`define`方式
-+   `es6` 一个模块就是一个独立的文件，该文件内部的所有变量，外部无法获取。如果你希望外部能够读取模块内部的某个变量，就必须使用`export`关键字输出该变量 `es6`还可以导出类、方法，自动适用严格模式
-
-### 模块化（AMD、CMD、CommonJS、ES6）
-
-**模块化的演进过程**
+**模块化的演进过程:**
 
 +   1.文件划分的方式 污染全局作用域 命名冲突 无法管理模块依赖关系
 +   2.命名空间方式 在第一个阶段的基础上 将每个模块只暴露一个全局对象 所有的变量都挂载到这个全局对象上
 +   3.IIFE 立即执行函数 为模块提供私有空间
 +   以上是早起在没有工具和规范的情况下对模块化的落地方式
 
-模块化规范的出现 模块化规范+模块加载器
+---
 
-**1\. AMD 异步加载**
+#### 1. AMD（Asynchronous Module Definition）
 
-+   require.js的实现 define('modle', \[加载资源\]， ()=>{})
-+   使用起来比较复杂
-+   模块js文件请求频繁
-+   先加载依赖
++ 特点:
 
-```js
-// require.js 就是使用的这种风格
+**异步加载**：设计初衷就是在浏览器环境下异步加载模块，避免页面阻塞。
 
-define(['a.js', 'b.js'], function(A, B) {
-    // do something
-})
+**依赖提前声明**：在定义模块时就明确写出所有依赖，加载时并行请求所有依赖模块。
 
+**典型实现**：[RequireJS](https://requirejs.org/) 就是基于 AMD 规范的实现。
 
-// 实现思路：建一个node节点, script标签
-var node = document.createElement('script')
-node.type = 'text/javascript'
-node.src = '1.js'
-
-// 1.js 加载完后onload的事件
-node.addEventListener('load', function(evt) {
-    // 开始加载 2.js
-    var node2 = document.createElement('script')
-    node2.type = 'text/javascript'
-    node2.src = '2.js'
-    // 插入 2.js script 节点
-    document.body.appendChild(node2)
-})
-// 将script节点插入dom中
-document.body.appendChild(node);
++ 语法示例:
+```javascript
+// 使用 define() 来定义一个模块，依赖以数组形式提前声明
+define(['moduleA', 'moduleB'], function(moduleA, moduleB) {
+    // 模块内部代码
+    var result = moduleA.doSomething() + moduleB.doSomethingElse();
+    return {
+        result: result
+    };
+});
 ```
 
-**2\. CMD sea.js**
++ 优缺点:
 
-+   sea.js
-+   按需加载
-+   碰到require('2.js')就立即执行2.js
+**优点**：非常适合浏览器环境，能实现模块的并行加载，提高性能。
 
-```js
-define(function() {
-    var a = require('2.js')
-    console.log(33333)
-})
+**缺点**：语法略显冗长；由于依赖必须提前声明/加载，灵活性相对较差。
+
+---
+
+#### 2. CMD（Common Module Definition）
+
++ 特点:
+
+**就近依赖**：由 SeaJS 等库提出，强调“延迟执行”和“就近依赖”。即依赖不必在模块最开始就声明，而是在需要的时候调用 `require` 加载。
+
+**适用于浏览器端**：与 AMD 一样，主要面向浏览器环境，但更注重动态依赖和按需加载。
+
++ 语法示例:
+```javascript
+define(function(require, exports, module) {
+    // 当运行时才加载依赖
+    var moduleA = require('moduleA');
+    
+    exports.doSomething = function() {
+        // 使用 moduleA
+        moduleA.action();
+    };
+});
 ```
 
-**3\. commonjs 服务端规范**
++ 优缺点:
 
-+   一个文件就是一个模块
-+   每个模块都有单独的作用域
-+   通过module.exports导出成员
-+   通过require函数载入模块
-+   commonjs是以`同步`的方式加载模块 node的执行机制是在启动时去加载模块 在执行阶段不需要加载模块
-+   CommonJS 模块输出的是一个值的拷贝，一旦输出一个值，模块内部的变化就影响不到这个值
-+   CommonJS 模块加载的顺序，按照其在代码中出现的顺序
-+   由于 CommonJS 是同步加载模块的，在服务器端，文件都是保存在硬盘上，所以同步加载没有问题，但是对于浏览器端，需要将文件从服务器端请求过来，那么同步加载就不适用了，所以，CommonJS 是不适用于浏览器端的。
-+   CommonJS 模块可以多次加载，但是只会在第一次加载时运行一次，然后运行结果就被缓存了，以后再加载，就直接读取缓存结果。要想让模块再次运行，必须清除缓存
+**优点**：灵活性较好，允许在代码中动态地加载模块，适合依赖在运行时才能确定的场景。
 
-**4\. ESmodules 浏览器模块化规范**
+**缺点**：由于依赖不是在定义阶段明确列出，静态分析和工具优化（如打包工具的依赖图构建）会比较困难。
 
-+   在语言层面实现了模块化 通过给script的标签 将type设置成module 就可以使用这个规范了
-+   基本特性
-    +   自动采用严格模式，忽略use strict
-    +   每个ESM模块都是单独的私有作用域
-    +   ESM是通过CORS去请求外部JS模块的
-    +   ESM中的script标签会延迟执行脚本
-    +   ES6 模块是动态引用，引用类型属性被改变会相互影响
-+   export import 进行导入导出
-    +   导出的并不是成员的值 而是内存地址 内部发生改变外部也会改变，外部导入的是只读成员不能修改
-    +   ES module中可以导入CommonJS模块
-    +   CommonJS中不能导入ES module模块
-    +   CommonJS始终只会导出一个默认成员
-    +   注意import不是解构导出对象
+---
+
+#### 3. CommonJS
+
++ 特点:
+
+**同步加载**：主要用于服务器端（如 Node.js），因为在服务器环境中文件读取是本地操作，速度快，不存在浏览器的网络延迟问题。
+
+**简单直观**：文件划分模块,使用 `require` 引入模块，使用 `module.exports` 或 `exports` 导出模块。
+
+**顺序加载**：按照代码中的加载顺序进行加载。
+
+**导出值克隆**：导出的内容是当前模块的值克隆,改变加载的内容并不影响原模块。
+
+**模块缓存**：模块只会在首次加载时执行一次，后续加载直接使用缓存。
+
++ 语法示例:
+```javascript
+// a.js 模块 导出内容
+module.exports = function() {
+    console.log("Hello from module A");
+};
+
+// b.js 模块 加载内容
+var moduleA = require('./a.js');
+moduleA();
+```
+
++ 优缺点:
+
+**优点**：语法简单易懂，非常适合服务端开发；模块加载和缓存机制明确。
+
+**缺点**：同步加载不适合浏览器端（会导致阻塞），但通常可以通过构建工具（如 Browserify 或 Webpack）进行转换。
+
+---
+
+#### 4. ES Modules (ESM)
+
++ 特点:
+
+**语言级支持**：ES6（ECMAScript 2015）标准正式引入，成为 JavaScript 官方的模块系统。
+
+**静态分析**：`import` 和 `export` 语法在编译时就能确定模块依赖，利于静态分析、打包优化和 tree shaking。
+
+**双端支持**：既支持浏览器（通过 `<script type="module">` 加载），也支持 Node.js（新版本中已原生支持）。
+
+**引用加载**：通过CORS方式进行模块加载,且加载的ES模块为值引用,修改加载模块会影响原模块。
+
+**自动严格模式**：模块中语法使用严格模式检查。
+
+**可加载commonJS模块**：ES module中可以导入CommonJS模块,但CommonJS中不能导入ES module模块。
+
++ 语法示例:
+```javascript
+// a.mjs 或 a.js 模块（根据环境配置）
+export function doSomething() {
+    console.log("Doing something");
+}
+
+// b.mjs 或 b.js 模块
+import { doSomething } from './a.js';
+doSomething();
+```
+
++ 优缺点
+
+**优点**：语法简洁、明确；静态结构使得优化和安全性更好；逐渐成为未来的标准模块系统。
+
+**缺点**：老版本的 Node.js 和部分浏览器可能不支持，需要转译（例如通过 Babel）或者使用特定的文件扩展名（如 `.mjs`）。
+
+---
+
+#### 模块化方案的异同
+
+| 模块系统             | 加载方式                     | 语法风格                                  | 依赖声明方式                     | 主要应用场景                             | 模块划分方式                                                                      |
+|----------------------|------------------------------|-------------------------------------------|----------------------------------|------------------------------------------|-----------------------------------------------------------------------------|
+| **AMD**              | 异步加载                     | `define([...], function(){})`             | 在模块定义时提前声明所有依赖       | 浏览器端（如 RequireJS 等库）              | 灵活：可以在一个文件中定义多个模块，但通常为了便于管理和维护，约定每个模块写在单独的文件中。打包工具也可将多个模块合并以减少 HTTP 请求。     |
+| **CMD**              | 异步加载（就近依赖）          | `define(function(require, exports, module){})` | 根据需要动态加载依赖              | 浏览器端（如 SeaJS 等库）                  | 灵活：虽然允许在一个文件中定义多个模块，但实际开发中也通常采用每个模块单独一个文件的方式，以提高代码清晰度和维护性。                  |
+| **CommonJS**         | 同步加载                     | `require()` / `module.exports`            | 在运行时调用                     | Node.js 服务端                           | 文件即模块：Node.js 中每个文件都有独立作用域，惯例是每个文件作为一个独立模块，这种方式简洁直观，有利于模块缓存和管理。             |
+| **ES Modules (ESM)** | 静态加载（可配合异步加载）     | `import` / `export`                       | 静态声明（编译时就能确定依赖）      | 浏览器和 Node.js（现代前后端均适用）         | 文件就是模块：任何使用 `import`/`export` 的文件都被视为独立模块。这种方式便于静态分析和 tree shaking，推荐用于新项目。 |
 
 ### 浏览器缓存
 
