@@ -753,10 +753,7 @@ document.body.addEventListener('click', e => console.log(e));
 +   所以，之所以为null的情况是，当调用console.log(e)时，currentTarget属性是有值的，但是过后这个值就被重置为null了。所以当你展开事件对象，看到的就是null。
 
 
-## 常用API
-下面分别给出字符串、数字、数组和对象常用 API 的使用说明及其区别，采用表格形式展示：
-
----
+## 字符串/数组/数字/对象 常用API
 
 ### 1. String API
 
