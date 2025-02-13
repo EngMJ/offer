@@ -1,6 +1,6 @@
 ### 简介及区别
 
-call 和 apply作用一模一样，区别仅在于传入参数形式的不同。
+call 和 apply会立即执行，区别仅在于传入参数形式的不同。bind 会返回一个修改原函数的this与参数的函数.
 
 #### apply
 
@@ -33,6 +33,8 @@ func.call( null, 1, 2, 3 );
 Function.prototype.apply = function (context) {
     var context = context || window;
     var args = arguments[1] || [];
+    // this => 指的是调用apply的函数本身, 即 fun.apply() 中的 fun
+    // 通过挂载在context上的fn属性来调用函数,从而改变this指向
     context.fn = this;
     var result = context.fn(...args);
     delete context.fn;
