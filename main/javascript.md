@@ -347,19 +347,15 @@ class promise{
         let valList = []
         return new promise((resolve,reject) => {
             promiseList.forEach((promise, index) => {
-                try {
-                  promise.then((val) => {
-                      valList[index] = val
-                      num++
-                      if(num === length) {
-                        resolve(valList)
-                      }
-                  })
-                }catch (err){
-                    reject(err)
-                }
-            }).catch((err) => {
-              reject(err)
+              promise.then((val) => {
+                  valList[index] = val
+                  num++
+                  if(num === length) {
+                    resolve(valList)
+                  }
+              }).catch((err) => {
+                  reject(err)
+              })
             })
         })
     }
