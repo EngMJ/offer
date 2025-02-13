@@ -258,21 +258,23 @@ function fun(a,b) {
     };
 }
 var d = fun(0); // undefined
-d.fun(1); // 2 0
-d.fun(2); // 2 0
-d.fun(3); // 2 0
+d.fun(1); // 0
+d.fun(2); // 0
+d.fun(3); // 0
 
 var d1 = fun(0).fun(1).fun(2).fun(3);
-// 2 undefined 2 0
-// 2 1
-// 2 2
+// undefined 
+// 0
+// 1
+// 2
 
-var d2 = fun(0).fun(1); d2.fun(2);
-// 2 undefined
-// 2 0
-// 2 1
-// 2 1
+var d2 = fun(0).fun(1); 
+//  undefined
+//  0
+d2.fun(2);
+//  1
 
-d2.fun(3); // {fun: ƒ}
+d2.fun(3); 
+// 
 
 ```
