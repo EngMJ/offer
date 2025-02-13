@@ -215,7 +215,9 @@ let f2 = new Foo();
 
 +   参考：[动手实现apply、call、bind](apply.md)
 
-## [字符串/数组/数字/对象 常用API](_api.md)
+## 字符串/数组/数字/对象 常用API
+
++   参考：[内置API](_api.md)
 
 ## Javascript 小技巧帮你提升代码质量
 
@@ -561,7 +563,6 @@ function myNew(context) {
 +   必要的话渲染 UI
 +   然后开始下一轮 Event loop，执行宏任务中的异步代码
 
-在一个事件循环中，微任务会比宏任务先执行，因此即使`new promise()`里立即执行的代码比`setTimeout(() => {}, 0)`的代码后面，也会提前执行。
 
 ```js
 setTimeout(() => console.log(1), 0);
