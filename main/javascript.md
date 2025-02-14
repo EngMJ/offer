@@ -103,19 +103,16 @@ Object.prototype.toString.call(arr); // "[object Array]"
 
 ```javascript
 function add(a, b) {
+  // 获取小数部分的最大长度
   const maxLen = Math.max(
     a.toString().split(".")[1].length,
     b.toString().split(".")[1].length
   );
+  // 计算倍数
   const base = 10 ** maxLen;
-  const bigA = BigInt(base * a);
-  const bigB = BigInt(base * b);
-  const bigRes = (bigA + bigB) / BigInt(base); // 如果是 (1n + 2n) / 10n 是等于 0n的。。。
-  return Number(bigRes);
+  return (base * a + base * b) / base;
 }
 ```
-
-这里代码是有问题的，因为最后计算 `bigRes` 的大数相除（即 `/`）是会把小数部分截掉的，所以我很疑惑为什么网络上很多文章都说可以通过**先转为整数运算再除回去，为了防止转为的整数超出 js 表示范围，还可以运用到 ES6 新增的大数类型，我真的很疑惑，希望有好心人能解答下。**
 
 2.  使用 `Number.EPSILON` 误差范围。
 
