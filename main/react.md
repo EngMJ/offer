@@ -824,7 +824,7 @@ const Com = hoc3(hoc2(hoc1(App())))
 
 ### 9.1 简述
 
-> `render prop` 是指在 `React` 组件中使用一个值为函数的属性(`props`)来渲染代码块的技术
+> `render prop` 是指在 `React` 组件中使用一个值为函数的属性(`props`)来渲染代码块的技术(类似vue slot插槽)
 
 1.  组件允许通过属性传入一个函数, 该函数返回一个 `React 元素`
 2.  组件内部通过调用该函数, 来渲染部分内容
