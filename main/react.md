@@ -1194,11 +1194,6 @@ import { Input } from 'antd';
 <Input value="写死或者设置为状态值"/>
 ```
 
-> 补充: `getDerivedStateFromProps` 的作用
->
-> 1.  `state` 只受到 `props` 的影响
-> 2.  只有当 `state` 与 `prop` 不同时, 才去修改 `state`
-
 ### 3.2 非受控组件
 
 > 组件内部 `state`或值不受 `props` 控制的组件, 由组件内部自己管理
