@@ -996,14 +996,37 @@ export default createSlice({
 ### 1.6 react-redux
 
 1.  `Provider组件`: 用来包裹应用,注入store
-2.  `connect`: 高阶组件,用来包裹需要注入store的组件,有mapStateToProps/mapDispatchToProps/megerToProps/options, 可以用来给被注入组件以props的方式传入返回的对象
-    使用方法: connect(mapStateToProps?,mapDispatchToProps?,megerToProps?,options?)(组件)
+2.  `connect`: 包裹组件的高阶组件,注入store
+    + 通过参数mapStateToProps/mapDispatchToProps/megerToProps/options, 以props的方式传入被注入组件
+    + 使用方法: connect(mapStateToProps?,mapDispatchToProps?,megerToProps?,options?)(组件)
+```js
+import React from 'react';
+import { connect } from 'react-redux';
 
-    +   通过 `context` 获取 `redux store`
-    +   添加监听器, 当通过 `dispatch` 更新状态时执行该监听器, 监听器将执行第一参数(回调函数 `state => ({})`) 将返回值作为高阶组件的 `state`
-    +   将第二参数使用 `dispathc` 进行包裹返回新函数: `(... arg) => dispatch(fun(... arg))`
-    +   最后将 `state` 和封装后的方法挂载到组件上
+const MyComponent = ({ count, increment, decrement }) => {
+    return (
+        <div>
+            <p>Count: {count}</p>
+            <button onClick={increment}>Increment</button>
+            <button onClick={decrement}>Decrement</button>
+        </div>
+    );
+};
 
+// mapStateToProps: 将 Redux 状态映射到组件的 props
+const mapStateToProps = (state) => ({
+    count: state.count,  // 假设 Redux 状态有一个 `count` 属性
+});
+
+// mapDispatchToProps: 将 `dispatch` 映射到组件的 props
+const mapDispatchToProps = (dispatch) => ({
+    increment: () => dispatch({ type: 'INCREMENT' }),
+    decrement: () => dispatch({ type: 'DECREMENT' }),
+});
+
+// 使用 connect 包裹组件
+export default connect(mapStateToProps, mapDispatchToProps)(MyComponent);
+```
 3. `useSelector` 获取state的值
 4. `useDispatch` 获取dispatch
 5. `useStore` 获取store
@@ -1024,8 +1047,8 @@ export default configureStore({
 // counterSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
-    const response = await client.get('/fakeApi/posts')
+export const fetchUser = createAsyncThunk('user/fetchUser', async () => {
+    const response = await client.get('/fetchUser')
     return response.data
 })
 
@@ -1033,7 +1056,7 @@ export const counterSlice = createSlice({
     name: 'counter',
     initialState: {
         value: 0,
-        posts: [],
+        user: {},
         status: ''
     },
     reducers: {
@@ -1053,15 +1076,14 @@ export const counterSlice = createSlice({
     // 异步数据处理
     extraReducers(builder) {
         builder
-            .addCase(fetchPosts.pending, (state, action) => {
+            .addCase(fetchUser.pending, (state, action) => {
                 state.status = 'loading'
             })
-            .addCase(fetchPosts.fulfilled, (state, action) => {
+            .addCase(fetchUser.fulfilled, (state, action) => {
                 state.status = 'succeeded'
-                // Add any fetched posts to the array
-                state.posts = state.posts.concat(action.payload)
+                state.posts = action.payload
             })
-            .addCase(fetchPosts.rejected, (state, action) => {
+            .addCase(fetchUser.rejected, (state, action) => {
                 state.status = 'failed'
                 state.error = action.error.message
             })
@@ -1080,18 +1102,40 @@ import './index.css';
 import App from './App';
 import store from './app/store';
 import { Provider } from 'react-redux';
-import { fetchUsers } from './features/users/usersSlice'
+
 
 // 从 React 18 开始
 const root = ReactDOM.createRoot(document.getElementById('root'));
-// 使用异步reduxer
-store.dispatch(fetchUsers());
 
 root.render(
     <Provider store={store}>
         <App />
     </Provider>
 );
+
+```
+
+```js
+// App.js
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { increment, decrement, fetchUser } from './counterSlice';
+const App = () => {
+  const count = useSelector((state) => state.counter);
+  const dispatch = useDispatch();
+  const { user, status, value } = useSelector((state) => state.user);
+  
+  return (
+    <div>
+      <h1>{count}</h1>
+      <button onClick={() => dispatch(increment())}>Increment</button>
+      <button onClick={() => dispatch(decrement())}>Decrement</button>
+      <button onClick={() => dispatch(fetchUser())}>fetchUser</button>
+    </div>
+  );
+};
+
+export default App;
 
 ```
 
