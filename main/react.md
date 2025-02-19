@@ -996,8 +996,7 @@ export default createSlice({
 ### 1.6 react-redux
 
 1.  `Provider组件`: 用来包裹应用,注入store
-2.  `connect`: 包裹组件的高阶组件,注入store
-    + 通过参数mapStateToProps/mapDispatchToProps/megerToProps/options, 以props的方式传入被注入组件
+2.  `connect`: 包裹组件的高阶组件,能将 store 中的状态和 dispatch 方法以props的方式传入组件
     + 使用方法: connect(mapStateToProps?,mapDispatchToProps?,megerToProps?,options?)(组件)
 ```js
 import React from 'react';
