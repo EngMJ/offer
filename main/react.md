@@ -1332,7 +1332,7 @@ import React, { Component, forwardRef } from 'react';
 // 类组件
 class MyClassComponent extends Component {
     focus() {
-        this.inputRef.focus();
+        this.props.inputRef.focus();
     }
 
     render() {
