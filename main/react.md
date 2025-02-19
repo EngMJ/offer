@@ -1122,7 +1122,7 @@ import { increment, decrement, fetchUser } from './counterSlice';
 const App = () => {
   const count = useSelector((state) => state.counter);
   const dispatch = useDispatch();
-  const { user, status, value } = useSelector((state) => state.user);
+  const { userId, value } = useSelector((state) => state.user);
   
   return (
     <div>
