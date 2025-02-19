@@ -1287,34 +1287,68 @@ const App = () => {
 2.  函数组件: `forwardRef` + `useImperativeHandle`
 
 ```js
-import { forwardRef, useImperativeHandle } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 
-const A = (props, ref) => {
-  useImperativeHandle(ref, () => {
-    // 返回要绑定的实例对象
-    return {};
-  }, []);
-  
-  return <input {...props} />;
-}
+/*
+* props：组件的所有 props。
+* ref：传递给组件的 ref。
+* */
+const MyComponent = forwardRef((props, ref) => {
+    
+    const [count, setCount] = useState(0);
 
-const App = forwardRef(A);
+    // 使用 useImperativeHandle 自定义暴露给父组件的 ref 方法
+    useImperativeHandle(ref, () => ({
+        increment: () => setCount(count + 1),
+        reset: () => setCount(0),
+    }));
+
+    return <div>{count}</div>;
+});
+
+const App = () => {
+    const componentRef = useRef();
+
+    return (
+        <div>
+            <MyComponent ref={componentRef} />
+            <button onClick={() => componentRef.current.increment()}>Increment</button>
+            <button onClick={() => componentRef.current.reset()}>Reset</button>
+        </div>
+    );
+};
+
+export default App;
+
 ```
 
 ### 4.4 转发 ref
 
-1.  可使用 `React.forwardRef` 进行转发
+1.  可使用高阶组件 `React.forwardRef` 用于转发 ref 到子组件中的某个 DOM 元素或类组件实例上
 
 ```js
-// React.forwardRef 返回一个组件
-const FancyButton = React.forwardRef((props, ref) => (
-  <button ref={ref} className="FancyButton">
-    {props.children}
-  </button>
-));
+import React, { Component, forwardRef } from 'react';
+
+// 类组件
+class MyClassComponent extends Component {
+    focus() {
+        this.inputRef.focus();
+    }
+
+    render() {
+        return <input ref={(ref) => (this.props.inputRef = ref)} />;
+    }
+}
+
+// 使用 forwardRef 来转发 ref
+const ForwardedClassComponent = forwardRef((props, ref) => {
+    return <MyClassComponent inputRef={ref} />;
+});
+
+export default ForwardedClassComponent;
 ```
 
-2.  使用不同的属性名称将 `ref` 进行转发(常见于类组件, 毕竟 `forwardRef` 不能用于类组件)
+2.  使用传入props将 `ref` 进行转发(常见于类组件, 毕竟 `forwardRef` 不能用于类组件)
 
 ```js
 class A extends Component {
