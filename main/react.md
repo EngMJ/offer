@@ -988,16 +988,21 @@ export default createSlice({
 });
 ```
 
-### 1.5 react-redux
+### 1.5 reduxToolkit(RTK)
+1. `configStore` 创建store
+2. `createSlice`  创建片段reducer,就是一个模块store
+3. `createAsyncThunk` 就是创建一个extrReducer可以使用的异步函数
+
+### 1.6 react-redux
 
 1.  `Provider组件`: 用来包裹应用,注入store
 2.  `connect`: 高阶组件,用来包裹需要注入store的组件,有mapStateToProps/mapDispatchToProps/megerToProps/options, 可以用来给被注入组件以props的方式传入返回的对象
     使用方法: connect(mapStateToProps?,mapDispatchToProps?,megerToProps?,options?)(组件)
 
-     +   通过 `context` 获取 `redux store`
-     +   添加监听器, 当通过 `dispatch` 更新状态时执行该监听器, 监听器将执行第一参数(回调函数 `state => ({})`) 将返回值作为高阶组件的 `state`
-     +   将第二参数使用 `dispathc` 进行包裹返回新函数: `(... arg) => dispatch(fun(... arg))`
-     +   最后将 `state` 和封装后的方法挂载到组件上
+    +   通过 `context` 获取 `redux store`
+    +   添加监听器, 当通过 `dispatch` 更新状态时执行该监听器, 监听器将执行第一参数(回调函数 `state => ({})`) 将返回值作为高阶组件的 `state`
+    +   将第二参数使用 `dispathc` 进行包裹返回新函数: `(... arg) => dispatch(fun(... arg))`
+    +   最后将 `state` 和封装后的方法挂载到组件上
 
 3. `useSelector` 获取state的值
 4. `useDispatch` 获取dispatch
@@ -1090,10 +1095,6 @@ root.render(
 
 ```
 
-### 1.6 reduxToolkit(RTK)
-1. `configStore` 创建store
-2. `createSlice`  创建片段reducer,就是一个模块store
-3. `createAsyncThunk` 就是创建一个extrReducer可以使用的异步函数
 
 ## 十二、组件之间传参方法
 
