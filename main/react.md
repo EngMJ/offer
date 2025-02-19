@@ -1481,7 +1481,7 @@ console.log(
   },
   key: null,
   ref: null,
-  $$typeof: Symbol.for('react.element'), // 标识 React 元素
+  $$typeof: Symbol('react.element'), // 标识 React 元素
 }
 ```
 
