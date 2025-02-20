@@ -2055,12 +2055,11 @@ function App() {
 
 2.  在 `React 18` 之后所有的更新都将自动批处理:
 
-+   主要原因是不再通过 `状态` 来作为批处理依据, 而是基于 `fiber` 增加调度的流程来实现的, 以更新的「优先级」为依据来进行批处理
-+   他通过对于 `Root` 上是否存在当前任务的调度信息, 以及任务的更新优先级是否发生变化, 以此来决定是否要开启一个新的 `updateScheduled`
-+   而只要复用同一个 `Scheduled` 一个 `Scheduled` 只会出发一次 `render` 也就完成了自动批处理的实现
++   主要原因是不再通过 `状态` 来作为批处理依据, 改为基于 `fiber` 的调度器(Scheduler)以任务优先级为依据来进行批处理
++   通过 `Scheduler` 来进行任务调度, 在事件中是同步状态更新(合成事件、生命周期)则立即进行状态合并,是异步状态更新(定时器、`promise.then`、原生事件处理函数)则等待事件执行完成再进行状态更新合并,最后合并渲染只进行一次DOM更新,从而实现了自动批处理
 +   参考: [React18精读一: Automatic Batching 自动批处理](https://zhuanlan.zhihu.com/p/523683561 "https://zhuanlan.zhihu.com/p/523683561")
 
-3.  如何退出批处理: `flushSync` 批处理是一个破坏性改动,, 如果你想退出批量更新, 可以使用 `react-dom` 中提供的 `flushSync` 函数
+3.  如何退出批处理: `flushSync` 强制同步更新
 
 ```js
 import React, { useState } from 'react';
@@ -2073,14 +2072,14 @@ const App: React.FC = () => {
   return (
     <div
       onClick={() => {
+        // 第一次更新
         flushSync(() => {
           setCount1(count => count + 1);
         });
-        // 第一次更新
+        // 第二次更新
         flushSync(() => {
           setCount2(count => count + 1);
         });
-        // 第二次更新
       }}
     >
       <div>count1: {count1}</div>
@@ -2101,7 +2100,7 @@ export default App;
 ```js
 import React from 'react';
 import ReactDOM from 'react-dom';
-const root = document.getElementById('root')!;
+const root = document.getElementById('root');
 ReactDOM.render(<App />, root);
 ```
 
@@ -2112,7 +2111,7 @@ ReactDOM.render(<App />, root);
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-const root = document.getElementById('root')!;
+const root = document.getElementById('root');
 
 ReactDOM.createRoot(root).render(<App />);
 ```
@@ -2204,11 +2203,11 @@ async function handleSubmit() {
 
 > 参考: [react-18/discussions/72](https://github.com/reactwg/react-18/discussions/72 "https://github.com/reactwg/react-18/discussions/72")
 
-1.  更新前: 如果 `Suspense` 组件没有提供 `fallback` 属性, `React` 就会跳过它, 继续讲错误向往传递, 知道被最近的 `Suspense` 捕获到
+1.  更新前: 如果 `Suspense` 组件没有提供 `fallback` 属性, `React` 就会跳过它, 继续讲错误向上传递, 直到被最近的 `Suspense` 捕获到
 
 ```js
-<Suspense fallback={<Loading />}> // <--- 这个边界被使用，显示 Loading 组件
-  <Suspense>  // <--- 这个边界被跳过，没有 fallback 属性
+<Suspense fallback={<Loading />}> // 这个边界被使用，显示 Loading 组件
+  <Suspense>  // 这个边界被跳过，没有 fallback 属性
     <Page />
   </Suspense>
 </Suspense>
@@ -2217,8 +2216,8 @@ async function handleSubmit() {
 2.  更新后: 如果 `Suspense` 组件没有提供 `fallback` 属性, 错误不会往外层传递, 而是展示为空
 
 ```js
-<Suspense fallback={<Loading />}> // <--- 不使用
-  <Suspense> // <--- 这个边界被使用, 将 fallback 渲染为 null
+<Suspense fallback={<Loading />}> //  不使用
+  <Suspense> //  这个边界被使用, 将 fallback 渲染为 null
     <Page />
   </Suspense>
 </Suspense>
