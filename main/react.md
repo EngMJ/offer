@@ -1869,12 +1869,13 @@ let lastIndex = 0;
 function useState(initialState) {
   memoriedStates[lastIndex] = memoriedStates[lastIndex] || initialState;
   function setState(newState) {
+    lastIndex+=1;
     memoriedStates[lastIndex] = newState;
     // 状态更新完毕，调用render函数。重新更新视图
     render();
   }
-  // 返回最新状态和更新函数，注意 index 要前进
-  return [memoriedStates[lastIndex++], setState];
+  // 返回最新状态和更新函数
+  return [memoriedStates[lastIndex], setState];
 }
 
 // 二、实现useEffect
