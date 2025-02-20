@@ -1543,7 +1543,7 @@ const message = {
 3.  错误使用产生性能问题: 尽管 `Hooks` 通常可以优化组件逻辑, 但不正确地使用它们可能导致性能问题。比如, 在 `useEffect` 中没有正确处理依赖项数组可能会导致不必要的重复执行。
 
 
-### 7.2 常用的几个 Hooks
+### 7.2 常用的 Hooks
 
 +   `useState`: 用于定义组件状态, 需要注意的是该方法在更新状态时会进行浅比较, 如果待更新状态值和当前状态值一致, 则不会进行更新, 不会引起组件的重新渲染
 
@@ -1553,26 +1553,44 @@ setState(0); // 不会引起组件重新渲染
 ```
 
 +   `useRef`: 获取 `DOM` 元素对象、记录非状态数据、获取子组件实例对象
-+   `useImperativeHandle` 用于绑定 `ref`
-+   `useEffect`: 让函数型组件拥有处理 `副作⽤` 的能⼒, 每次依赖项改变, 都会触发回调函数的执行, 通过它可模拟类似 `类组件` 中的部分⽣命周期
++   `useImperativeHandle` 用于控制暴露给父组件的属性
++   `useEffect`: 让函数型组件拥有处理 `副作⽤` 的能⼒, 每次依赖项改变, 都会触发回调函数的执行, 通过它可模拟类似 `类组件` 中的部分⽣命周期, 如 `componentDidMount`、`componentDidUpdate`、`componentWillUnmount`
 +   `useLayoutEffect`: 与 `useEffect` 相同, 但它会在所有的 `DOM` 变更之后同步调用
 +   `useInsertionEffect`: 在任何 `DOM` 突变之前触发, 主要是解决 `CSS-in-JS` 在渲染中注入样式的性能问题
 
 ```js
-  useEffect(() => {
-    const connection = createConnection(serverUrl, roomId);
-    connection.connect();
+// 触发时机：组件挂载后（即首次渲染完成后）
+// componentDidMount模拟：传递一个空依赖数组 [] 给 useEffect, 这样就只会在组件挂载后执行一次
+useEffect(() => {
+    console.log('componentDidMount');
+    // 这里可以执行一次性的初始化任务
+}, []);
+
+// 触发时机：组件更新时（即组件的 state 或 props 改变后）
+// componentDidUpdate模拟：在 useEffect 中传递一个依赖数组，只有依赖项变化时，useEffect 才会触发
+useEffect(() => {
+    console.log('componentDidUpdate');
+    // 这里可以执行依赖项变化后的任务
+}, [dependency]);  // 只有当 dependency 改变时才会触发
+
+// 触发时机：组件卸载时
+// componentWillUnmount模拟：在 useEffect 中返回一个函数，这个函数会在组件卸载时执行
+useEffect(() => {
+    console.log('componentDidMount');
+    // 执行一些操作
+
     return () => {
-      connection.disconnect();
+        console.log('componentWillUnmount');
+        // 这里可以清理副作用，比如取消订阅或清除定时器
     };
-  }, [serverUrl, roomId]);
+}, []);
 
 // useInsertionEffect(()=>{}, dependencies?)
 // useLayoutEffect(()=>{}, dependencies?)
 ```
 
-+   `useMemo`: 可以监测某个值的变化, 根据变化值计算新值, `useMemo` 会缓存计算结果, 如果监测值没有发⽣变化, 即使组件重新渲染, 也不会重新计算
-+   `useCallback`: 可让您在重新渲染之间缓存函数定义, 使组件重新渲染时得到相同的函数实例
++   `useMemo`: 缓存计算结果, 适用于计算量较大的场景, 只有依赖项发生变化时才会重新计算
++   `useCallback`: 缓存函数,在依赖项不变的情况下, 不会重新创建函数, 适用于函数作为 `props` 传递给子组件时, 避免不必要的重新渲染
 
 ```js
 // useMemo
@@ -1601,7 +1619,7 @@ function MyComponent() {
   // ...
 ```
 
-+   `useContext`: 使用 `context`
++   `useContext`: 获取 `context` 的值
 +   `useDeferredValue`: 用于推迟更新部分 `UI`
 +   `useTransition`: 允许在不阻塞 `UI` 的情况下更新状态
 
@@ -1630,7 +1648,7 @@ function TabContainer() {
 ```js
 useDebugValue('dev工具显示的value');
 ```
-+   `useSyncExternalStore`: 使用外部 `store`
++   `useSyncExternalStore`: 用于同步外部状态, 适用于 `Redux`、`Mobx` 等状态管理工具
 
 ```js
 import { useSyncExternalStore } from 'react';
