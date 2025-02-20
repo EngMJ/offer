@@ -1615,8 +1615,9 @@ function reducer(state, action) {
 }
 
 function MyComponent() {
-  const [state, dispatch] = useReducer(reducer, { age: 42 });
-  // ...
+    const [state, dispatch] = useReducer(reducer, {age: 42});
+    // ...
+}
 ```
 
 +   `useContext`: 获取 `context` 的值
