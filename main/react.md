@@ -1738,7 +1738,7 @@ function MyComponent(props) {}
 
 // 比较方法
 function areEqual(prevProps, nextProps) {
-  if (需要 Render) {
+  if (prevProps !== nextProps) {
     // 会进行渲染
     return false
   }
@@ -1902,7 +1902,7 @@ let lastCallback; // 最新的回调函数
 let lastCallbackDependencies = []; // 回调函数的依赖项
 function useCallback(callback, dependencies = []) {
   if (lastCallback) {
-    const isChange = dependencies && dependencies.some((dep, index) = dep !== lastCallbackDependencies[index]);
+    const isChange = dependencies && dependencies.some((dep, index) => dep !== lastCallbackDependencies[index]);
     if (isChange) {
       // 只要有一个依赖项改变了，就更新回调(重新创建)
       lastCallback = callback;
