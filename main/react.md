@@ -1756,18 +1756,17 @@ export default React.memo(MyComponent, areEqual);
 
 1.  遵守 `Hooks` 使用规则: `Hooks` 只能在函数组件的顶层使用, 或者在自定义 `hooks` 中使用, 不能在循环、条件或嵌套函数中使用 `hooks`
 
-2.  依赖数组: 在使用 `useEffect` 或 `useCallback` 等 `hooks` 时, 务必提供依赖数组作为第二个参数。忽略或者错误的依赖数组可能导致意外行为, 比如过度重新渲染或内存泄漏
+2.  尽量避免通过 `useEffect` 来处理 `actions`: `useEffect` 监听某个状态 `A`, 内部又去修改 `A`, 这样就容易造成死循环
 
-3.  避免无限循环: 在使用 `useEffect` 时要小心无限循环, 确保依赖数组中有正确的依赖项, 并且 `effect` 的逻辑不会触发不必要的重新渲染
+3. 依赖数组: 在使用 `useEffect` 或 `useCallback` 等 `hooks` 时, 务必提供依赖数组作为第二个参数。忽略或者错误的依赖数组可能导致意外行为, 比如过度重新渲染或内存泄漏
 
-4.  状态不可变性: 避免直接修改状态对象, 也不要试图通过 `push`、`pop`、`splice` 等直接更改数组
+4. 避免无限循环: 在使用 `useEffect` 时要小心无限循环, 确保依赖数组中有正确的依赖项, 并且 `effect` 的逻辑不会触发不必要的重新渲染
 
-5.  单一职责 `组件`、`useEffects`
+5. 状态不可变性: 避免直接修改状态对象, 也不要试图通过 `push`、`pop`、`splice` 等直接更改数组
 
-6.  尽量避免通过 `useEffect` 来处理 `actions`: `useEffect` 监听某个状态 `A`, 内部又去修改 `A`, 这样就容易造成死循环
+6. 如果某个数据的变更不需要触发 `render`, 或者该数据没有在 `jsx` 中被使用, 那么就不要使用 `useState` 改用 `useRef` 进行记录
 
-7.  如果某个数据的变更不需要触发 `render`, 或者该数据没有在 `jsx` 中被使用, 那么就不要使用 `useState` 改用 `useRef` 进行记录
-
+7. 单一职责 `组件`、`useEffects`
 
 ### 7.6 为什么 hooks 不能写在循环或者条件判断语句里?
 
