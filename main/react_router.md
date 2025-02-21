@@ -1199,11 +1199,15 @@ import { matchRoutes } from 'react-router-dom';
 const routes = [
     {
         path: "/",
-        element: <Layout />,
-        children: [
-            { path: "about", element: <About /> },
-            { path: "users/:id", element: <User /> },
-        ],
+        element: <Home />,
+    },
+    {
+        path: "/about",
+        element: <About />,
+    },
+    {
+        path: "/user/:id",
+        element: <UserProfile />,
     },
 ];
 
@@ -1211,19 +1215,17 @@ const matchedRoutes = matchRoutes(routes, "/users/123");
 
 console.log(matchedRoutes);
 // 输出类似以下结构
-/*
-[
-  {
-    route: { path: "/", element: <Layout /> },
-    pathname: "/"
-  },
-  {
-    route: { path: "users/:id", element: <User /> },
-    pathname: "/users/123",
-    params: { id: "123" }
-  }
-]
-*/
+/**
+ * [
+ {
+ route: { path: "/user/:id", element: <UserProfile /> },
+ params: { id: "42" },
+ pathname: "/user/42",
+ pathnameBase: "/user"
+ }
+ ]
+ * 
+ * */
 
 ```
 
@@ -1240,7 +1242,7 @@ declare function renderMatches(
 
 </details>
 
-`renderMatches` 将 `matchRoutes()` 的结果渲染到 React 元素中。
+`renderMatches` 将 `matchRoutes()`/ `useMatches()` 的结果渲染到 React 元素中。
 
 **示例代码:**
 
@@ -1251,12 +1253,14 @@ function App() {
   const location = useLocation();
   
   // 匹配当前路径
-  const matches = matchRoutes(routes, location.pathname);
+  const matchRoute = matchRoutes(routes, location.pathname);
+  const matche = useMatches('/users');
 
   // 渲染匹配的路由
   return (
     <div>
-      {renderMatches(matches) || <p>No matches found</p>}
+        <div>renderMatches(matchRoute)</div>
+        <div>renderMatches(matche)</div>
     </div>
   );
 }
