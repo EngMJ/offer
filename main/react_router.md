@@ -55,7 +55,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 function App() {
     return (
         <BrowserRouter>
-            // <App/>
+            {/*<App/>*/}
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
@@ -290,7 +290,25 @@ function App() {
     </Routes>
   );
 
-  return useRoutes(routes);
+  /*
+  routes的值:
+  * [
+        {
+            path: '/',
+            element: <Home />,
+        },
+        {
+            path: 'about',
+            element: <About />
+        },    
+        {
+            path: 'contact',
+            element: <Contact />
+        }
+    ]
+  * */
+  
+  return (<Routes>{useRoutes(routes)}</Routes>);
 }
 
 function Home() {
@@ -323,7 +341,7 @@ export default function Root() {
 ```tsx
 declare function useRoutes(
   routes: RouteObject[],
-  location?: Partial<Location> | string;
+  location?: Partial<Location> | string
 ): React.ReactElement | null;
 ```
 
@@ -337,7 +355,7 @@ declare function useRoutes(
 
 ```tsx
 import * as React from "react";
-import { useRoutes } from "react-router-dom";
+import { Routes,useRoutes } from "react-router-dom";
 
 function App() {
   let element = useRoutes([
@@ -355,7 +373,7 @@ function App() {
     { path: "team", element: <AboutPage /> }
   ]);
 
-  return element;
+  return <Routes>{element}</Routes>;
 }
 ```
 
