@@ -1581,6 +1581,11 @@ function ProductList() {
   
   // 读取查询参数 'filter' 的值
   const filter = searchParams.get('filter') || 'all';
+  // 假设当前 URL 是 https://example.com?page=2&id=123&name=example
+  console.log(searchParams.get('id')); // "123"
+  console.log(searchParams.get('page')); // "2"
+  console.log(searchParams.has('name')); // true
+  console.log(searchParams.toString()); // "page=2&id=123&name=example"
 
   const products = [
     { id: 1, name: 'Apple', category: 'fruit' },
