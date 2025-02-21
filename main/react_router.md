@@ -1425,7 +1425,7 @@ declare function generatePath(
 
 </details>
 
-`generatePath` 生成路由路径。
+`generatePath` 生成传入参数的路由路径。
 
 **示例代码:**
 
@@ -1450,7 +1450,7 @@ declare function useHref(to: To): string;
 
 </details>
 
-`useHref` hook 返回一个可链接到给定 `to` 的 location 的 URL，该 location 可以在 React Router 之外。
+`useHref` 获取基于当前URL的完整 URL。
 
 **示例代码:**
 
@@ -1459,7 +1459,7 @@ declare function useHref(to: To): string;
 import { Routes, Route, Link, useHref } from 'react-router-dom';
 
 function Contact() {
-  const href = useHref('/about'); // 返回 "/about", 即当前 basename 下的完整路径
+  const href = useHref('/about'); // 输出完整的 URL，例如 "http://example.com/about"
   return (
     <div>
       <h2>Contact</h2>
