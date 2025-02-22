@@ -199,7 +199,7 @@ CSS3 中的盒模型有以下两种：**标准盒模型**、**IE（替代）盒�
 
 1.  float 不为 none，浮动元素所在的区域就是一个 BFC 区域。
 2.  position 的值不是 static 或 relative 的元素所在的区域就是一个 BFC 区域
-3.  display为 table-cell 的表格单元格元素所在的区域也是一个 BFC 区域
+3.  display为 table-cell/ inline-block 的元素所在的区域也是一个 BFC 区域
 4.  overflow 不为 visible 的元素所在的区域也是一个 BFC 区域
 
 +   　参考：[CSS 中你应该了解的 BFC](https://juejin.cn/post/6904568682555375624 "https://juejin.cn/post/6904568682555375624")
