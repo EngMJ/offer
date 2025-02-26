@@ -320,6 +320,7 @@ defineOptions({
 异步组件,可以控制懒加载,利于打包器的代码分割。
 
 ```javascript
+// vue3 使用异步组件
 import { defineAsyncComponent } from 'vue'
 
 // 方式1: defineAsyncComponent定义异步组件
@@ -335,6 +336,15 @@ const AsyncComp = defineAsyncComponent(() => {
 const AsyncComp = defineAsyncComponent(() =>
   import('./components/MyComponent.vue')
 )
+```
+
+```vue
+// vue2 使用异步组件
+export default {
+  components: {
+    MyAsyncComponent: () => import('./components/MyAsyncComponent.vue')
+  },
+}
 ```
 
 * * *
