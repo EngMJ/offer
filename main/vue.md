@@ -151,7 +151,7 @@
 +   props
 +   $emit / ~~$on~~
 +   $parent / ~~$children~~
-+   $attrs / ~~$listeners~~
++   $attrs(父组件声明的自定义属性) / ~~$listeners(父组件声明的所有@事件)~~
 +   $root
 +   ref
 +   Provide / Inject
