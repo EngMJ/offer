@@ -273,6 +273,7 @@
 实际开发中类似Tree、Menu这类组件，它们的节点往往包含子节点，子节点结构和父节点往往是相同的。这类组件的数据往往也是树形结构，这种都是使用递归组件的典型场景。
 
 ```vue
+// 选项式api
 <template>
   <li>
     <div> {{ model.name }}</div>
@@ -292,6 +293,24 @@ export default {
   // ...
 }
 </script>
+```
+
+```vue
+// 组合式api
+<template>
+  <div class="hello">
+    {{ msg }}
+  </div>
+</template>
+
+<script setup>
+import { defineOptions } from 'vue';
+// 设置组件name
+defineOptions({
+  name: 'compositionCmp',
+});
+</script>
+
 ```
 
 * * *
