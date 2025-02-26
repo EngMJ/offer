@@ -128,7 +128,7 @@
 
 ## 4. 说说从 template 到 render 处理过程
 
-+ 作用: Vue的编译器模块“compiler”，将template编译为render函数。编译器流程是先对template进行parse，获得抽象语法树AST，然后进行transform，转换出render函数.
++ 作用: Vue的编译器模块“compiler”，将template编译为render函数。编译器流程是先对template进行parse，获得抽象语法树AST，然后标记静态节点,最后将AST转换render函数进行调用渲染.
 + 用途: 让开发者可以使用模板编码降低开发成本,渲染函数编码成本高。
 
 * * *
@@ -168,13 +168,13 @@
     +   `$parent` / `$root`
 +   任意关系
 
-    +   `eventbus` / `vuex` / `provide`+`inject`
+    +   `eventbus` / `pinia` / `vuex` / `provide`+`inject`
 
 * * *
 
 ## 7.子组件可以直接改变父组件的数据么，说明原因
 
-+ 原因: vue组件化开发遵循**单项数据流原则**，如果能互相修改将状态就难以控制与朔源,修改props也会报错.
++ 原因: vue组件化开发遵循**单向数据流原则**，如果能互相修改将状态就难以控制与朔源,修改props也会报错.
 + 正规修改方法: 事件传递/$parent
 
 * * *
