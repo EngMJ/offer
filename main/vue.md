@@ -431,7 +431,9 @@ vue 1.x视图中每个依赖均有更新函数对应，可以做到精准更新�
 Vue 2 降低Watcher粒度，每个组件只有一个Watcher与之对应，使用patching算法精确寻找变化部分并更新。
 
 ### 2. **Vue 2 的 diff 算法**
-Vue 2 使用的是基于 [Snabbdom](https://github.com/snabbdom/snabbdom) 的虚拟 DOM 实现，diff 算法的工作流程如下：
+时间复杂度在有key时是O(n),无key时是O(n^2).
+
+基于 [Snabbdom](https://github.com/snabbdom/snabbdom) 的虚拟 DOM 实现，diff 算法的工作流程如下：
 
 #### 工作机制：
 1. **同层比较,深度优先遍历**：
@@ -442,7 +444,7 @@ Vue 2 使用的是基于 [Snabbdom](https://github.com/snabbdom/snabbdom) 的虚
     - 节点类型相同时，会对比属性。
     - 如果节点类型不一致，直接替换整个节点。
 
-3. **静态节点优化有限**：
+3. **编译阶段静态节点标记**：
     - Vue 2 的静态节点只在模板编译阶段进行标记优化，运行时仍然可能重复渲染。
 
 4. **依赖 Watcher**：
@@ -489,6 +491,8 @@ Vue 2 使用的是基于 [Snabbdom](https://github.com/snabbdom/snabbdom) 的虚
 ---
 
 ### 3. **Vue 3 的 diff 算法**
+
+时间复杂度大部分为 O(n).
 
 #### 在vue2x基础上优化：
 1. **优化的静态提升**：
