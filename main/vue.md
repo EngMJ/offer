@@ -196,6 +196,8 @@
     Vue.mixin(mymixin)
     
     // 局部混入：做数组项设置到mixins选项，仅作用于当前组件
+    // 选项合并时,优先原组件的选项
+    // 与extends相比能混入多个选项
     const Comp = {
        mixins: [mymixin]
     }
@@ -222,9 +224,9 @@
           dosomething(){}
        }
     }
-    // 组件扩展：做数组项设置到extends选项，仅作用于当前组件
-    // 跟混入的不同是它只能扩展单个对象
-    // 另外如果和混入发生冲突，该选项优先级较高，优先起作用
+    // 跟minxins的不同是它只能扩展单个对象
+    // 跟minxins选项发生冲突，该选项优先级较高，优先起作用
+    // 跟原组件选项发生冲突时，优先原组件选项
     const Comp = {
        extends: myextends
     }
