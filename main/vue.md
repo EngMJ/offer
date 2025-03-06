@@ -1301,6 +1301,73 @@ export default {
 
 ## 25. watch/watchEffect/computed的区别及使用?
 
+### vue3中使用
+
+```js
+import { ref, computed } from 'vue';
+
+const count = ref(0);
+// 计算属性，依赖 count，自动缓存值，只有 count 变化时才重新计算
+const doubleCount = computed(() => count.value * 2);
+
+// 使用
+console.log(doubleCount.value); // 输出: 0
+count.value++;
+console.log(doubleCount.value); // 输出: 2
+
+// 读写型computed
+const count = ref(0);
+const doubleCount = computed({
+    get: () => count.value * 2,
+    set: (val) => {
+        count.value = val / 2;
+    }
+});
+```
+
+```js
+import { ref, watch } from 'vue';
+
+const count = ref(0);
+
+// 观察 count 的变化
+watch(count, (newValue, oldValue) => {
+  console.log(`count 从 ${oldValue} 变为 ${newValue}`);
+});
+
+// 改变 count 值会触发 watch 回调
+count.value = 5;
+
+// 深度监听
+watch(
+    count,
+    (newValue, oldValue) => {
+        console.log('立即执行: ', newValue);
+    },
+    { immediate: true }
+);
+
+
+```
+
+```js
+import { ref, watchEffect } from 'vue';
+
+const count = ref(0);
+
+// 自动追踪 count，当 count 变化时重新运行回调
+watchEffect(() => {
+  console.log(`The count is: ${count.value}`);
+});
+
+// 修改 count 会自动触发 watchEffect 回调
+count.value = 10;
+
+```
+
+
+### 对比
+
 | 特性                    | `computed`                        | `watch`                | `watchEffect`         |
 |-------------------------|-----------------------------------|------------------------|-----------------------|
 | **缓存**                | 自动缓存计算结果                  | 不缓存                    | 不缓存                   |
