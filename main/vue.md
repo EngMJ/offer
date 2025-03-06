@@ -1408,9 +1408,9 @@ Vue.nextTick(() => {
 ```
 
 **Vue 2 的实现原理**
-1. Vue 内部对数据的修改触发了 DOM 更新。
-2. `nextTick` 将回调函数加入一个队列，等待当前调用栈清空。
-3. 浏览器在下一个宏任务中调用 `setTimeout` 或 `MutationObserver` 来触发 `nextTick` 的回调。
+1. 数据修改触发 DOM 更新。
+2. 调用`nextTick` 加入执行队列，统一批处理`nextTick`减少性能开销。
+3. 默认通过`Promise`微任务调用`nextTick`中的回调函数,在不支持Promise的情况下使用 微任务`MutationObserver` => 宏任务`setTimeout` / `setImmediate` 等实现异步调用。
 
 
 ### **Vue 3 使用nextTick**
@@ -1428,8 +1428,7 @@ nextTick(() => {
 
 **Vue 3 的实现原理**
 1. Vue 3 的响应式系统检测到数据变化并更新虚拟 DOM。
-2. `nextTick` 将回调加入微任务队列（通过 `Promise`）或宏任务队列（通过 `MutationObserver` / `setTimeout`）。
-3. 在当前任务结束后，`nextTick` 的回调被执行，确保 DOM 已更新。
+2. 默认通过`Promise`微任务调用`nextTick`中的回调函数,在不支持Promise的情况下使用 微任务`MutationObserver` => 宏任务`setTimeout` / `setImmediate` 等实现异步调用。
 
 * * *
 
