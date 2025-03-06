@@ -1181,6 +1181,8 @@ app.directive('draggable', {
 app.directive('permission', {
   mounted(el, binding) {
     const userPermissions = getUserPermissions(); // 假设获取用户权限的方法
+      // userPermissions 包含用户的权限列表
+      // ['view', 'edit']
     if (!userPermissions.includes(binding.value)) {
       el.parentNode?.removeChild(el);
     }
@@ -1188,8 +1190,10 @@ app.directive('permission', {
 });
 ```
 使用：
-```html
-<button v-permission="'admin'">Delete</button>
+```vue
+<template>
+    <button v-permission="['delete', 'admin']">Delete</button>
+</template>
 ```
 
 - **淡入淡出效果**
