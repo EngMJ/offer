@@ -1005,9 +1005,24 @@ Vue.directive('focus', {
 export default {
   directives: {
     focus: {
-      inserted(el) {
+      bind(el,binding,vnode) {},// 只调用一次，指令第一次绑定到元素时调用
+      inserted(el,binding,vnode) { // 被绑定元素插入父节点时调用
         el.focus();
       },
+      update(el,binding,vnode,oldVnode) { // 所在组件的 VNode 更新时调用
+        // el: 指令所绑定的元素，可以用来操作 DOM
+        // binding: 一个对象，包含以下属性：
+            //   name: 指令名，不包括 v- 前缀
+            //   value: 指令的绑定值
+            //   oldValue: 指令绑定的前一个值
+            //   expression: 绑定值的字符串形式
+            //   arg: 传给指令的参数
+            //   modifiers: 一个包含修饰符的对象
+        // vnode: Vue 编译生成的虚拟节点
+        // oldVnode: 上一个虚拟节点  
+      },
+      componentUpdated(el,binding,vnode,oldVnode) {}, // 指令所在组件的 VNode 及其子 VNode 全部更新后调用
+      unbind(el,binding,vnode) {}, // 只调用一次，指令与元素解绑时调用
     },
   },
 };
