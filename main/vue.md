@@ -1969,7 +1969,7 @@ server {
 
 +   vue3 使用使用 `shallowRef 或 shallowReactive`，避免深层次数据监听
 
-+   vue3 使用`Teleport`,将复杂 DOM 或性能敏感的元素移出当前 DOM 层级，减少影响
++   vue3 使用`Teleport`,常用于弹窗、模态框等或移出复杂 DOM 减少性能影响
 
 +   vue3 使用`Fragment`,减少无意义的 DOM 节点
 
