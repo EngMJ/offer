@@ -707,15 +707,16 @@ Vue2 响应式的局限：
 // 推荐使用defineModel
 <!-- Child.vue -->
 <script setup>
+    // 方式1: 使用defineModel
     // model代表父组件传入属性countModel
     const model = defineModel()
     // model.value可以直接操作父组件属性countModel
     function update() {
         model.value++
     }
-    // 自定动态绑定
-    defineProps(['modelValue'])
-    defineEmits(['update:modelValue'])
+    // 方式2: 自定动态绑定
+    // defineProps(['modelValue'])
+    // defineEmits(['update:modelValue'])
 </script>
 
 <template>
@@ -723,7 +724,7 @@ Vue2 响应式的局限：
     <button @click="update">Increment</button>
     <!--自定动态绑定-->
     <!--v-model是语法糖，默认情况下相当于`:modelValue`和`@update:modelValue`。-->
-    <input :value="modelValue" @input="emit('update:modelValue', $event.target.value)"/>
+<!--    <input :value="modelValue" @input="emit('update:modelValue', $event.target.value)"/>-->
 </template>
 
 <!-- Parent.vue -->
