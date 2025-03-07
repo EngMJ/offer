@@ -1598,7 +1598,7 @@ nextTick(() => {
 
 9. **增强单文件组件（SFC）**
     - `<script setup>` 提供简洁语法。
-    - `<style scoped>` 支持 CSS Variables。
+    - `<style>` 新增支持 选择器 / Modules & useCssModule() & $style / v-bind。 [参考: vue3 Style](./vue3.md#style)
 
 
 **优化:**
