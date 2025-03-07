@@ -9,7 +9,7 @@
 ## 1. MVVM框架 & 渐进式框架
 Vue 的 MVVM 架构代表 Model-View-ViewModel，它是一种分离关注点的设计模式，当` Model（数据层）`修改时会通知` ViewModel（视图模型层)`修改 `View（视图层）`,反之亦然。
 
-![mvvm](https://zh.wikipedia.org/wiki/MVVM#/media/File:MVVMPattern.png)
+![mvvm](https://upload.wikimedia.org/wikipedia/commons/8/87/MVVMPattern.png)
 
 Vue 的“渐进式框架”设计理念：可以根据项目的实际需要，逐步引入 Vue 的功能，而不必一次性改变整个项目架构,使用vue生态的全部功能。
 
