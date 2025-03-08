@@ -338,10 +338,23 @@ module.exports = {
         ]
     },
     plugins: [
+        // 压缩 gzip / Brotli算法, 都需要配置nginx 对应模块开启对应压缩功能
+        // Brotli更快，压缩更小，但是兼容性不如gzip
+        new CompressionWebpackPlugin({
+            algorithm: 'brotliCompress', // 使用 Brotli 算法
+            test: /\.(js|css|html|svg)$/, // 仅压缩这些文件类型
+            compressionOptions: {
+                params: {
+                    [zlib.constants.BROTLI_PARAM_QUALITY]: 11, // 最高压缩级别
+                },
+            },
+            threshold: 10240, // 只压缩大于 10KB 的文件
+            minRatio: 0.8, // 只有压缩比 < 0.8 才生成压缩文件
+            filename: '[path][base].br', // 输出文件名格式
+        }),
         new MiniCssExtractPlugin({ // 将css打包成单文件
             filename: 'css/built[contenthash:10].css'
         }),
-        new OptimizeCssAssetsWebpackPlugin(), // 压缩css
         new HtmlWebpackPlugin({ //  自动引入各个打包文件
             template: './src/index.html', // 使用模板
             minify: {
@@ -637,20 +650,6 @@ module.exports = {
             }),
             // 压缩css
             new CssMinimizerPlugin(),
-            // 压缩 gzip / Brotli算法, 都需要配置nginx 对应模块开启对应压缩功能
-            // Brotli更快，压缩更小，但是兼容性不如gzip
-            new CompressionWebpackPlugin({
-                algorithm: 'brotliCompress', // 使用 Brotli 算法
-                test: /\.(js|css|html|svg)$/, // 仅压缩这些文件类型
-                compressionOptions: {
-                    params: {
-                        [zlib.constants.BROTLI_PARAM_QUALITY]: 11, // 最高压缩级别
-                    },
-                },
-                threshold: 10240, // 只压缩大于 10KB 的文件
-                minRatio: 0.8, // 只有压缩比 < 0.8 才生成压缩文件
-                filename: '[path][base].br', // 输出文件名格式
-            }),
             // 压缩图片
             new ImageMinimizerWebpackPlugin({
                 minimizerOptions: {
@@ -735,9 +734,11 @@ module.exports = {
 +   mini-css-extract-plugin（老版本用ExtractTextWebpackPlugin）：css单独打包
 +   TerserPlugin（老版本用UglifyJsPlugin）：压缩代码
 +   progress-bar-webpack-plugin：编译进度条
++   CompressionWebpackPlugin：gzip / Brotli 压缩静态文件
 +   DllPlugin& DllReferencePlugin：提高打包效率，仅打包一次第三方模块
 +   webpack-bundle-analyzer：可视化的查看webpack打包出来的各个文件体积大小
-+   thread-loader,happypack：多进程编译，加快编译速度
+
++   WorkboxWebpackPlugin (PWA应用)用于在 webpack 构建过程中自动生成或注入 Service Worker，从而帮助实现 PWA（渐进式 Web 应用）的离线缓存、预缓存以及运行时缓存策略
 
 ### 9\. Tree Shaking 摇树
 
