@@ -160,6 +160,9 @@ const webpack = require('webpack');
 const AddAssetHtmlWebpackPlugin = require('add-asset-html-webpack-plugin');
 const hardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+const CompressionWebpackPlugin = require('compression-webpack-plugin')
+const ImageMinimizerWebpackPlugin = require('image-minimizer-webpack-plugin')
 const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin')
 // webpack5 模块联邦
 const { ModuleFederationPlugin } = require('webpack').container;
@@ -631,7 +634,43 @@ module.exports = {
                 parallel: true,
                 // 启用sourceMap(否则会被压缩掉)
                 sourceMap: false
-            })
+            }),
+            // 压缩css
+            new CssMinimizerPlugin(),
+            // 压缩 gzip / Brotli算法, 都需要配置nginx 对应模块开启对应压缩功能
+            // Brotli更快，压缩更小，但是兼容性不如gzip
+            new CompressionWebpackPlugin({
+                algorithm: 'brotliCompress', // 使用 Brotli 算法
+                test: /\.(js|css|html|svg)$/, // 仅压缩这些文件类型
+                compressionOptions: {
+                    params: {
+                        [zlib.constants.BROTLI_PARAM_QUALITY]: 11, // 最高压缩级别
+                    },
+                },
+                threshold: 10240, // 只压缩大于 10KB 的文件
+                minRatio: 0.8, // 只有压缩比 < 0.8 才生成压缩文件
+                filename: '[path][base].br', // 输出文件名格式
+            }),
+            // 压缩图片
+            new ImageMinimizerWebpackPlugin({
+                minimizerOptions: {
+                    plugins: [
+                        ['gifsicle', { interlaced: true }],
+                        ['jpegtran', { progressive: true }],
+                        ['optipng', { optimizationLevel: 5 }],
+                        [
+                            'svgo',
+                            {
+                                plugins: [
+                                    {
+                                        removeViewBox: false,
+                                    },
+                                ],
+                            },
+                        ],
+                    ],
+                },
+            }),
         ],
         // production 默认为true
         // 标识tree shaking代码，死代码
@@ -652,7 +691,8 @@ module.exports = {
         buildDependencies: {
             config: [__filename]
         },
-        name: 'dev_cache' // 缓存文件名称
+        name: 'dev_cache', // 缓存文件名称
+        cacheDirectory: 'node_modules/.cache/webpack', // 指定缓存目录
     }
 }
 ```
