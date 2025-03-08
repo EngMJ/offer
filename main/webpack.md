@@ -713,9 +713,9 @@ module.exports = {
 
 +   webpack-bundle-analyzer插件可以可视化的查看webpack打包出来的各个文件体积大小，以便我们定位大文件，进行体积优化
 +   提取第三方库或通过引用外部文件的方式引入第三方库
-+   代码压缩插件`UglifyJsPlugin`
-+   服务器启用gzip压缩
-+   按需加载资源文件 `require.ensure`\=
++   压缩插件`TerserWebpackPlugin` `CssMinimizerPlugin` `ImageMinimizerWebpackPlugin`
++   服务器启用gzip / brotli 压缩
++   按需加载资源文件 `improt()` `require.ensure()` 
 +   剥离`css`文件，单独打包
 +   去除不必要插件，开发环境与生产环境用不同配置文件
 +   SpritesmithPlugin雪碧图，将多个小图片打包成一张，用background-image，backgroud-pisition，width，height控制显示部分
