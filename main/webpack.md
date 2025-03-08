@@ -314,7 +314,7 @@ module.exports = {
                             outputPath: 'imgs',
                             esModule: false // 因为要配合html-loder的commenjs风格的转换，所以关闭esmodule风格
                         }
-                        // use: 'asset/inline'    webpack5,不再使用url-loader
+                        // type: 'asset/inline'    webpack5,不再使用url-loader
                     },
                     {
                         test: /\.html$/,
@@ -326,12 +326,12 @@ module.exports = {
                         options: {
                             outputPath: 'media'
                         }
-                        // use: 'asset/resource'    webpack5,不再使用file-loader
+                        // type: 'asset/resource'    webpack5,不再使用file-loader
                     },
                     {
                         test: /\.text$/i,
                         use: 'raw-loader' // 将文件加载为 字符串文本
-                        // use: 'asset/source'    webpack5,不再使用raw-loader
+                        // type: 'asset/source'    webpack5,不再使用raw-loader
                     },
                 ]
             }
