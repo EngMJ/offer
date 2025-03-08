@@ -648,9 +648,9 @@ module.exports = {
                 // 启用sourceMap(否则会被压缩掉)
                 sourceMap: false
             }),
-            // 压缩css
+            // webpack 5 压缩css
             new CssMinimizerPlugin(),
-            // 压缩图片
+            // webpack 5 压缩图片
             new ImageMinimizerWebpackPlugin({
                 minimizerOptions: {
                     plugins: [
@@ -706,7 +706,7 @@ module.exports = {
 +   babel-loader开启缓存cache
 +   splitChunks（老版本用CommonsChunkPlugin）：提取公共模块，将符合引用次数(minChunks)的模块打包到一起，利用浏览器缓存
 +   DllPlugin& DllReferencePlugin：动态链接库，提高打包效率，仅打包一次第三方模块，每次构建只重新打包业务代码。
-+   thread-loader,happypack：多线程编译，加快编译速度
++   thread-loader,happypack：webpack4 多线程编译，加快编译速度. (webpack5 已经弃用)
 +   Tree Shaking 摇树：基于ES6提供的模块系统对代码进行静态分析, 并在压缩阶段将代码中的死代码（dead code)移除，减少代码体积。
 
 ### 7\. 打包体积 优化思路
