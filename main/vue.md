@@ -1979,7 +1979,7 @@ server {
 
 ## [API参考: vue router](vue_router.md)
 
-## 41. History模式和Hash模式有何区别？
+## 40. History模式和Hash模式有何区别？
 
 | **模式**      | **API**                    | **URL 格式**         | **刷新页面支持** | **SEO 支持**  | **适用场景**                  |
 |-------------|----------------------------|----------------------|------------|---------------|------------------------------|
@@ -2008,7 +2008,7 @@ const router = createRouter({
 
 * * *
 
-## 42. 怎么定义动态路由？怎么获取传过来的动态参数？
+## 41. 怎么定义动态路由？怎么获取传过来的动态参数？
 
 **动态路由参数配置:**
 ```text
@@ -2047,7 +2047,7 @@ const router = createRouter({
 
 * * *
 
-## 43. 如果让你从零开始写一个vue路由，说说你的思路
+## 42. 如果让你从零开始写一个vue路由，说说你的思路
 
 + 模块化路由配置：按功能模块划分路由，保持清晰和易维护。
 + 路由懒加载：优化性能，只加载用户访问的模块。
@@ -2058,7 +2058,7 @@ const router = createRouter({
 
 * * *
 
-## 44. 怎么实现路由懒加载呢？
+## 43. 怎么实现路由懒加载呢？
 
 **优点:** 利于代码分割,仅加载用户浏览的模块,降低开销.
 
@@ -2071,7 +2071,7 @@ const router = createRouter({
 
 * * *
 
-## 45. router-link和router-view是如何起作用的？
+## 44. router-link和router-view是如何起作用的？
 
 ### **router-link 常用属性:**
 
@@ -2166,7 +2166,7 @@ const routes = [
 
 * * *
 
-## 46. Vue-router 除了 router-link 怎么实现跳转
+## 45. Vue-router 除了 router-link 怎么实现跳转
 
 vue-router导航有两种方式：`声明式导航`和`编程方式导航`
 
@@ -2207,7 +2207,7 @@ vue-router导航有两种方式：`声明式导航`和`编程方式导航`
 ```
 
 
-## 47. 在什么场景下会用到嵌套路由？
+## 46. 在什么场景下会用到嵌套路由？
 
 需要公用的页面布局,如顶部导航栏/左侧菜单栏/主内容区等,部分内容跟随路由切换,而公用部分不变.
 
@@ -2231,7 +2231,7 @@ const routes = [
 
 * * *
 
-## 48. vue-router中如何保护路由？
+## 47. vue-router中如何保护路由？
 
 [参考:路由守卫](vue_router.md#导航守卫)
 
@@ -2239,11 +2239,11 @@ const routes = [
 
 # Pinia & Vuex
 
-## vue3推荐状态管理 Pinia API参考: [pinia](pinia.md)
+## [vue3推荐状态管理 Pinia API参考](pinia.md)
 
-## Vuex API参考: [vuex](vuex.md)
+## [Vuex API参考](vuex.md)
 
-## 49. 对pinia的理解?
+## 48. 对pinia的理解?
 
 Vue3 官方推荐的状态管理库，用来替代 Vuex，提供更轻量、更灵活的状态管理方案。
 
@@ -2308,7 +2308,7 @@ Vue3 官方推荐的状态管理库，用来替代 Vuex，提供更轻量、更�
 
 
 
-## 50. 对vuex理解？
+## 49. 对vuex理解？
 
 Vuex 是 Vue2 官方提供的状态管理库，主要用于集中管理应用的状态（数据）和跨组件的状态共享。
 
@@ -2372,7 +2372,7 @@ Vuex 是 Vue2 官方提供的状态管理库，主要用于集中管理应用的
 
 * * *
 
-## 51. pinia与vuex中 module作用与区别？
+## 50. pinia与vuex中 module作用与区别？
 
 **作用:** 在大型应用中，状态管理会随着功能的增多变得复杂,分割模块可提高可维护性.
 
@@ -2575,14 +2575,175 @@ export default {
 
 * * *
 
-## 52. 实现vuex思路?
+## 51. vuex中actions和mutations有什么区别？
+
+| 特性         | Mutations                | Actions                  |
+|------------|--------------------------|--------------------------|
+| **职责**     | 直接修改状态                   | 执行业务逻辑，分发 `mutations`    |
+| **操作类型**   | 必须是同步操作                  | 可以包含异步操作                 |
+| **调用方式**   | `commit('mutationName')` | `dispatch('actionName')` |
+| **调试支持**   | 可被 Vue DevTools 追踪       | 无法直接追踪状态修改               |
+| **是否修改状态** | 直接修改状态                   | 不直接修改状态，通过 `mutation`    |
+| **适用场景**   | 简单的同步操作                  | 复杂的业务逻辑或异步操作             |
+
+
+* * *
+
+## 52.怎么监听vuex / pinia 数据的变化？
+
+### 监听vuex数据变化
+
+1. 使用 Vue 的 `watch` 监听组件中的计算属性:
+
+```javascript
+import { mapState } from 'vuex';
+
+export default {
+  computed: {
+    ...mapState({
+      someState: state => state.someState, // 将 Vuex 的某个 state 映射到计算属性
+    }),
+  },
+  watch: {
+    someState(newValue, oldValue) {
+      console.log('someState 发生变化:', oldValue, '=>', newValue);
+    },
+  },
+};
+```
+
+2. 使用 `store.subscribe` 方法:
+
+```javascript
+import store from './store'; // 导入你的 Vuex store
+
+store.subscribe((mutation, state) => {
+  console.log('mutation 发生:', mutation.type, 'payload:', mutation.payload);
+  console.log('新的状态:', state);
+});
+```
+
+3. 使用 `store.watch` 方法:
+
+```javascript
+import store from './store'; // 导入你的 Vuex store
+
+const unwatch = store.watch(
+  (state) => state.someState, // 要监听的状态
+  (newValue, oldValue) => {
+    console.log('someState 变化:', oldValue, '=>', newValue);
+  }
+);
+
+// 停止监听
+// unwatch();
+```
+
+### 监听pinia的数据变化
+
+1. 使用 Vue 的 `watch` 函数:
+
+```javascript
+import { watch } from 'vue';
+import { useStore } from './stores/store'; // 导入你的 Pinia store
+
+const store = useStore();
+
+watch(
+  () => store.someState, // 监听 store 中的某个属性
+  (newValue, oldValue) => {
+    console.log('someState 发生变化:', oldValue, '=>', newValue);
+  }
+);
+```
+
+2. 使用 `store.$subscribe` 方法:
+
+```javascript
+import { useStore } from './stores/store'; // 导入你的 Pinia store
+
+const store = useStore();
+
+// 监听整个 store 的变化
+store.$subscribe((mutation, state) => {
+  console.log('store 状态变化:', mutation, state);
+});
+```
+
+3. 使用 `computed` 进行响应式绑定:
+
+```javascript
+import { computed } from 'vue';
+import { useStore } from './stores/store'; // 导入你的 Pinia store
+
+const store = useStore();
+
+const someState = computed(() => store.someState);
+
+// 在模板或逻辑中使用
+console.log('someState 的值:', someState.value);
+```
+
+## 53. 页面刷新后pinia/vuex的数据丢失怎么解决？
+可以通过将数据保存在浏览器的本地存储（如 `localStorage` 或 `sessionStorage`）中来实现。
+
+### **Vuex 数据持久化**
+
+1. 使用 `localStorage` 或 `sessionStorage`:
+
+```javascript
+// store.js
+const store = new Vuex.Store({
+  state: {
+    // 在 Vuex 的 `state` 中初始化时，从 `localStorage` 获取数据。
+    someState: JSON.parse(localStorage.getItem('someState')) || 'defaultValue',
+  },
+  mutations: {
+    setSomeState(state, payload) {
+      state.someState = payload;
+      localStorage.setItem('someState', JSON.stringify(state.someState)); // 在 `mutations` 中使用 `localStorage` 保存数据。
+    },
+  },
+});
+
+export default store;
+```
+
+2. 使用`插件`vuex-persist、vuex-persistedstate, 或使用vuex提供的`subscribe统一的处理`.
+
+
+
+### **Pinia 数据持久化**
+
+1.使用 `localStorage` 或 `sessionStorage`
+
+```javascript
+import { defineStore } from 'pinia';
+
+export const useStore = defineStore('store', {
+  state: () => ({
+    someState: JSON.parse(localStorage.getItem('someState')) || 'defaultValue',
+  }),
+  actions: {
+    setSomeState(payload) {
+      this.someState = payload;
+      localStorage.setItem('someState', JSON.stringify(this.someState));
+    },
+  },
+});
+```
+
+2. 使用插件 `pinia-plugin-persistedstate`,或使用pinia提供的`$subscribe统一处理`
+
+
+## 54. 实现vuex思路?
 
 **设计核心机制:**
-    - 状态存储 (`state`)：管理全局共享数据。
-    - 状态修改 (`mutation`)：定义更新状态的逻辑，确保状态变更是可追踪的。
-    - 异步操作 (`action`)：处理异步任务并最终通过 mutation 更新状态。
-    - 派发 (`dispatch`) 和 提交 (`commit`)：触发 action 和 mutation 的方法。
-    - 订阅和响应式更新：使用 Vue 的响应式系统，确保状态变化时组件能够重新渲染。
+- 状态存储 (`state`)：管理全局共享数据。
+- 状态修改 (`mutation`)：定义更新状态的逻辑，确保状态变更是可追踪的。
+- 异步操作 (`action`)：处理异步任务并最终通过 mutation 更新状态。
+- 派发 (`dispatch`) 和 提交 (`commit`)：触发 action 和 mutation 的方法。
+- 订阅和响应式更新：使用 Vue 的响应式系统，确保状态变化时组件能够重新渲染。
 
 
 **Vuex 核心实现:**
@@ -2722,7 +2883,7 @@ export default {
 
 ---
 
-## 53. 实现pinia的思路?
+## 55. 实现pinia的思路?
 
 [Pinia较为完整的实现及使用](create_pinia.md)
 
@@ -2739,8 +2900,8 @@ export default {
 4. **模块化 Store**  
    每个模块是一个独立的 Store，可以单独注册和使用。
 
-5. **动态注册 **
-    能够动态注册store.
+5. **动态注册**
+   能够动态注册store.
 
 6. **类型安全（可选）**  
    设计时考虑 TypeScript 支持，为开发者提供类型推断。
@@ -2789,165 +2950,3 @@ export function createStore(options) {
 ```
 
 * * *
-
-## 54. vuex中actions和mutations有什么区别？
-
-| 特性         | Mutations                | Actions                  |
-|------------|--------------------------|--------------------------|
-| **职责**     | 直接修改状态                   | 执行业务逻辑，分发 `mutations`    |
-| **操作类型**   | 必须是同步操作                  | 可以包含异步操作                 |
-| **调用方式**   | `commit('mutationName')` | `dispatch('actionName')` |
-| **调试支持**   | 可被 Vue DevTools 追踪       | 无法直接追踪状态修改               |
-| **是否修改状态** | 直接修改状态                   | 不直接修改状态，通过 `mutation`    |
-| **适用场景**   | 简单的同步操作                  | 复杂的业务逻辑或异步操作             |
-
-
-* * *
-
-## 55.怎么监听vuex / pinia 数据的变化？
-
-### 监听vuex数据变化
-
-1. 使用 Vue 的 `watch` 监听组件中的计算属性:
-
-```javascript
-import { mapState } from 'vuex';
-
-export default {
-  computed: {
-    ...mapState({
-      someState: state => state.someState, // 将 Vuex 的某个 state 映射到计算属性
-    }),
-  },
-  watch: {
-    someState(newValue, oldValue) {
-      console.log('someState 发生变化:', oldValue, '=>', newValue);
-    },
-  },
-};
-```
-
-2. 使用 `store.subscribe` 方法:
-
-```javascript
-import store from './store'; // 导入你的 Vuex store
-
-store.subscribe((mutation, state) => {
-  console.log('mutation 发生:', mutation.type, 'payload:', mutation.payload);
-  console.log('新的状态:', state);
-});
-```
-
-3. 使用 `store.watch` 方法:
-
-```javascript
-import store from './store'; // 导入你的 Vuex store
-
-const unwatch = store.watch(
-  (state) => state.someState, // 要监听的状态
-  (newValue, oldValue) => {
-    console.log('someState 变化:', oldValue, '=>', newValue);
-  }
-);
-
-// 停止监听
-// unwatch();
-```
-
-### 监听pinia的数据变化
-
-1. 使用 Vue 的 `watch` 函数:
-
-```javascript
-import { watch } from 'vue';
-import { useStore } from './stores/store'; // 导入你的 Pinia store
-
-const store = useStore();
-
-watch(
-  () => store.someState, // 监听 store 中的某个属性
-  (newValue, oldValue) => {
-    console.log('someState 发生变化:', oldValue, '=>', newValue);
-  }
-);
-```
-
-2. 使用 `store.$subscribe` 方法:
-
-```javascript
-import { useStore } from './stores/store'; // 导入你的 Pinia store
-
-const store = useStore();
-
-// 监听整个 store 的变化
-store.$subscribe((mutation, state) => {
-  console.log('store 状态变化:', mutation, state);
-});
-```
-
-3. 使用 `computed` 进行响应式绑定:
-
-```javascript
-import { computed } from 'vue';
-import { useStore } from './stores/store'; // 导入你的 Pinia store
-
-const store = useStore();
-
-const someState = computed(() => store.someState);
-
-// 在模板或逻辑中使用
-console.log('someState 的值:', someState.value);
-```
-
-## 56. 页面刷新后pinia/vuex的数据丢失怎么解决？
-可以通过将数据保存在浏览器的本地存储（如 `localStorage` 或 `sessionStorage`）中来实现。
-
-### **Vuex 数据持久化**
-
-1. 使用 `localStorage` 或 `sessionStorage`:
-
-```javascript
-// store.js
-const store = new Vuex.Store({
-  state: {
-    // 在 Vuex 的 `state` 中初始化时，从 `localStorage` 获取数据。
-    someState: JSON.parse(localStorage.getItem('someState')) || 'defaultValue',
-  },
-  mutations: {
-    setSomeState(state, payload) {
-      state.someState = payload;
-      localStorage.setItem('someState', JSON.stringify(state.someState)); // 在 `mutations` 中使用 `localStorage` 保存数据。
-    },
-  },
-});
-
-export default store;
-```
-
-2. 使用`插件`vuex-persist、vuex-persistedstate, 或使用vuex提供的`subscribe统一的处理`.
-
-
-
-### **Pinia 数据持久化**
-
-1.使用 `localStorage` 或 `sessionStorage`
-
-```javascript
-import { defineStore } from 'pinia';
-
-export const useStore = defineStore('store', {
-  state: () => ({
-    someState: JSON.parse(localStorage.getItem('someState')) || 'defaultValue',
-  }),
-  actions: {
-    setSomeState(payload) {
-      this.someState = payload;
-      localStorage.setItem('someState', JSON.stringify(this.someState));
-    },
-  },
-});
-```
-
-2. 使用插件 `pinia-plugin-persistedstate`,或使用pinia提供的`$subscribe统一处理`
-
-
