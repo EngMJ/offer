@@ -2144,6 +2144,13 @@ const routes = [
     <!-- 命名视图 -->
     <router-view name="header"></router-view>
     <router-view name="footer"></router-view>
+    
+    <!--v-slot-->
+    <RouterView v-slot="{ Component, Route }">
+      <keep-alive>
+        <component :is="Component" />
+      </keep-alive>
+    </RouterView>
   </div>
 </template>
 ```
