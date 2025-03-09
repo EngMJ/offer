@@ -233,7 +233,7 @@ export default router;
 
 **基本用法:**
 
-```js
+```vue
 <template>
   <div>
     // 默认
@@ -251,7 +251,7 @@ export default router;
       <span :class="{ active: isActive, exact: isExactActive }">About</span>
     </RouterLink>
     // custom 使RouterLink不渲染成a标签,形成自定义组件
-    <RouterLink to="/about" custom v-slot="{route, href, isActive, isExactActive, navigat}">
+    <RouterLink to="/about" custom v-slot="{route, href, isActive, isExactActive, navigate}">
       <button :class="{ active: isActive, exact: isExactActive }" @click="navigate">
         Go to About
       </button>

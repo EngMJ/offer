@@ -2099,6 +2099,13 @@ const router = createRouter({
     
     <!-- 自定义样式 -->
     <router-link to="/profile" active-class="active-link">Profile</router-link>
+    
+    <!-- custom 使RouterLink不渲染成a标签,形成自定义组件-->
+    <RouterLink to="/about" custom v-slot="{route, href, isActive, isExactActive, navigate}">
+      <button :class="{ active: isActive, exact: isExactActive }" @click="navigate">
+        Go to About
+      </button>
+    </RouterLink>
   </div>
 </template>
 ```
