@@ -1977,7 +1977,7 @@ server {
 
 # Vue Router
 
-## API参考: [vue router](vue_router.md)
+## [API参考: vue router](vue_router.md)
 
 ## 41. History模式和Hash模式有何区别？
 
@@ -1986,6 +1986,25 @@ server {
 | **History** | **`createWebHistory`**     | `/about`            | 需web服务器支持  | 支持           | SSR、SEO 友好的 Web 应用       |
 | **Hash**    | **`createWebHashHistory`** | `/#/about`         | 无需web服务器支持 | 不支持         | 纯前端项目，静态文件托管         |
 | **SSR**     | **`createMemoryHistory`**  | 不显示 URL         | 不适用        | 不适用         | SSR、测试环境                  |
+
+---
+
+**示例:**
+
+```javascript
+import { createRouter, createWebHistory } from 'vue-router';
+
+const routes = [
+    { path: '/', component: Home },
+    { path: '/about', component: About },
+];
+
+const router = createRouter({
+    history: createWebHistory(), // createWebHistory浏览器环境/createWebHashHistory浏览器hash/createMemoryHistory服务端渲染环境
+    // history: createWebHistory('/基础路径/'), // 为路由设置基础路径，如果应用部署在子路径下非常有用。
+    routes
+});
+```
 
 * * *
 
@@ -2054,7 +2073,7 @@ const router = createRouter({
 
 ## 45. router-link和router-view是如何起作用的？
 
-### **<router-link>常用属性:**
+### **router-link 常用属性:**
 
 | 属性/事件         | 说明                                      |
 |-------------------|-----------------------------------------|
@@ -2085,7 +2104,7 @@ const router = createRouter({
 ```
 
 
-### **<router-view>常用属性:**
+### **router-view 常用属性:**
 
 | 属性            | 说明                                         |
 |------------------|--------------------------------------------|
@@ -2093,6 +2112,22 @@ const router = createRouter({
 | `v-slot`        | 用于自定义嵌套路由或视图内容                 |
 
 **示例:**
+
+```js
+const routes = [
+    {
+        path: '/',
+        components: {
+            // 它们与 `<router-view>` 上的 `name` 属性匹配
+            default: Home, // 默认视图
+            header, // 渲染到 header命名视图
+            footer, // 渲染到 footer命名视图
+        },
+    },
+]
+// ...
+```
+
 ```vue
 <template>
   <div>
@@ -2160,7 +2195,7 @@ vue-router导航有两种方式：`声明式导航`和`编程方式导航`
 
 ## 47. 在什么场景下会用到嵌套路由？
 
-适用公用的页面布局,如顶部导航栏/左侧菜单栏/主内容区等,部分内容跟随路由切换,而公用部分不变.
+需要公用的页面布局,如顶部导航栏/左侧菜单栏/主内容区等,部分内容跟随路由切换,而公用部分不变.
 
 **路由配置示例:**
 
@@ -2184,7 +2219,7 @@ const routes = [
 
 ## 48. vue-router中如何保护路由？
 
-参考:[路由守卫](vue_router.md#导航守卫)
+[参考:路由守卫](vue_router.md#导航守卫)
 
 * * *
 
