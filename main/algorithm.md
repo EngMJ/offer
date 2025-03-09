@@ -2,6 +2,124 @@
 
 ## 前端常用算法
 
+### 最长递增子序列
+Vue3 内部常用的“贪心 + 二分”求最长递增子序列（LIS）的示例代码，该函数返回的是原数组中构成最长递增子序列的元素的索引序列：
+
+说明:
+
+1. **初始化**
+    - `p` 数组用于记录每个位置的前驱元素索引，方便最终回溯出序列。
+    - `result` 数组存储当前构造的最长递增子序列的索引序列，初始时将第一个元素的索引（0）放入其中。
+
+2. **遍历数组**  
+   对于每个元素，如果它大于 `result` 中最后一个对应的值，则直接将其索引追加到 `result` 中，同时记录其前驱索引；否则通过二分查找确定在 `result` 数组中第一个大于或等于当前元素的位置，并进行替换，这样可以保持 `result` 数组中存储的对应值始终尽可能小。
+
+3. **回溯构造最终结果**  
+   遍历结束后，通过 `p` 数组从 `result` 数组最后一个索引开始回溯，构造出完整的最长递增子序列的索引序列。
+
+该算法的时间复杂度为 O(n log n)，是计算最长递增子序列的高效实现方法。
+
+```js
+function getSequence(arr) {
+  const p = arr.slice(); // 用于记录每个位置的前驱索引
+  const result = [0];    // 存储当前最长递增子序列的索引序列，初始时包含第一个元素的索引
+
+  const len = arr.length;
+  let i, j, u, v, c;
+  for (i = 0; i < len; i++) {
+    const current = arr[i];
+    if (current !== 0) { // 这里排除 0 值（在 Vue3 diff 中 0 表示未找到匹配）
+      j = result[result.length - 1];
+      // 如果当前元素大于当前最长序列最后一个元素，则直接添加
+      if (arr[j] < current) {
+        p[i] = j;            // 记录当前元素的前驱索引
+        result.push(i);      // 扩展最长递增子序列
+        continue;
+      }
+      // 否则，通过二分查找在 result 中查找第一个比 current 大的元素位置
+      u = 0;
+      v = result.length - 1;
+      while (u < v) {
+        c = ((u + v) / 2) | 0;  // 取中间值（向下取整）
+        if (arr[result[c]] < current) {
+          u = c + 1;
+        } else {
+          v = c;
+        }
+      }
+      // 此时 u 为替换位置
+      if (current < arr[result[u]]) {
+        if (u > 0) {
+          p[i] = result[u - 1]; // 记录前驱
+        }
+        result[u] = i;
+      }
+    }
+  }
+  // 通过前驱数组 p 回溯构造最终的最长递增子序列索引序列
+  let uLen = result.length;
+  let z = result[uLen - 1];
+  while (uLen-- > 0) {
+    result[uLen] = z;
+    z = p[z];
+  }
+  return result;
+}
+
+// --- 测试用例 ---
+
+// 测试用例1
+const arr1 = [10, 5, 6, 7, 4, 1, 2, 8, 9];
+const lisIndices1 = getSequence(arr1);
+const lis1 = lisIndices1.map(index => arr1[index]);
+console.log("测试用例1:");
+console.log("输入数组:", arr1);
+console.log("最长递增子序列的索引序列:", lisIndices1); // [1, 2, 3, 7, 8]
+console.log("最长递增子序列:", lis1);                   // [5, 6, 7, 8, 9]
+console.log("--------------------------------------------------");
+
+// 测试用例2
+const arr2 = [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15];
+const lisIndices2 = getSequence(arr2);
+const lis2 = lisIndices2.map(index => arr2[index]);
+console.log("测试用例2:");
+console.log("输入数组:", arr2);
+console.log("最长递增子序列的索引序列:", lisIndices2); // [0, 4, 6, 9, 13, 15]
+console.log("最长递增子序列:", lis2);                   // [0, 2, 6, 9, 11, 15]
+console.log("--------------------------------------------------");
+
+// 测试用例3
+const arr3 = [3, 4, -1, 0, 6, 2, 3];
+const lisIndices3 = getSequence(arr3);
+const lis3 = lisIndices3.map(index => arr3[index]);
+console.log("测试用例3:");
+console.log("输入数组:", arr3);
+console.log("最长递增子序列的索引序列:", lisIndices3); // [2, 3, 5, 6]
+console.log("最长递增子序列:", lis3);                   // [-1, 0, 2, 3]
+console.log("--------------------------------------------------");
+
+// 测试用例4：全相同元素
+const arr4 = [7, 7, 7, 7];
+const lisIndices4 = getSequence(arr4);
+const lis4 = lisIndices4.map(index => arr4[index]);
+console.log("测试用例4:");
+console.log("输入数组:", arr4);
+console.log("最长递增子序列的索引序列:", lisIndices4); // [0]
+console.log("最长递增子序列:", lis4);                   // [7]
+console.log("--------------------------------------------------");
+
+// 测试用例5：空数组
+const arr5 = [];
+const lisIndices5 = getSequence(arr5);
+console.log("测试用例5:");
+console.log("输入数组:", arr5);
+console.log("最长递增子序列的索引序列:", lisIndices5); // []
+console.log("最长递增子序列:", lisIndices5.map(index => arr5[index])); // []
+```
+
+***
+
+
 ### 1. **排序算法**
 排序算法是面试中常考的基础算法，考察对数据排序和优化的理解。
 
