@@ -461,18 +461,18 @@ Vue 2 降低Watcher粒度，每个组件只有一个Watcher与之对应，使用
 
 3. **节点更新（patchVnode）**
     - 复用旧 DOM（vnode.el 指向旧节点的 DOM）
-    - 文本节点：直接比较文本并更新
-    - 属性：调用 patchProps 更新（比较旧 vnode.data 与新 vnode.data）
+    - 文本节点：直接比较文本不同则更新文本
+    - 属性：遍历新旧 VNode 的 data 对象，更新不同的属性
     - 子节点：
         - 若为文本与数组的情况，优先处理文本；
         - 若均为数组，则调用 updateChildren 进行 diff
 
 4. **子节点 diff（updateChildren）**
     - 初始化头尾指针（oldStartIdx、oldEndIdx、newStartIdx、newEndIdx）
-    - 进行四种双端对比（头对头、尾对尾、头对尾、尾对头）
-    - 当四种策略都不匹配时，通过 key 建立映射表进行乱序查找
+    - 依次进行四种双端对比（头对头、尾对尾、头对尾、尾对头）,匹配相同节点
+    - 当四种策略都不匹配时，通过对旧 children 数组中未处理部分建立 key 映射表,通过 key 匹配新 children 中的key
     - 对匹配的节点调用 patchVnode 更新，并移动 DOM 位置
-    - 遍历结束后，根据新旧节点剩余情况分别执行新增（createElm + insertBefore）或删除（removeChild）
+    - 遍历结束后，旧节点剩余未处理节点则删除，新节点剩余未处理节点则新增插入
 
 5. **最终 DOM 更新**  
    经过以上流程，最终真实 DOM 中仅发生了必要的节点更新、移动、插入与删除，从而达到最小化 DOM 操作的目的。
