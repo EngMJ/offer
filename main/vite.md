@@ -196,7 +196,7 @@ export default defineConfig({
     ],
 
     // 处理特定类型的静态资源,直接使用不会被插件转换
-    assetsInclude: ['**/*.gltf',/\.txt$/, /\.md$/, /\.csv$/],
+    assetsInclude: ['**/*.gltf',/\.txt$/, /\.md$/, /\.csv$/, /\.png$/],
   
     // 静态资源服务的文件夹名称, 会在打包时直接复制到生产环境包中不做任何处理
     publicDir: 'public',
@@ -469,8 +469,8 @@ export default defineConfig({
       target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 构建兼容目标，支持 es2020 或更高，具体视浏览器支持情况而定
       modulePreload: { polyfill: true }, // 默认情况下，一个 模块预加载 polyfill 会被自动注入
       outDir: 'dist', // 打包后文件输出目录，默认为 'dist'
-      assetsDir: 'assets', // 静态资源文件夹名，默认为 'assets'
-      assetsInlineLimit: 4096, // 小于此大小的资源将静态资源转为内联 base64，单位字节，默认为 4096 (4KB)
+      assetsDir: 'assets', // 静态资源文件夹名，默认为 'assets'   图片等静态资源
+      assetsInlineLimit: 4096, // 小于此大小的静态资源(png等图片)转为内联 base64，单位字节，默认为 4096 (4KB)
       cssCodeSplit: true, // 启用/禁用 CSS 代码拆分，默认为 true
       cssTarget: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 默认值与 build.target 一致
       cssMinify: 'esbuild', // 默认值与 build.minify 一致, 参数: boolean | 'esbuild' | 'lightningcss'
