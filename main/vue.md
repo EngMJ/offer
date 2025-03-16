@@ -2198,6 +2198,54 @@ Vue3 官方推荐的状态管理库，用来替代 Vuex，提供更轻量、更�
 3. **动态模块注册**
    - 支持动态创建和注册 store，适用于按需加载模块的场景。
 
+```js
+// stores/dynamicStore.js
+import { defineStore } from 'pinia'
+
+export const useDynamicStore = defineStore('dynamicStore', {
+  state: () => ({
+    count: 0,
+  }),
+  actions: {
+    increment() {
+      this.count++
+    },
+  },
+})
+
+```
+
+```vue
+<template>
+  <div>
+    <!-- 等待 store 加载完成后展示数据 -->
+    <div v-if="store">
+      <p>Count: {{ store.count }}</p>
+      <button @click="store.increment">Increment</button>
+    </div>
+    <div v-else>
+      加载中...
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+
+// 定义一个 ref 用来保存动态加载的 store
+const store = ref(null)
+
+// 动态加载 store
+onMounted(async () => {
+  const module = await import('@/stores/dynamicStore') // 根据项目路径调整
+  const useDynamicStore = module.useDynamicStore
+  store.value = useDynamicStore()  // Pinia 会自动注册这个 store
+})
+</script>
+
+```
+
+
 4. **响应式数据**
     - Pinia 的状态是基于 Vue 的响应式系统实现的，数据变化时，所有依赖这些数据的组件会自动更新。
 
