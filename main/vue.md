@@ -2236,7 +2236,7 @@ const store = ref(null)
 onMounted(async () => {
   const module = await import('@/stores/dynamicStore') // 根据项目路径调整
   const useDynamicStore = module.useDynamicStore
-  store.value = useDynamicStore()  // Pinia 会自动注册这个 store
+  store.value = useDynamicStore()  // 调用注册Pinia模块
 })
 </script>
 
