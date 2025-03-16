@@ -2377,6 +2377,8 @@ Vuex 是 Vue2 官方提供的状态管理库，主要用于集中管理应用的
 // 创建store
 // stores/counter.js
 import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
+
 
 // 函数式定义pinia 模块, 更符合 Vue3 Composition API 风格
 export const useCounterStore = defineStore('counter', () => {
@@ -2384,7 +2386,8 @@ export const useCounterStore = defineStore('counter', () => {
     function increment() { // 等价选项式定义 actions: { increment() { this.count++ } }
         count.value++;
     }
-    return { count, increment }; // 函数式需要返回状态和方法
+    const doubleCount = computed(() => count.value * 2); // 等价选项式定义 getters: { doubleCount() { return this.count * 2 } }
+    return { count, increment, doubleCount }; // 函数式需要返回状态和方法
 });
 
 // stores/user.js
@@ -2396,6 +2399,11 @@ export const useUserStore = defineStore('user', {
         name: 'John Doe',
         isLoggedIn: false,
     }),
+    getters: {
+        isAdmin(state) {
+            return state.name === 'admin';
+        },
+    },
     actions: {
         login() {
             this.isLoggedIn = true;
