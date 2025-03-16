@@ -2202,15 +2202,12 @@ Vue3 官方推荐的状态管理库，用来替代 Vuex，提供更轻量、更�
 // stores/dynamicStore.js
 import { defineStore } from 'pinia'
 
-export const useDynamicStore = defineStore('dynamicStore', {
-  state: () => ({
-    count: 0,
-  }),
-  actions: {
-    increment() {
-      this.count++
-    },
-  },
+export const useDynamicStore = defineStore('dynamicStore', () => {
+    const count = ref(0)
+    function increment() {
+        count.value++
+    }
+    return { count, increment}
 })
 
 ```
@@ -2381,20 +2378,19 @@ Vuex 是 Vue2 官方提供的状态管理库，主要用于集中管理应用的
 // stores/counter.js
 import { defineStore } from 'pinia';
 
-export const useCounterStore = defineStore('counter', {
-  state: () => ({
-    count: 0,
-  }),
-  actions: {
-    increment() {
-      this.count++;
-    },
-  },
+// 函数式定义pinia 模块, 更符合 Vue3 Composition API 风格
+export const useCounterStore = defineStore('counter', () => {
+    const count = ref(0); // 等价选项式定义 state: () => ({ count: 0 })
+    function increment() { // 等价选项式定义 actions: { increment() { this.count++ } }
+        count.value++;
+    }
+    return { count, increment }; // 函数式需要返回状态和方法
 });
 
 // stores/user.js
 import { defineStore } from 'pinia';
 
+// 选项式定义pinia 模块
 export const useUserStore = defineStore('user', {
     state: () => ({
         name: 'John Doe',
@@ -2708,16 +2704,14 @@ export default store;
 ```javascript
 import { defineStore } from 'pinia';
 
-export const useStore = defineStore('store', {
-  state: () => ({
-    someState: JSON.parse(localStorage.getItem('someState')) || 'defaultValue',
-  }),
-  actions: {
-    setSomeState(payload) {
-      this.someState = payload;
-      localStorage.setItem('someState', JSON.stringify(this.someState));
-    },
-  },
+export const useStore = defineStore('store', () => {
+    let someState = JSON.parse(localStorage.getItem('someState')) || 'defaultValue';
+    
+    function setSomeState(payload) {
+        someState = payload;
+        localStorage.setItem('someState', JSON.stringify(someState));
+    }
+    return { someState, setSomeState };
 });
 ```
 
