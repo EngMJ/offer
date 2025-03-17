@@ -2173,6 +2173,15 @@ const routes = [
 
 ## 47. vue-router中如何保护路由？
 
+**路由守卫流程:**
+1. beforeRouteLeave: 导航触发失活组件的对应路由时调用.(组件内守卫)
+2. beforeEach: 全局前置守卫,在路由切换前调用.(`router.beforeEach((to, from, next) => {})`)
+3. beforeRouteUpdate: 导航到当前路由,但是该路由的组件被复用时调用.(组件内守卫)
+4. beforeEnter: 路由独享守卫,在`路由配置中定义`.(`{path: '/profile', component: Profile, beforeEnter: (to, from, next) => {}}`)
+5. beforeRouteEnter: 导航进入该组件的对应路由时调用.(组件内守卫, 组合式API不支持)
+6. beforeResolve: 导航被确认之前,在所有组件内守卫和异步路由组件被解析之后调用.(`router.beforeResolve((to, from, next) => {})`)
+7. afterEach: 全局后置守卫,在导航成功完成后调用.(`router.afterEach((to, from) => {})`)
+
 [参考:路由守卫](vue_router.md#导航守卫)
 
 * * *
