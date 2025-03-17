@@ -687,7 +687,7 @@ function ajaxGet(url, params, success, fail) {
     function encodeParams(obj){
 	return Object
             .keys(obj)
-            .map(function(key) {return encodeURIConponent(key) + '=' +encodeURIConponent(obj[key]})
+            .map(function(key) {return encodeURIConponent(key) + '=' +encodeURIConponent(obj[key])})
             .join('&');
     }
 }
