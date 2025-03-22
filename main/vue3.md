@@ -115,6 +115,30 @@ export default {
 - `<script setup>` 不能使用 src 属性
 
 
+- `宏` 只能在` <script setup> `中使用的编译器宏,不需要导入，且会随着` <script setup> `的处理过程一同被编译掉.
+  - defineProps [用于声明 props](#组件props-defineprops)
+  - withDefaults  用于ts声明 props 的默认值
+  ```js
+    interface Props {
+      msg?: string
+      labels?: string[]
+    }
+    
+    const props = withDefaults(defineProps<Props>(), {
+    msg: 'hello',
+    labels: () => ['one', 'two']
+    })
+  ```
+  - defineEmits [用于声明 emits](#组件事件-defineemits)
+  - defineModel [用于声明 v-model](#组件v-model--definemodel-34)
+  - defineSlots [用于ts声明插槽](#属性ref--usetemplateref--defineexpose)
+  - defineExpose [控制模板ref的暴露属性](#属性ref--usetemplateref--defineexpose)
+  - defineOptions [用于声明组件选项](#组件属性透传-attrs--defineoptions--inheritattrs)
+  - defineComponent [声明组件](#definecomponent-typescript组件类型推导)
+  - defineAsyncComponent [声明异步组件](#异步组件-defineasynccomponent)
+  - defineCustomElement [声明自定义元素](https://cn.vuejs.org/api/custom-elements.html#definecustomelement)
+
+
 ### `<style>`
 
 - 作用域
@@ -1716,10 +1740,22 @@ unwatch()
 
 用于 `<script setup>` 中返回 `attrs` 对象,对应$attrs
 
-### useSlots()
+### useSlots() & defineSlots()
 
 用于 `<script setup>` 中返回 `slots` 对象,对应$slots
 
+```vue
+<script setup lang="ts">
+  import { useSlots, defineSlots } from 'vue';
+  // 获取插槽
+  const slots = useSlots();
+  // 设置ts类型,返回插槽
+  // 宏可以用于为 IDE 提供插槽名称和 props 类型检查的类型提示
+  const slots1 = defineSlots<{
+    default(props: { msg: string }): any
+  }>()
+</script>
+```
 
 ### useModel() 3.4+
 
@@ -1788,6 +1824,9 @@ unwatch()
 
   如果同一页面上有多个 Vue 应用实例，可以通过 [`app.config.idPrefix`](/api/application#app-config-idprefix) 为每个应用提供一个 ID 前缀，以避免 ID 冲突。
 
+
+### useTemplateRefs() 3.5+
+获取模板中元素/组件的ref. [详细示例](#属性ref--usetemplateref--defineexpose)
 
 ## 生命周期
 
@@ -3436,6 +3475,8 @@ const res = await fetch('...')
 
 ```
 
+## 特殊元素
+
 ### component
 渲染动态组件或元素
 
@@ -3461,6 +3502,18 @@ import Bar from './Bar.vue'
    <template v-if></template>
    <template v-for></template>
    <template v-slot></template>
+</template>
+```
+
+### slot
+用于插槽内容的标签,不会被渲染,不能使用ref/is等属性.
+
+```vue
+<template>
+    <!--   可以使用以下指令-->
+   <slot></slot>
+   <slot name="header"></slot>
+   <slot :name="header"></slot>
 </template>
 ```
 
