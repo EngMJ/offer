@@ -134,6 +134,9 @@ export default {
   - defineSlots [用于ts声明插槽](#属性ref--usetemplateref--defineexpose)
   - defineExpose [控制模板ref的暴露属性](#属性ref--usetemplateref--defineexpose)
   - defineOptions [用于声明组件选项](#组件属性透传-attrs--defineoptions--inheritattrs)
+
+
+- 其他define, 这些需要手动导入
   - defineComponent [声明组件](#definecomponent-typescript组件类型推导)
   - defineAsyncComponent [声明异步组件](#异步组件-defineasynccomponent)
   - defineCustomElement [声明自定义元素](https://cn.vuejs.org/api/custom-elements.html#definecustomelement)
