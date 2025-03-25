@@ -370,13 +370,18 @@ export default defineConfig({
         dir: 'dist', // 输出目录
         entryFileNames: '[name].[hash].js', // 入口文件名格式
         chunkFileNames: '[name].[hash].js', // 非入口 chunk 的文件名格式
-        assetFileNames: '[name].[hash].[ext]', // 静态资源文件名格式
+        assetFileNames: '[name].[contenthash].[ext]', // 静态资源文件名格式
         manualChunks(id) { // 此处进行代码分割,对 node_modules 中的模块进行分割
           if (id.includes('node_modules')) {
             return 'vendor'; // 手动将 node_modules 中的代码打包到 vendor 文件中
           }
         },
       },
+      // 摇树 默认true, 接受 true/false/对象 参数
+      treeshake: {
+          // 比如：告诉 Rollup 对象属性读取不产生副作用
+          propertyReadSideEffects: false,
+      }
     },
     commonjsOptions:{}, // 传递给 @rollup/plugin-commonjs 插件的选项
     dynamicImportVarsOptions:{}, // 传递给 @rollup/plugin-dynamic-import-vars 的选项
@@ -386,8 +391,12 @@ export default defineConfig({
     ssr: false, // 生成面向 SSR 的构建。此选项的值可以是字符串，用于直接定义 SSR 的入口，也可以为 true，但这需要通过设置 rollupOptions.input 来指定 SSR 的入口。
     emitAssets: false, // 在非客户端的构建过程中，静态资源并不会被输出，因为我们默认它们会作为客户端构建的一部分被输出, 开启可强制输出这些资源。
     ssrEmitAssets: false, // 在 SSR 构建期间，静态资源不会被输出，因为它们通常被认为是客户端构建的一部分, 开启可强制输出这些资源。
-    minify: 'esbuild', // 压缩方式，可选 'esbuild' (默认) | 'terser' | true
-    terserOptions: {}, // 传递给 Terser 的更多 minify 选项
+    minify: 'terser', // 压缩方式，可选 'esbuild' (默认) | 'terser' | true
+    terserOptions: {
+        // 例如：去除 console 和 debugger
+        drop_console: true,
+        drop_debugger: true,
+    }, // 传递给 Terser 的更多 minify 选项
     write: true, // 设置为 false 来禁用将构建后的文件写入磁盘。这常用于 编程式地调用 build() 在写入磁盘之前，需要对构建后的文件进行进一步处理。
     emptyOutDir: true, // 打包前是否清空输出目录，默认为 true
     copyPublicDir: true, // 默认情况下，Vite 会在构建阶段将 publicDir 目录中的所有文件复制到 outDir 目录中。可以通过设置该选项为 false 来禁用该行为。
@@ -449,6 +458,32 @@ export default defineConfig({
 
 ```
 
+## 常用配置
+1. 复制静态资源(图片等不需要转换的文件): publicDir / assetsInclude / build.assetsDir / build.copyPublicDir
+2. 图片转base64: assetsInlineLimit
+3. 配置路径别名: resolve.alias
+4. 配置环境变量: define
+5. 配置sourceMap: esbuild.sourcemap(开发环境) / build.sourcemap(生产环境)
+6. 配置插件: plugins
+7. gzip / brotli 压缩: vite-plugin-compression
+8. 模块可视化插件: vite-plugin-visualizer
+9. 配置导出的 HTML 内容: html
+10. 配置css预处理器: css.preprocessorOptions
+11. css单独打包: build.cssCodeSplit
+12. 配置服务器: server
+13. 配置热模块替换: server.hmr
+14. 配置 esbuild: esbuild
+15. 配置依赖预构建: optimizeDeps
+16. 配置构建项目: build
+17. js兼容编译: build.target
+18. 代码分割: build.rollupOptions.manualChunks
+19. 配置代码压缩: build.minify / build.terserOptions
+20. 配置摇树: build.rollupOptions.treeshake
+21. 配置输出文件名/缓存(contentHash): build.rollupOptions.output.entryFileNames
+22. 配置缓存: cacheDir
+23. 配置 SSR: ssr
+24. 配置 Web Worker: worker
+25. 配置日志: logLevel / customLogger / clearScreen
 
 ## 常用插件
 
@@ -724,6 +759,29 @@ export default defineConfig({
   plugins: [
     // 启用 TypeScript 路径别名解析
     tsconfigPaths(),
+  ],
+});
+```
+
+### 11. **`rollup-plugin-visualizer`**
+- **用途**: 类似 webpack-bundle-analyzer ,生成可视化的打包分析报告，帮助优化项目的打包体积。
+- **功能**: 生成交互式的打包分析图表，展示项目中各个模块的大小和依赖关系。
+
+```bash
+# 安装插件
+npm install rollup-plugin-visualizer --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import visualizer from 'rollup-plugin-visualizer';
+
+// 定义 Vite 配置
+export default defineConfig({
+  plugins: [
+    // 添加可视化打包分析插件
+    visualizer(),
   ],
 });
 ```
