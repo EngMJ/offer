@@ -460,7 +460,7 @@ export default defineConfig({
 
 ## 常用配置
 1. 复制静态资源(图片等不需要转换的文件): publicDir / assetsInclude / build.assetsDir / build.copyPublicDir
-2. 图片转base64: assetsInlineLimit
+2. 图片转base64: build.assetsInlineLimit
 3. 配置路径别名: resolve.alias
 4. 配置环境变量: define
 5. 配置sourceMap: esbuild.sourcemap(开发环境) / build.sourcemap(生产环境)
