@@ -466,7 +466,7 @@ export default defineConfig({
 5. 配置sourceMap: esbuild.sourcemap(开发环境) / build.sourcemap(生产环境)
 6. 配置插件: plugins
 7. gzip / brotli 压缩: vite-plugin-compression
-8. 模块可视化插件: vite-plugin-visualizer
+8. 模块可视化插件: rollup-plugin-visualizer
 9. 配置导出的 HTML 内容: html
 10. 配置css预处理器: css.preprocessorOptions
 11. css单独打包: build.cssCodeSplit
