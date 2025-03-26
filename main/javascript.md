@@ -797,196 +797,270 @@ document.body.addEventListener('click', e => console.log(e));
 
 ---
 
-## § typescript
+## Typescript
 
-TypeScript是一种由微软开发和维护的免费开源编程语言。它是一个强类型的JavaScript超集，目前不能直接在浏览器环境运行，可编译为纯JavaScript后执行。
+[参考: TS 常用内容](./simple_ts.md)
+---
 
-TypeScript可以被认为是Javascript的优化版本，弃其糟粕，取其精华，在保持其动态语言的相对自由度前提下，修饰了没有编译类型检查，不适合超大型项目的缺陷。
+### 1. TypeScript 的主要优势是什么？
 
-**使用ts的场景**：TypeScript拥有更好的类型检查，但在某种程度上也让js的灵活性收到了限制。因此我们应该在日常开发相对独立的业务需求使用js，在开发多人协作、逻辑复杂的大型项目时使用ts。
+- **静态类型检查**：在编译期发现类型错误，减少运行时错误。
+- **更好的编辑器支持**：提供智能提示、重构和自动补全。
+- **可读性和可维护性**：通过类型系统使代码意图更明确。
+- **丰富的高级类型系统**：支持交叉类型、联合类型、类型守卫、泛型、映射类型等。
 
-+   参考：[TypeScript 入门教程](https://ts.xcatliu.com/ "https://ts.xcatliu.com/")
+---
 
-### ts 和 js 详细对比
+### 2. TypeScript 与 JavaScript 的区别？
 
-|  | JavaScript | TypeScript |
-| --- | --- | --- |
-| 1 | 它是由网景公司在1995年开发的。 | 它是2012年由安德斯·海尔斯伯格(Anders Hejlsberg)开发的。 |
-| 2 | JavaScript源文件在”。js”扩展。 | TypeScript源文件是”.ts”扩展名。 |
-| 3 | JavaScript不支持ES6。 | TypeScript 支持ES6。 |
-| 4 | 它不支持强类型或静态类型。 | 它支持强类型或静态类型特性。 |
-| 5 | 它只是一种脚本语言。 | 它支持面向对象的编程概念，如类、接口、继承、泛型等。 |
-| 6 | JavaScript没有可选的参数特性。 | TypeScript有可选的参数特性。 |
-| 7 | 它是解释语言，这就是为什么它在运行时突出显示错误。 | 它编译代码并在开发期间突出显示错误。 |
-| 8 | JavaScript不支持模块。 | TypeScript支持模块。 |
-| 9 | 在这里，number和string是对象。 | 在这里，number和string是接口。 |
-| 10 | JavaScript不支持泛型。 | TypeScript支持泛型。 |
+- **类型系统**：TS 是 JavaScript 的超集，增加了静态类型检查。
+- **编译过程**：TypeScript 代码需要编译成 JavaScript 才能运行。
+- **ES 新特性支持**：TS 支持部分 ES 的未来特性，并通过编译器转译成目标环境支持的版本。
 
-**面向对象**： 三大特性："封装、"多态"、"继承"， 五大原则："单一职责原则"、"开放封闭原则"、"里氏替换原则"、"依赖倒置原则"、"接口分离原则"、"迪米特原则（高内聚低耦合）"
+---
 
-+   模块
-+   类
-+   接口
-+   继承
-+   封装
-+   多态
-+   数据类型
 
-### ts安装和使用
+### 3. TypeScript 的类型系统有哪些？
+TypeScript 提供了丰富的类型系统，主要包括以下几类：
+- **基本数据类型：**
+    - `number`、`string`、`boolean`、`null`、`undefined`、`symbol`
+- **特殊类型：**
+    - `any`（任意类型，不进行类型检查）、`unknown`（未知类型，必须做类型检查）、`void`（一般用于函数无返回值）、`never`（永远不会返回结果，比如抛出异常或无限循环）
+- **高级类型：**
+    - **联合类型（Union Types）：** 如 `string | number` 表示可以是字符串或数字
+    - **交叉类型（Intersection Types）：** 组合多个类型，满足所有类型的要求
+    - **枚举（Enum）：** 用于定义一组命名常量
+    - **字面量类型（Literal Types）：** 限定变量只能取固定值
+    - **泛型（Generics）：** 编写与类型无关的复用代码
+    - **类型推断与类型保护：** 自动根据值推断类型，并使用 `typeof`、`instanceof` 或自定义类型守卫缩小类型范围
+    - **映射类型（Mapped Types）：** 根据已有类型生成新类型
 
-```sh
-# 全局安装typescript
-npm install -g typescript  
-# 安装ts后会自动安装一个命令行工具“tsc”，它将用于编译ts代码生成js文件。
-tsc helloworld.ts  
-# 实时热更新编译
-tsc --watch helloworld.ts  
-# ts源码调试
-tsc -sourcemap helloworld.ts  
-```
+---
 
-### interface 和 type 的区别
+### 4. interface 与 type 有什么区别？
+- **扩展性：**
+    - `interface` 支持声明合并，可以在不同地方对同一个接口进行扩展。
+    - `type` 则是类型别名，不支持声明合并。
+- **适用范围：**
+    - `interface` 主要用于描述对象的结构或类的形状。
+    - `type` 不仅可以描述对象，还可以用于联合类型、交叉类型以及原始类型的别名。
+- **选择建议：**
+    - 当需要描述对象结构且预期未来可能扩展时，推荐使用 `interface`。
+    - 当需要定义更复杂的类型（如联合、交叉或原始类型别名）时，使用 `type` 更为合适。
 
-**1\. interface接口** **定义**：对值所具有的结构进行类型检查。 **作用**：为类型命名和第三方代码定义数据类型规范。
+---
 
-**2\. type类型别名**
+### 5. 如何使用泛型（Generics）？
+泛型允许函数、接口、类在保持类型安全的同时处理多种数据类型，提高代码的复用性。
+- **泛型函数示例：**
+  ```typescript
+  function identity<T>(arg: T): T {
+      return arg;
+  }
+  // 使用时会根据传入参数自动推断类型：
+  let output = identity<string>("Hello");
+  ```
+- **泛型接口和类：**  
+  定义接口或类时也可以使用泛型来适应不同的数据类型。
+- **泛型约束：**  
+  使用 `extends` 关键字限定泛型必须满足的条件，例如：
+  ```typescript
+  interface Lengthwise {
+      length: number;
+  }
+  function logLength<T extends Lengthwise>(arg: T): void {
+      console.log(arg.length);
+  }
+  ```
 
-**作用**：给类型起个新名字。
+---
 
-**3\. type 可以而 interface 不行**
+### 6. TypeScript 中的装饰器（Decorators）
+装饰器是一种特殊的声明方式，可以附加到类、方法、属性或参数上，用于修改类的行为或添加元数据。
+- **使用场景：**  
+  常见于 Angular 等框架中，用于依赖注入、方法增强、日志记录等场景。
+- **使用前提：**  
+  需要在 `tsconfig.json` 中开启 `experimentalDecorators` 选项。
+- **示例：**
+  ```typescript
+  function log(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+      const originalMethod = descriptor.value;
+      descriptor.value = function (...args: any[]) {
+          console.log(`Calling ${propertyKey} with`, args);
+          return originalMethod.apply(this, args);
+      };
+  }
+  
+  class Example {
+      @log
+      sum(a: number, b: number): number {
+          return a + b;
+      }
+  }
+  ```
 
-+   type 可以声明基本类型别名，联合类型，元组等类型，类和interface不能(只能描述对象和函数)。
-+   type 语句中还可以使用 typeof 获取实例的类型进行赋值
+---
 
-**4\. interface 可以而 type 不行**
 
-+   interface 能够声明合并（当接口名字相同，取并集）
+### 7. 联合类型和交叉类型的区别？
 
-**5\. interface 和 type 都可以**
+- **联合类型（Union Types）**：表示一个变量可以是几种类型中的一种，使用 `|` 连接。
+  ```ts
+  let value: string | number
+  ```
+- **交叉类型（Intersection Types）**：表示一个变量同时满足多个类型的要求，使用 `&` 连接。
+  ```ts
+  type A = { a: number }
+  type B = { b: string }
+  type C = A & B  // 必须同时包含 a 和 b
+  ```
 
-+   两者都可以用来描述对象或函数的类型，但是语法不同。
+---
 
+### 8. TypeScript 中的类型断言（Type Assertion）和非空断言（Non-null Assertion）的用法
+
+- **类型断言**：告诉编译器变量的实际类型，常用于绕过编译器类型检查。
+  ```ts
+  const someValue: any = 'hello'
+  const strLength: number = (someValue as string).length
+  ```
+- **非空断言**：用于告诉编译器某个表达式不会为 null 或 undefined。
+  ```ts
+  const el = document.getElementById('app')!
+  ```
+
+---
+
+### 9. Declaration Merging（声明合并）是什么？
+
+**Declaration Merging（声明合并）** 指的是当 TypeScript 遇到 **多个同名的接口、命名空间或模块** 时，它们会自动合并为一个。
+
+**1 接口合并**
+如果同名接口被声明多次，TypeScript 会将它们合并：
 ```ts
-// 接口
-interface Point {
-  x: number;
-  y: number;
-}
-interface SetPoint {
-  (x: number, y: number): void;
-}
-// 类型别名
-type Point = {
-  x: number;
-  y: number;
-};
-type SetPoint = (x: number, y: number) => void;
-```
-
-+   两者都可以扩展，但是语法不同
-
-类型别名不能**继承**其他的类型别名或者接口，也不能**被继承**。
-
-```ts
-// 从 interface 扩展到 interface
-interface PartialPointX { x: number; }
-interface Point extends PartialPointX { y: number; }
-
-// 从 type 扩展到 type
-type PartialPointX = { x: number; };
-type Point = PartialPointX & { y: number; };
-
-// 从 type 扩展到 interface
-type PartialPointX = { x: number; };
-interface Point extends PartialPointX { y: number; }
-
-// 从 interface 扩展到 type
-interface PartialPointX { x: number; }
-type Point = PartialPointX & { y: number; };
-```
-
-**6\. 最后** 如果不清楚什么时候用interface/type，能用 interface 实现，就用 interface , 如果不能就用 type。
-
-### 元祖
-
-> ts数组合并了相同类型的对象，而元组（Tuple）合并了不同类型的对象。
-
-js里面的**数组**本身包含了**元祖**特性，支持多类型数组。
-
-```ts
-let tom: [string, number] = ['Tom', 25];
-```
-
-### 枚举
-
-> 枚举（Enum）类型用于取值被限定在一定范围内的场景，比如一周只能有七天，颜色限定为红绿蓝等。
-
-+   枚举成员会被赋值为从 0 开始递增的数字，同时也会对枚举值到枚举名进行反向映射
-+   可以给枚举项手动赋值
-
-```ts
-enum Days {Sun, Mon = 1, Tue, Wed, Thu, Fri, Sat};
-console.log(Days["Sun"] === 0); // true
-console.log(Days[0] === "Sun"); // true
-// 上面的代码实际会被编译为：Days[Days["Sun"] = 0] = "Sun";
-
-console.log(Days["Sun"] === 7); // true 手动赋值
-```
-
-### 范型
-
-> 泛型（Generics）是指在定义函数、接口或类的时候，不预先指定具体的类型，而在使用的时候再指定类型的一种特性。
-
-+   参考：[TypeScript 入门教程 - 泛型](https://ts.xcatliu.com/advanced/generics.html "https://ts.xcatliu.com/advanced/generics.html")
-
-```ts
-// 可以指定默认类型：T = string
-function createArray<T = string>(length: number, value: T): Array<T> {
-    let result: T[] = [];
-    for (let i = 0; i < length; i++) {
-        result[i] = value;
-    }
-    return result;
+interface Person {
+  name: string
 }
 
-createArray<string>(3, 'x'); // ['x', 'x', 'x']
-createArray(3, 'x'); // 也可以自动推断类型
-```
-
-**§ 多个类型参数** 定义泛型的时候，可以借助元祖一次定义多个类型参数：
-
-```ts
-function swap<T, U>(tuple: [T, U]): [U, T] {
-    return [tuple[1], tuple[0]];
+interface Person {
+  age: number
 }
 
-swap([7, 'seven']); // ['seven', 7] 
-```
-
-**§ 泛型约束** 在函数内部使用泛型变量的时候，由于事先不知道它是哪种类型，所以不能随意的操作它的属性或方法
-
-这种情况可以对泛型进行约束，只允许这个函数传入那些包含 length 属性的变量。这就是泛型约束：
-
-```ts
-interface Lengthwise {
-    length: number;
-}
-function loggingIdentity<T extends Lengthwise>(arg: T): T {
-    console.log(arg.length);
-    return arg;
+// 合并后的效果
+const person: Person = {
+  name: 'Alice',
+  age: 25
 }
 ```
 
-### 枚举
-
+**2 扩展已有的 `Window` 对象**
 ```ts
-enum statusCode{
-    ok=0,
-    error=1,
-    pedding=2
+interface Window {
+  myCustomProperty: string
 }
-statusCode[0] === 'ok'
-statusCode['ok'] === 0
 
+window.myCustomProperty = 'Hello'
 ```
 
+**3 命名空间合并**
+```ts
+namespace Library {
+  export function doSomething() {
+    console.log('Doing something')
+  }
+}
+
+namespace Library {
+  export function anotherFunction() {
+    console.log('Another function')
+  }
+}
+
+// 可以像一个合并的对象一样使用
+Library.doSomething()
+Library.anotherFunction()
+```
+
+---
+
+
+
+### 10. 类型推断（Type Inference）是什么？
+- **类型推断：**  
+  当声明变量时如果没有明确的类型注解，TypeScript 会根据赋值自动推断出变量的类型。例如：
+  ```typescript
+  let num = 42; // TypeScript 推断 num 的类型为 number
+  ```
+
+---
+
+### 11. 什么是 TypeScript 的声明文件（.d.ts 文件）？
+声明文件用于描述 JavaScript 库或模块的类型信息，从而让 TypeScript 项目在引入这些库时能够进行类型检查和代码补全。
+- **来源：**  
+  大部分流行的 JavaScript 库都有社区提供的声明文件，通常可以通过 npm 包 `@types/xxx` 来获取。
+- **用途：**  
+  不需要修改 JavaScript 库的源码，只需提供外部声明文件就能获得静态类型支持。
+
+---
+
+### 12. 如何配置 tsconfig.json？
+`tsconfig.json` 文件用于配置 TypeScript 编译器的行为，主要包含以下几个部分：
+- **compilerOptions：**  
+  定义编译选项，例如：
+    - `target`：编译后 JavaScript 的目标版本（如 ES5、ES6/ES2015 等）。
+    - `module`：模块系统的选择（如 CommonJS、ES6 modules）。
+    - `strict`：开启所有严格类型检查选项。
+    - 其他如 `outDir`、`sourceMap`、`experimentalDecorators` 等选项。
+- **include 与 exclude：**  
+  分别指定要包含和排除的文件路径。
+
+示例配置：
+  ```json
+  {
+      "compilerOptions": {
+          "target": "ES6",
+          "module": "commonjs",
+          "strict": true,
+          "experimentalDecorators": true,
+          "outDir": "./dist",
+          "sourceMap": true
+      },
+      "include": ["src/**/*"],
+      "exclude": ["node_modules", "**/*.spec.ts"]
+  }
+  ```
+
+---
+
+### 13. TypeScript 中的类型保护
+类型保护用于在运行时缩小变量的类型范围，从而使编译器能够更准确地推断出变量类型。
+   - 使用 `typeof`：适用于基本数据类型。
+   - 使用 `instanceof`：适用于类实例检查。
+   - 自定义类型保护函数：使用类型谓词返回 `value is Type`。
+- **示例：**
+  ```typescript
+  function isString(value: unknown): value is string {
+      return typeof value === 'string';
+  }
+  
+  function printValue(value: unknown) {
+      if (isString(value)) {
+          // 这里 TypeScript 知道 value 是 string 类型
+          console.log(value.toUpperCase());
+      } else {
+          console.log(value);
+      }
+  }
+  ```
+
+---
+
+### 14. TypeScript 与 ES6/ESNext 特性的关系
+- **兼容性：**  
+  TypeScript 支持大部分 ES6/ESNext 的新特性，例如箭头函数、类、模块、解构赋值、异步编程等。
+- **编译目标：**  
+  通过配置 `target` 选项，可以将 TypeScript 编译为兼容旧版 JavaScript 环境的代码。例如，将 ES6 特性转换为 ES5 代码。
+- **增强类型安全：**  
+  在使用 ES6/ESNext 新特性的同时，TypeScript 提供了静态类型检查，使得开发过程中能够提前发现错误并提高代码的可维护性。
+
+---
