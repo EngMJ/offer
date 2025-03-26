@@ -800,9 +800,10 @@ document.body.addEventListener('click', e => console.log(e));
 ## Typescript
 
 [参考: TS 常用内容](./simple_ts.md)
+
 ---
 
-### 1. TypeScript 的主要优势是什么？
+1. TypeScript 的主要优势是什么？
 
 - **静态类型检查**：在编译期发现类型错误，减少运行时错误。
 - **更好的编辑器支持**：提供智能提示、重构和自动补全。
@@ -811,7 +812,7 @@ document.body.addEventListener('click', e => console.log(e));
 
 ---
 
-### 2. TypeScript 与 JavaScript 的区别？
+2. TypeScript 与 JavaScript 的区别？
 
 - **类型系统**：TS 是 JavaScript 的超集，增加了静态类型检查。
 - **编译过程**：TypeScript 代码需要编译成 JavaScript 才能运行。
@@ -820,7 +821,7 @@ document.body.addEventListener('click', e => console.log(e));
 ---
 
 
-### 3. TypeScript 的类型系统有哪些？
+3. TypeScript 的类型系统有哪些？
 TypeScript 提供了丰富的类型系统，主要包括以下几类：
 - **基本数据类型：**
     - `number`、`string`、`boolean`、`null`、`undefined`、`symbol`
@@ -837,7 +838,7 @@ TypeScript 提供了丰富的类型系统，主要包括以下几类：
 
 ---
 
-### 4. interface 与 type 有什么区别？
+4. interface 与 type 有什么区别？
 - **扩展性：**
     - `interface` 支持声明合并，可以在不同地方对同一个接口进行扩展。
     - `type` 则是类型别名，不支持声明合并。
@@ -850,7 +851,7 @@ TypeScript 提供了丰富的类型系统，主要包括以下几类：
 
 ---
 
-### 5. 如何使用泛型（Generics）？
+5. 如何使用泛型（Generics）？
 泛型允许函数、接口、类在保持类型安全的同时处理多种数据类型，提高代码的复用性。
 - **泛型函数示例：**
   ```typescript
@@ -875,7 +876,7 @@ TypeScript 提供了丰富的类型系统，主要包括以下几类：
 
 ---
 
-### 6. TypeScript 中的装饰器（Decorators）
+6. TypeScript 中的装饰器（Decorators）
 装饰器是一种特殊的声明方式，可以附加到类、方法、属性或参数上，用于修改类的行为或添加元数据。
 - **使用场景：**  
   常见于 Angular 等框架中，用于依赖注入、方法增强、日志记录等场景。
@@ -902,7 +903,7 @@ TypeScript 提供了丰富的类型系统，主要包括以下几类：
 ---
 
 
-### 7. 联合类型和交叉类型的区别？
+7. 联合类型和交叉类型的区别？
 
 - **联合类型（Union Types）**：表示一个变量可以是几种类型中的一种，使用 `|` 连接。
   ```ts
@@ -917,7 +918,7 @@ TypeScript 提供了丰富的类型系统，主要包括以下几类：
 
 ---
 
-### 8. TypeScript 中的类型断言（Type Assertion）和非空断言（Non-null Assertion）的用法
+8. TypeScript 中的类型断言（Type Assertion）和非空断言（Non-null Assertion）的用法
 
 - **类型断言**：告诉编译器变量的实际类型，常用于绕过编译器类型检查。
   ```ts
@@ -931,7 +932,7 @@ TypeScript 提供了丰富的类型系统，主要包括以下几类：
 
 ---
 
-### 9. Declaration Merging（声明合并）是什么？
+9. Declaration Merging（声明合并）是什么？
 
 **Declaration Merging（声明合并）** 指的是当 TypeScript 遇到 **多个同名的接口、命名空间或模块** 时，它们会自动合并为一个。
 
@@ -985,7 +986,7 @@ Library.anotherFunction()
 
 
 
-### 10. 类型推断（Type Inference）是什么？
+10. 类型推断（Type Inference）是什么？
 - **类型推断：**  
   当声明变量时如果没有明确的类型注解，TypeScript 会根据赋值自动推断出变量的类型。例如：
   ```typescript
@@ -994,7 +995,7 @@ Library.anotherFunction()
 
 ---
 
-### 11. 什么是 TypeScript 的声明文件（.d.ts 文件）？
+11. 什么是 TypeScript 的声明文件（.d.ts 文件）？
 声明文件用于描述 JavaScript 库或模块的类型信息，从而让 TypeScript 项目在引入这些库时能够进行类型检查和代码补全。
 - **来源：**  
   大部分流行的 JavaScript 库都有社区提供的声明文件，通常可以通过 npm 包 `@types/xxx` 来获取。
@@ -1003,7 +1004,7 @@ Library.anotherFunction()
 
 ---
 
-### 12. 如何配置 tsconfig.json？
+12. 如何配置 tsconfig.json？
 `tsconfig.json` 文件用于配置 TypeScript 编译器的行为，主要包含以下几个部分：
 - **compilerOptions：**  
   定义编译选项，例如：
@@ -1032,7 +1033,7 @@ Library.anotherFunction()
 
 ---
 
-### 13. TypeScript 中的类型保护
+13. TypeScript 中的类型保护
 类型保护用于在运行时缩小变量的类型范围，从而使编译器能够更准确地推断出变量类型。
    - 使用 `typeof`：适用于基本数据类型。
    - 使用 `instanceof`：适用于类实例检查。
@@ -1055,7 +1056,7 @@ Library.anotherFunction()
 
 ---
 
-### 14. TypeScript 与 ES6/ESNext 特性的关系
+14. TypeScript 与 ES6/ESNext 特性的关系
 - **兼容性：**  
   TypeScript 支持大部分 ES6/ESNext 的新特性，例如箭头函数、类、模块、解构赋值、异步编程等。
 - **编译目标：**  
