@@ -100,310 +100,310 @@ export default defineConfig({
     // 当前模式,在配置中指明将会把 serve 和 build 时的模式 都 覆盖掉。也可以通过命令行 --mode 选项来重写
     mode: 'development', // 生产环境 production
 
-  // 用于指定当前项目的类型或应用类型,影响 Vite 如何处理应用入口以及一些默认行为
-  appType:'spa', // 默认 'spa'(单页面文件) | 'mpa'(包含 HTML 中间件) | 'custom'(ssr | 完全自定义 HTML 模板)
+    // 用于指定当前项目的类型或应用类型,影响 Vite 如何处理应用入口以及一些默认行为
+    appType: 'spa', // 默认 'spa'(单页面文件) | 'mpa'(包含 HTML 中间件) | 'custom'(ssr | 完全自定义 HTML 模板)
 
-  // 处理特定类型的静态资源,直接使用不会被插件转换
-  assetsInclude: ['**/*.gltf',/\.txt$/, /\.md$/, /\.csv$/, /\.png$/],
+    // 处理特定类型的静态资源,直接使用不会被插件转换
+    assetsInclude: ['**/*.gltf', /\.txt$/, /\.md$/, /\.csv$/, /\.png$/],
 
-  // 静态资源服务的文件夹名称, 会在打包时直接复制到生产环境包中不做任何处理
-  publicDir: 'public',
+    // 静态资源服务的文件夹名称, 会在打包时直接复制到生产环境包中不做任何处理
+    publicDir: 'public',
 
-  // 用于定义全局常量，静态替换构建时的值
-  define: {
-    __APP_VERSION__: JSON.stringify('1.0.0'), // 定义全局变量，可以在应用中使用
-    'process.env.NODE_ENV': JSON.stringify('production'), // 伪造 `process.env` 中的值，常用于设置环境
-  },
-  
+    // 用于定义全局常量，静态替换构建时的值
+    define: {
+        __APP_VERSION__: JSON.stringify('1.0.0'), // 定义全局变量，可以在应用中使用
+        'process.env.NODE_ENV': JSON.stringify('production'), // 伪造 `process.env` 中的值，常用于设置环境
+    },
+
     // 插件配置，用于添加 Vite 插件
     plugins: [
-      vue(), // 支持 Vue 单文件组件 (SFC)
-      visualizer({ // 类似 webpack-bundle-analyzer ,可视化分析打包文件大小
-        open: true, // 构建完成后自动打开报告页面
-        gzipSize: true, // 显示 gzip 后的大小
-        brotliSize: true // 显示 brotli 后的大小
-      })
+        vue(), // 支持 Vue 单文件组件 (SFC)
+        visualizer({ // 类似 webpack-bundle-analyzer ,可视化分析打包文件大小
+            open: true, // 构建完成后自动打开报告页面
+            gzipSize: true, // 显示 gzip 后的大小
+            brotliSize: true // 显示 brotli 后的大小
+        })
     ],
 
     // 解析模块时的行为配置
     resolve: {
-      alias: {  // 路径别名
-        '@': '/src', // 路径别名配置，@ 代表 /src 目录
-        'components': '/src/components', // 其他自定义别名
-      },
-      dedupe: ['vue'], // 防止依赖模块重复安装，强制引用同一依赖
-      /*
-      * 浏览器 vs Node.js 环境：许多库会针对浏览器和 Node.js 提供不同的模块版本。
-        开发 vs 生产模式：同一模块可能提供未压缩的开发版本和压缩后的生产版本。
-        特定平台构建：根据特定平台（如 Electron、React Native 等）提供不同的实现,可以根据平台选择适当的模块版本
-      * 
-      * */
-      conditions: ['import','module','browser','default', 'production', 'development'], // 一个依赖提供多个版本时,使用conditions根据不同环境使用不同版本的模块,按照顺序进行优先加载
-      mainFields: ['browser', 'module', 'jsnext:main', 'jsnext'], // package.json 中，在解析依赖时,优先解析的顺序 browser(浏览器) module(node.js)
-      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'], // 导入时想要省略的扩展名列表,加载文件忽略后缀名
-      preserveSymlinks: false, // 模块解析符号链接，将符号链接解析为它们指向的实际路径.
-      // 为true时保留模块符号链接, 主要作用于 Monorepo 环境下，多个包可能通过符号链接进行解析, 而不是使用实际路径.
+        alias: {  // 路径别名
+            '@': '/src', // 路径别名配置，@ 代表 /src 目录
+            'components': '/src/components', // 其他自定义别名
+        },
+        dedupe: ['vue'], // 防止依赖模块重复安装，强制引用同一依赖
+        /*
+        * 浏览器 vs Node.js 环境：许多库会针对浏览器和 Node.js 提供不同的模块版本。
+          开发 vs 生产模式：同一模块可能提供未压缩的开发版本和压缩后的生产版本。
+          特定平台构建：根据特定平台（如 Electron、React Native 等）提供不同的实现,可以根据平台选择适当的模块版本
+        * 
+        * */
+        conditions: ['import', 'module', 'browser', 'default', 'production', 'development'], // 一个依赖提供多个版本时,使用conditions根据不同环境使用不同版本的模块,按照顺序进行优先加载
+        mainFields: ['browser', 'module', 'jsnext:main', 'jsnext'], // package.json 中，在解析依赖时,优先解析的顺序 browser(浏览器) module(node.js)
+        extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'], // 导入时想要省略的扩展名列表,加载文件忽略后缀名
+        preserveSymlinks: false, // 模块解析符号链接，将符号链接解析为它们指向的实际路径.
+        // 为true时保留模块符号链接, 主要作用于 Monorepo 环境下，多个包可能通过符号链接进行解析, 而不是使用实际路径.
     },
-  
-    html:{ // 定制入口 HTML 文件的处理，比如注入环境变量、动态插入标签等
-      cspNonce: 'unique-nonce' // 一个在生成脚本或样式标签时会用到的 nonce 值占位符,还会生成一个带有 nonce 值的 meta 标签。符合CSP 规则,确保页面安全
-      /*
-      * <!DOCTYPE html>
-        <html>
-          <head>
-            <title>My App</title>
-            <meta nonce="unique-nonce"></meta>
-            <style nonce="unique-nonce">
-              body { background-color: #fff; }
-            </style>
-          </head>
-          <body>
-            <script nonce="unique-nonce">
-              console.log('This script is allowed by CSP because it has a valid nonce.');
-            </script>
-          </body>
-        </html>
-      * 
-      * */
+
+    html: { // 定制入口 HTML 文件的处理，比如注入环境变量、动态插入标签等
+        cspNonce: 'unique-nonce' // 一个在生成脚本或样式标签时会用到的 nonce 值占位符,还会生成一个带有 nonce 值的 meta 标签。符合CSP 规则,确保页面安全
+        /*
+        * <!DOCTYPE html>
+          <html>
+            <head>
+              <title>My App</title>
+              <meta nonce="unique-nonce"></meta>
+              <style nonce="unique-nonce">
+                body { background-color: #fff; }
+              </style>
+            </head>
+            <body>
+              <script nonce="unique-nonce">
+                console.log('This script is allowed by CSP because it has a valid nonce.');
+              </script>
+            </body>
+          </html>
+        * 
+        * */
     },
-  
+
     // CSS 相关配置
     css: {
-      modules: { // 选项将被传递给 postcss-modules
-        scopeBehaviour: 'local', // 样式的作用域范围，默认 'local'，可选 'global'
-        globalModulePaths: '', // 全局模块路径
-        exportGlobals: 'globalName', // 导出全局变量名
-        generateScopedName: 'ScopedName', // 生产作用域名
-        hashPrefix: 'hashName', // hash前缀
-        localsConvention: 'camelCaseOnly', // camelCase 将类名转换为 驼峰 格式 | camelCaseOnly 将类名转换为 驼峰 格式 | dashes 将类名转换为 烤串 格式 | dashesOnly 将类名转换为 烤串 格式
-      },
-      postcss: { // 内联的 PostCSS 配置（格式同 postcss.config.js），或者一个（默认基于项目根目录的）自定义的 PostCSS 配置路径
-        plugins: [require('autoprefixer')], // 配置 PostCSS 插件，例如 autoprefixer
-      },
-      preprocessorOptions: { // 指定传递给 CSS 预处理器的配置选项
-        // 配置 CSS 预处理器选项
-        less: { // 传递给less的选项
-          javascriptEnabled: true, // 启用 Less 中的 JavaScript 支持
-          modifyVars: { '@primary-color': '#1DA57A' }, // 自定义全局样式变量
+        modules: { // 选项将被传递给 postcss-modules
+            scopeBehaviour: 'local', // 样式的作用域范围，默认 'local'，可选 'global'
+            globalModulePaths: '', // 全局模块路径
+            exportGlobals: 'globalName', // 导出全局变量名
+            generateScopedName: 'ScopedName', // 生产作用域名
+            hashPrefix: 'hashName', // hash前缀
+            localsConvention: 'camelCaseOnly', // camelCase 将类名转换为 驼峰 格式 | camelCaseOnly 将类名转换为 驼峰 格式 | dashes 将类名转换为 烤串 格式 | dashesOnly 将类名转换为 烤串 格式
         },
-        stylus:{ // 仅支持 define，可以作为对象传递
-          define: {
-            $specialColor: new stylus.nodes.RGBA(51, 197, 255, 1),
-          },
+        postcss: { // 内联的 PostCSS 配置（格式同 postcss.config.js），或者一个（默认基于项目根目录的）自定义的 PostCSS 配置路径
+            plugins: [require('autoprefixer')], // 配置 PostCSS 插件，例如 autoprefixer
         },
-        scss: { // 传递给scss预处理器的选项
-          additionalData: `@import "src/styles/variables.scss";`, // 为每段样式内容添加额外的代码. 该行意思为每个样式文件导入全局scss
-          api: 'modern-compiler', // 或 "modern"，"legacy"
-          importers: [
-            // ...
-          ],
+        preprocessorOptions: { // 指定传递给 CSS 预处理器的配置选项
+            // 配置 CSS 预处理器选项
+            less: { // 传递给less的选项
+                javascriptEnabled: true, // 启用 Less 中的 JavaScript 支持
+                modifyVars: {'@primary-color': '#1DA57A'}, // 自定义全局样式变量
+            },
+            stylus: { // 仅支持 define，可以作为对象传递
+                define: {
+                    $specialColor: new stylus.nodes.RGBA(51, 197, 255, 1),
+                },
+            },
+            scss: { // 传递给scss预处理器的选项
+                additionalData: `@import "src/styles/variables.scss";`, // 为每段样式内容添加额外的代码. 该行意思为每个样式文件导入全局scss
+                api: 'modern-compiler', // 或 "modern"，"legacy"
+                importers: [
+                    // ...
+                ],
+            },
         },
-      },
-      // 以下为css实验性功能,可能移除
-      devSourcemap: true, // 开发模式下是否生成 CSS source map，默认 false
-      preprocessorMaxWorkers: 0, // CSS 预处理器会尽可能在 worker 线程中运行
-      transformer: 'postcss', // 'postcss' | 'lightningcss' , 选择用于 CSS 处理的引擎类型
-      lightningcss: {} // 配置 Lightning CSS
+        // 以下为css实验性功能,可能移除
+        devSourcemap: true, // 开发模式下是否生成 CSS source map，默认 false
+        preprocessorMaxWorkers: 0, // CSS 预处理器会尽可能在 worker 线程中运行
+        transformer: 'postcss', // 'postcss' | 'lightningcss' , 选择用于 CSS 处理的引擎类型
+        lightningcss: {} // 配置 Lightning CSS
     },
 
-  // 配置开发服务器选项
-  server: {
-    host: '0.0.0.0', // 设置为 '0.0.0.0' 允许外部设备访问本地开发服务器
-    port: 3000, // 指定开发服务器监听的端口
-    strictPort: true, // 如果指定端口被占用，直接退出而不是尝试其他端口
-    https: false, // 是否启用 HTTPS，默认为 false
-    open: true, // 启动开发服务器时自动打开浏览器
-    // 代理配置，解决开发环境下的跨域问题
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000', // 目标服务器地址
-        changeOrigin: true, // 修改请求头中的 origin
-        rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径，去除 `/api`
-        secure: false, // 是否验证 SSL 证书
-      },
-      '/socket.io': {
-        target: 'ws://localhost:5174',
-        ws: true,
-        rewriteWsOrigin: true,
-      },
-    },
-    cors: true, // 是否允许跨域请求，默认为 false
-    headers: {}, // 指定服务器响应的header
-    // 热模块替换 (HMR) 相关配置
-    hmr: true,
-    // hmr: {
-    //     overlay: true, // 是否显示 HMR 错误覆盖层
-    //     protocol: 'ws', // HMR 使用的通信协议
-    //     port: 24678, // 指定 HMR 监听的端口
-    //     clientPort: 3000, // 指定客户端连接的端口
-    // },
+    // 配置开发服务器选项
+    server: {
+        host: '0.0.0.0', // 设置为 '0.0.0.0' 允许外部设备访问本地开发服务器
+        port: 3000, // 指定开发服务器监听的端口
+        strictPort: true, // 如果指定端口被占用，直接退出而不是尝试其他端口
+        https: false, // 是否启用 HTTPS，默认为 false
+        open: true, // 启动开发服务器时自动打开浏览器
+        // 代理配置，解决开发环境下的跨域问题
+        proxy: {
+            '/api': {
+                target: 'http://localhost:5000', // 目标服务器地址
+                changeOrigin: true, // 修改请求头中的 origin
+                rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径，去除 `/api`
+                secure: false, // 是否验证 SSL 证书
+            },
+            '/socket.io': {
+                target: 'ws://localhost:5174',
+                ws: true,
+                rewriteWsOrigin: true,
+            },
+        },
+        cors: true, // 是否允许跨域请求，默认为 false
+        headers: {}, // 指定服务器响应的header
+        // 热模块替换 (HMR) 相关配置
+        hmr: true,
+        // hmr: {
+        //     overlay: true, // 是否显示 HMR 错误覆盖层
+        //     protocol: 'ws', // HMR 使用的通信协议
+        //     port: 24678, // 指定 HMR 监听的端口
+        //     clientPort: 3000, // 指定客户端连接的端口
+        // },
 
-    // 提前转换和缓存文件以进行预热,提高初始页面加载速度
-    warmup:{
-      // 文件路径数组或相对于 root 的 fast-glob 通配
-      clientFiles: ['./src/components/*.vue', './src/utils/big-utils.js'], // clientFiles 是仅在客户端使用的文件
-      ssrFiles: ['./src/server/modules/*.js'], // ssrFiles 是仅在服务端渲染中使用的文件
-    },
+        // 提前转换和缓存文件以进行预热,提高初始页面加载速度
+        warmup: {
+            // 文件路径数组或相对于 root 的 fast-glob 通配
+            clientFiles: ['./src/components/*.vue', './src/utils/big-utils.js'], // clientFiles 是仅在客户端使用的文件
+            ssrFiles: ['./src/server/modules/*.js'], // ssrFiles 是仅在服务端渲染中使用的文件
+        },
 
-    // 文件监听配置
-    // Vite 服务器的文件监听器默认会监听 root 目录，同时会跳过 .git/、node_modules/，以及 Vite 的 cacheDir 和 build.outDir 这些目录
-    watch: {
-      ignored: ['!**/node_modules/**'], // 忽略哪些文件或目录的变化
-      usePolling: true, // 启用轮询模式检查文件变动
-      interval: 300, // 轮询的时间间隔（ms）
-    },
-    middlewareMode: false, // 参数: ssr' | 'html',以中间件模式创建 Vite 服务器。
-    fs: {
-      strict: true, // 禁止 Vite 访问 server.fs.allow 中列出的路径以及项目根目录之外的路径
-      allow: ['项目根目录'], // 允许访问项目外部的文件夹路径数组
-      deny: ['.env', '.env.*', '*.{crt,pem}'], // 比 server.fs.allow 选项的优先级更高,完全禁止访问的文件名
-    },
-    origin: 'http://127.0.0.1:8080', // 服务器资源的origin
-    sourcemapIgnoreList(sourcePath, sourcemapPath) {
-      // sourcePath 资源路径
-      // sourcemapPath 映射路径
-      // 默认值，将把所有路径中含有 node_modules 的文件添加到忽略列表中
-      return sourcePath.includes('node_modules')
-    }
-  },
-
-  // esbuild配置 参数: 对象 | false
-  // 配置 esbuild 的行为，esbuild 在 Vite 中用于依赖预构建以及部分代码的快速转译
-  // 在开发和构建过程中，确保代码能快速转译并满足目标平台的要求，同时可以定制某些转换行为。
-  esbuild: {
-    jsxFactory: 'React.createElement',  // 对应 React 的 JSX 创建元素的方法
-    jsxFragment: 'React.Fragment',      // 对应 React 的 Fragment
-    include: [/\.tsx/,/\.jsx/,/\.ts/], // 只编译这些内容
-    exclude: [/\.js$/], // 排除这些内容
-    jsxInject: `import React from 'react'`, // 自动为每一个被 esbuild 转换的文件注入 JSX helper
-    target: 'es2015', // 配置目标为 ES2015，保证转换的代码能在大多数现代浏览器中运行
-    legalComments: 'none',  // 删除所有注释, eof将注释移至末尾
-    minify: true,          // 启用代码压缩
-    pure: ['console.log'], // 移除指定的函数调用，通常用于优化生产代码。比如去掉所有 console.log 调用
-    loader: 'ts',  // 将 TypeScript 直接编译为 JavaScript，速度更快
-  },
-
-  // 配置依赖预构建（pre-bundling）的选项,优化开发环境中依赖的加载和热更新效率，避免因为大量依赖导致启动变慢
-  optimizeDeps: {
-    entries: [ // 手动设置入口文件,确保加载所有依赖,不设置会自动排除node_modules、build.outDir等文件夹
-      'src/main.js', // 手动指定要扫描的入口文件
-      'src/components/**/*.vue', // 也可以使用通配符指定多个文件
-      'src/pages/*.js',
-      '!node_modules/*' // 排除node_modules
-    ],
-    include: ['vue', 'vue-router'], // 不在 node_modules 中的，链接的包不会被预构建,设置可强制预构建的依赖
-    exclude: ['some-large-lib'], // 排除不需要优化的依赖
-    esbuildOptions: { // 开发环境传递给esbuild的选项,所有esbuild可以配置这里都可以配置
-      // 1. 指定编译的 JavaScript 目标版本为 ES2020
-      // 这样可以确保依赖项被编译成 ES2020 兼容的代码，适用于现代浏览器。
-      target: 'es2020',
-      // 2. 定义全局常量
-      // 这些定义在代码中可以作为全局宏使用。比如 __DEV__ 可以在开发环境中使用，
-      // 而 __VERSION__ 可以用来输出当前版本号。
-      define: {
-        __DEV__: 'true',                       // 定义是否处于开发环境
-        __VERSION__: JSON.stringify('1.0.0')   // 定义当前应用版本号
-      },
-      // 3. 自定义 esbuild 插件
-      // 通过 esbuild 插件，可以实现对模块的自定义解析行为，比如这里的例子替换了
-      // 'env' 模块路径为 'env.js'。
-      plugins: [
-        {
-          name: 'custom-plugin', // 插件名称
-          setup(build) {
-            // 自定义模块解析规则
-            // 当导入的模块是 'env' 时，将其路径重定向为 'env.js'
-            build.onResolve({ filter: /^env$/ }, args => {
-              return { path: path.resolve(__dirname, 'env.js') };
-            });
-          }
+        // 文件监听配置
+        // Vite 服务器的文件监听器默认会监听 root 目录，同时会跳过 .git/、node_modules/，以及 Vite 的 cacheDir 和 build.outDir 这些目录
+        watch: {
+            ignored: ['!**/node_modules/**'], // 忽略哪些文件或目录的变化
+            usePolling: true, // 启用轮询模式检查文件变动
+            interval: 300, // 轮询的时间间隔（ms）
+        },
+        middlewareMode: false, // 参数: ssr' | 'html',以中间件模式创建 Vite 服务器。
+        fs: {
+            strict: true, // 禁止 Vite 访问 server.fs.allow 中列出的路径以及项目根目录之外的路径
+            allow: ['项目根目录'], // 允许访问项目外部的文件夹路径数组
+            deny: ['.env', '.env.*', '*.{crt,pem}'], // 比 server.fs.allow 选项的优先级更高,完全禁止访问的文件名
+        },
+        origin: 'http://127.0.0.1:8080', // 服务器资源的origin
+        sourcemapIgnoreList(sourcePath, sourcemapPath) {
+            // sourcePath 资源路径
+            // sourcemapPath 映射路径
+            // 默认值，将把所有路径中含有 node_modules 的文件添加到忽略列表中
+            return sourcePath.includes('node_modules')
         }
-      ],
-      // 4. 启用源码映射
-      // 在开发中启用 sourcemap，这样在浏览器调试时可以追踪到原始源码的位置。
-      sourcemap: true,
-      // 5. 自定义 JSX 编译
-      // 如果使用 JSX，可以自定义 JSX 的工厂函数和片段。
-      // 例如，在使用 Preact 时可能需要这样配置。
-      jsxFactory: 'h',             // 将 JSX 编译为 'h' 函数 (如 Preact)
-      jsxFragment: 'Fragment'       // JSX 片段编译为 'Fragment'
     },
-    force: true, // 强制预构建,忽略缓存
-  },
 
-  // 构建后预览配置，适用于本地预览生产构建结果
-  // 使用 vite preview 命令启动,用于快速预览生产构建的结果，并进行最后的测试或展示
-  preview: {
-    host: '0.0.0.0',
-    port: 5000, // 预览服务器的端口，默认为 5000
-    strictPort: true, // 如果端口不可用则直接退出
-    https: false, // 是否启用 HTTPS
-    open: false, // 是否自动打开浏览器
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-      },
+    // esbuild配置 参数: 对象 | false
+    // 配置 esbuild 的行为，esbuild 在 Vite 中用于依赖预构建以及部分代码的快速转译
+    // 在开发和构建过程中，确保代码能快速转译并满足目标平台的要求，同时可以定制某些转换行为。
+    esbuild: {
+        jsxFactory: 'React.createElement',  // 对应 React 的 JSX 创建元素的方法
+        jsxFragment: 'React.Fragment',      // 对应 React 的 Fragment
+        include: [/\.tsx/, /\.jsx/, /\.ts/], // 只编译这些内容
+        exclude: [/\.js$/], // 排除这些内容
+        jsxInject: `import React from 'react'`, // 自动为每一个被 esbuild 转换的文件注入 JSX helper
+        target: 'es2015', // 配置目标为 ES2015，保证转换的代码能在大多数现代浏览器中运行
+        legalComments: 'none',  // 删除所有注释, eof将注释移至末尾
+        minify: true,          // 启用代码压缩
+        pure: ['console.log'], // 移除指定的函数调用，通常用于优化生产代码。比如去掉所有 console.log 调用
+        loader: 'ts',  // 将 TypeScript 直接编译为 JavaScript，速度更快
     },
-    cors: true,
-    headers: {}
-  },
-  
-  // 配置生产构建的相关选项
-  build: {
-    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 构建兼容目标，支持 es2020 或更高，具体视浏览器支持情况而定
-    modulePreload: { polyfill: true }, // 默认情况下，一个 模块预加载 polyfill 会被自动注入
-    outDir: 'dist', // 打包后文件输出目录，默认为 'dist'
-    assetsDir: 'assets', // 静态资源文件夹名，默认为 'assets'   图片等静态资源
-    assetsInlineLimit: 4096, // 小于此大小的静态资源(png等图片)转为内联 base64，单位字节，默认为 4096 (4KB)
-    cssCodeSplit: true, // 启用/禁用 CSS 代码拆分，默认为 true
-    cssTarget: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 默认值与 build.target 一致
-    cssMinify: 'esbuild', // 默认值与 build.minify 一致, 参数: boolean | 'esbuild' | 'lightningcss'
-    sourcemap: false, // 是否生成 sourcemap 文件，默认为 false，适合生产环境调试. 参数:boolean | 'inline' | 'hidden'
-    rollupOptions: { // 自定义底层的 Rollup 打包配置
-      input: {
-        main: './index.html', // 构建入口文件
-        nested: './src/nested.html', // 可以有多个入口文件
-      },
-      output: {
-        // 输出文件配置
-        dir: 'dist', // 输出目录
-        entryFileNames: '[name].[hash].js', // 入口文件名格式
-        chunkFileNames: '[name].[hash].js', // 非入口 chunk 的文件名格式
-        assetFileNames: '[name].[contenthash].[ext]', // 静态资源文件名格式
-        manualChunks(id) { // 此处进行代码分割,对 node_modules 中的模块进行分割
-          if (id.includes('node_modules')) {
-            return 'vendor'; // 手动将 node_modules 中的代码打包到 vendor 文件中
-          }
+
+    // 配置依赖预构建（pre-bundling）的选项,优化开发环境中依赖的加载和热更新效率，避免因为大量依赖导致启动变慢
+    optimizeDeps: {
+        entries: [ // 手动设置入口文件,确保加载所有依赖,不设置会自动排除node_modules、build.outDir等文件夹
+            'src/main.js', // 手动指定要扫描的入口文件
+            'src/components/**/*.vue', // 也可以使用通配符指定多个文件
+            'src/pages/*.js',
+            '!node_modules/*' // 排除node_modules
+        ],
+        include: ['vue', 'vue-router'], // 不在 node_modules 中的，链接的包不会被预构建,设置可强制预构建的依赖
+        exclude: ['some-large-lib'], // 排除不需要优化的依赖
+        esbuildOptions: { // 开发环境传递给esbuild的选项,所有esbuild可以配置这里都可以配置
+            // 1. 指定编译的 JavaScript 目标版本为 ES2020
+            // 这样可以确保依赖项被编译成 ES2020 兼容的代码，适用于现代浏览器。
+            target: 'es2020',
+            // 2. 定义全局常量
+            // 这些定义在代码中可以作为全局宏使用。比如 __DEV__ 可以在开发环境中使用，
+            // 而 __VERSION__ 可以用来输出当前版本号。
+            define: {
+                __DEV__: 'true',                       // 定义是否处于开发环境
+                __VERSION__: JSON.stringify('1.0.0')   // 定义当前应用版本号
+            },
+            // 3. 自定义 esbuild 插件
+            // 通过 esbuild 插件，可以实现对模块的自定义解析行为，比如这里的例子替换了
+            // 'env' 模块路径为 'env.js'。
+            plugins: [
+                {
+                    name: 'custom-plugin', // 插件名称
+                    setup(build) {
+                        // 自定义模块解析规则
+                        // 当导入的模块是 'env' 时，将其路径重定向为 'env.js'
+                        build.onResolve({filter: /^env$/}, args => {
+                            return {path: path.resolve(__dirname, 'env.js')};
+                        });
+                    }
+                }
+            ],
+            // 4. 启用源码映射
+            // 在开发中启用 sourcemap，这样在浏览器调试时可以追踪到原始源码的位置。
+            sourcemap: true,
+            // 5. 自定义 JSX 编译
+            // 如果使用 JSX，可以自定义 JSX 的工厂函数和片段。
+            // 例如，在使用 Preact 时可能需要这样配置。
+            jsxFactory: 'h',             // 将 JSX 编译为 'h' 函数 (如 Preact)
+            jsxFragment: 'Fragment'       // JSX 片段编译为 'Fragment'
         },
-      },
-      // 摇树 默认true, 接受 true/false/对象 参数
-      treeshake: {
-          // 比如：告诉 Rollup 对象属性读取不产生副作用
-          propertyReadSideEffects: false,
-      }
+        force: true, // 强制预构建,忽略缓存
     },
-    commonjsOptions:{}, // 传递给 @rollup/plugin-commonjs 插件的选项
-    dynamicImportVarsOptions:{}, // 传递给 @rollup/plugin-dynamic-import-vars 的选项
-    lib: {}, // 构建为库的配置项,不为正常项目
-    manifest: false, // 是否生成包含了没有被 hash 过的资源文件名和 hash 后版本的映射 manifest.json 文件
-    ssrManifest: false, // 是否生成 SSR 的 manifest 文件，以确定生产中的样式链接与资产预加载指令,当该值为一个字符串时，它将作为 manifest 文件的名字
-    ssr: false, // 生成面向 SSR 的构建。此选项的值可以是字符串，用于直接定义 SSR 的入口，也可以为 true，但这需要通过设置 rollupOptions.input 来指定 SSR 的入口。
-    emitAssets: false, // 在非客户端的构建过程中，静态资源并不会被输出，因为我们默认它们会作为客户端构建的一部分被输出, 开启可强制输出这些资源。
-    ssrEmitAssets: false, // 在 SSR 构建期间，静态资源不会被输出，因为它们通常被认为是客户端构建的一部分, 开启可强制输出这些资源。
-    minify: 'terser', // 压缩方式，可选 'esbuild' (默认) | 'terser' | true
-    terserOptions: {
-        // 例如：去除 console 和 debugger
-        drop_console: true,
-        drop_debugger: true,
-    }, // 传递给 Terser 的更多 minify 选项
-    write: true, // 设置为 false 来禁用将构建后的文件写入磁盘。这常用于 编程式地调用 build() 在写入磁盘之前，需要对构建后的文件进行进一步处理。
-    emptyOutDir: true, // 打包前是否清空输出目录，默认为 true
-    copyPublicDir: true, // 默认情况下，Vite 会在构建阶段将 publicDir 目录中的所有文件复制到 outDir 目录中。可以通过设置该选项为 false 来禁用该行为。
-    reportCompressedSize: true, // 启用/禁用 gzip 压缩大小报告。压缩大型输出文件可能会很慢，因此禁用该功能可能会提高大型项目的构建性能。
-    chunkSizeWarningLimit: 500, // 触发输出警告的 chunk 文件大小（KB），默认为 500KB
-    watch: null, // 设置为 {} 则会启用 rollup 的监听器。对于只在构建阶段或者集成流程使用的插件很常用
-  },
+
+    // 构建后预览配置，适用于本地预览生产构建结果
+    // 使用 vite preview 命令启动,用于快速预览生产构建的结果，并进行最后的测试或展示
+    preview: {
+        host: '0.0.0.0',
+        port: 5000, // 预览服务器的端口，默认为 5000
+        strictPort: true, // 如果端口不可用则直接退出
+        https: false, // 是否启用 HTTPS
+        open: false, // 是否自动打开浏览器
+        proxy: {
+            '/api': {
+                target: 'http://localhost:3000',
+                changeOrigin: true,
+            },
+        },
+        cors: true,
+        headers: {}
+    },
+
+    // 配置生产构建的相关选项
+    build: {
+        target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 构建兼容目标，支持 es2020 或更高，具体视浏览器支持情况而定
+        modulePreload: {polyfill: true}, // 默认情况下，一个 模块预加载 polyfill 会被自动注入
+        outDir: 'dist', // 打包后文件输出目录，默认为 'dist'
+        assetsDir: 'assets', // 静态资源文件夹名，默认为 'assets'   图片等静态资源
+        assetsInlineLimit: 4096, // 小于此大小的静态资源(png等图片)转为内联 base64，单位字节，默认为 4096 (4KB)
+        cssCodeSplit: true, // 启用/禁用 CSS 代码拆分，默认为 true
+        cssTarget: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 默认值与 build.target 一致
+        cssMinify: 'esbuild', // 默认值与 build.minify 一致, 参数: boolean | 'esbuild' | 'lightningcss'
+        sourcemap: false, // 是否生成 sourcemap 文件，默认为 false，适合生产环境调试. 参数:boolean | 'inline' | 'hidden'
+        rollupOptions: { // 自定义底层的 Rollup 打包配置
+            input: {
+                main: './index.html', // 构建入口文件
+                nested: './src/nested.html', // 可以有多个入口文件
+            },
+            output: {
+                // 输出文件配置
+                dir: 'dist', // 输出目录
+                entryFileNames: '[name].[hash].js', // 入口文件名格式
+                chunkFileNames: '[name].[hash].js', // 非入口 chunk 的文件名格式
+                assetFileNames: '[name].[contenthash].[ext]', // 静态资源文件名格式
+                manualChunks(id) { // 此处进行代码分割,对 node_modules 中的模块进行分割
+                    if (id.includes('node_modules')) {
+                        return 'vendor'; // 手动将 node_modules 中的代码打包到 vendor 文件中
+                    }
+                },
+            },
+            // 摇树 默认true, 接受 true/false/对象 参数
+            treeshake: {
+                // 比如：告诉 Rollup 对象属性读取不产生副作用
+                propertyReadSideEffects: false,
+            }
+        },
+        commonjsOptions: {}, // 传递给 @rollup/plugin-commonjs 插件的选项
+        dynamicImportVarsOptions: {}, // 传递给 @rollup/plugin-dynamic-import-vars 的选项
+        lib: {}, // 构建为库的配置项,不为正常项目
+        manifest: false, // 是否生成包含了没有被 hash 过的资源文件名和 hash 后版本的映射 manifest.json 文件
+        ssrManifest: false, // 是否生成 SSR 的 manifest 文件，以确定生产中的样式链接与资产预加载指令,当该值为一个字符串时，它将作为 manifest 文件的名字
+        ssr: false, // 生成面向 SSR 的构建。此选项的值可以是字符串，用于直接定义 SSR 的入口，也可以为 true，但这需要通过设置 rollupOptions.input 来指定 SSR 的入口。
+        emitAssets: false, // 在非客户端的构建过程中，静态资源并不会被输出，因为我们默认它们会作为客户端构建的一部分被输出, 开启可强制输出这些资源。
+        ssrEmitAssets: false, // 在 SSR 构建期间，静态资源不会被输出，因为它们通常被认为是客户端构建的一部分, 开启可强制输出这些资源。
+        minify: 'terser', // 压缩方式，可选 'esbuild' (默认) | 'terser' | true
+        terserOptions: {
+            // 例如：去除 console 和 debugger
+            drop_console: true,
+            drop_debugger: true,
+        }, // 传递给 Terser 的更多 minify 选项
+        write: true, // 设置为 false 来禁用将构建后的文件写入磁盘。这常用于 编程式地调用 build() 在写入磁盘之前，需要对构建后的文件进行进一步处理。
+        emptyOutDir: true, // 打包前是否清空输出目录，默认为 true
+        copyPublicDir: true, // 默认情况下，Vite 会在构建阶段将 publicDir 目录中的所有文件复制到 outDir 目录中。可以通过设置该选项为 false 来禁用该行为。
+        reportCompressedSize: true, // 启用/禁用 gzip 压缩大小报告。压缩大型输出文件可能会很慢，因此禁用该功能可能会提高大型项目的构建性能。
+        chunkSizeWarningLimit: 500, // 触发输出警告的 chunk 文件大小（KB），默认为 500KB
+        watch: null, // 设置为 {} 则会启用 rollup 的监听器。对于只在构建阶段或者集成流程使用的插件很常用
+    },
 
 
     // 存储缓存文件的目录, 以下为默认值
