@@ -124,6 +124,27 @@ console.log("最长递增子序列:", lisIndices5.map(index => arr5[index])); //
 排序算法是面试中常考的基础算法，考察对数据排序和优化的理解。
 
 - **冒泡排序**：通过不断交换相邻元素，使数组逐渐有序。
+
+```js
+function bubbleSort(arr) {
+    let n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+        let swapped = false; // 优化：如果某一轮没有交换，则说明数组已排序
+        for (let j = 0; j < n - 1 - i; j++) {
+            if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]]; // 交换
+                swapped = true;
+            }
+        }
+        if (!swapped) break; // 如果没有发生交换，提前终止
+    }
+    return arr;
+}
+
+// 测试
+console.log(bubbleSort([5, 2, 9, 1, 5, 6])); // 输出: [1, 2, 5, 5, 6, 9]
+
+```
 - **选择排序**：每次找到最小或最大的元素，将其放在已排序部分的末尾。
 - **插入排序**：将每个元素插入到已排序的部分，保持排序状态。
 - **快速排序**：分治法的实现，通过选择一个基准元素，分割数组，递归排序。
