@@ -146,7 +146,7 @@ student.sayHello(); // 输出："Hello, my name is Alice"
 
 4. 支持索引操作的接口（Indexable Types）
 
-[参考:索引类型](#24-索引类型index-types是什么好处有什么)
+[参考:索引类型](#24-索引类型index-types是什么)
 
 除了数组外，接口还可以用来描述具备索引签名的对象，比如一个可以通过字符串索引获取值的对象：
 
