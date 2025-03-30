@@ -1251,11 +1251,92 @@ TypeScript 的 `this` 机制和 JavaScript 保持一致，均取决于函数调�
 
 
 ## 30. 什么是 TypeScript 的声明文件（.d.ts 文件）？
-    声明文件用于描述 JavaScript 库或模块的类型信息，从而让 TypeScript 项目在引入这些库时能够进行类型检查和代码补全。
-- **来源：**  
-  大部分流行的 JavaScript 库都有社区提供的声明文件，通常可以通过 npm 包 `@types/xxx` 来获取。
-- **用途：**  
-  不需要修改 JavaScript 库的源码，只需提供外部声明文件就能获得静态类型支持。
+
+`.d.ts` 文件（声明文件）是 TypeScript 用来描述 JavaScript 代码（通常是第三方库或 JavaScript 模块）类型信息的文件。它的作用是允许 TypeScript 在不更改 JavaScript 代码的情况下，提供类型支持。
+
+**作用:**
+- 使用没有 TypeScript 类型定义的 JavaScript 库时
+- 为 JavaScript 代码提供 TypeScript 类型支持
+- 为外部 API、全局变量提供类型定义
+
+**使用:**
+- **手动编写**：为 JavaScript 库编写 `.d.ts` 文件
+- **引用**：通过 `/// <reference path="xxx.d.ts" />` 引入声明文件
+    ```js
+        // math.js
+        function add(a, b) {
+          return a + b;
+        }
+        
+        function subtract(a, b) {
+          return a - b;
+        }
+    ```
+    
+    ```typescript
+        // math.d.ts
+        declare function add(a: number, b: number): number;
+        declare function subtract(a: number, b: number): number;
+    ```
+    ```typescript
+        /// <reference path="math.d.ts" />
+        let result = add(2, 3); // TypeScript 知道 `add` 返回的是 number
+    ```
+
+- **内置支持**：TypeScript 会自动识别项目中的 `.d.ts` 文件,无需手动引入,通常放在项目根目录下的 `typings` 或 `types` 目录中
+- **通过 `@types` 安装**：使用社区维护的声明文件
+    ```txt
+        // 安装完成后，TypeScript 会自动识别这些类型声明，不需要手动 `import`。
+        npm install --save-dev @types/lodash
+    ```
+- **全局声明**： 通过 `declare` 关键字声明全局变量、函数、类、接口、命名空间
+    ```typescript
+        // global.d.ts
+        // 全局变量
+        declare let myVar: string;
+        // 全局常量
+        declare const API_KEY: string;
+        // 全局函数
+        declare function greet(name: string): void;
+        // 全局类
+        declare class Animal {
+          name: string;
+          constructor(name: string);
+          makeSound(): void;
+        }
+        // 全局命名空间
+        declare namespace MyLibrary {
+            function doSomething(): void;
+        }
+        // 全局接口
+        interface Person {
+            name: string;
+            age: number;
+        }
+    ```
+- **模块声明**：通过 `declare module` 声明模块
+    ```typescript
+        // useLodash.ts
+        // 如果库是以 ES 模块的方式导入的，比如：
+        import * as _ from "lodash";
+    ```
+    ```typescript
+        // lodash.d.ts
+        // 要在 `.d.ts` 文件中使用 `declare module`：
+        declare module "lodash" {
+            export function chunk<T>(array: T[], size?: number): T[][];
+        }
+    ```
+
+
+**区别:**
+
+| **特性**  | **`.d.ts` 文件** | **`.ts` 文件** |
+|-----------|----------------|--------------|
+| 是否包含实现 | 仅包含类型信息 | 包含实现代码 |
+| 是否会编译 | 不会被编译成 JS | 会被编译成 JS |
+| 作用 | 提供类型定义 | 编写 TypeScript 代码 |
+
 
 ---
 
