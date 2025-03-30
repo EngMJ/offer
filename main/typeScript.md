@@ -1186,17 +1186,21 @@ TypeScript 的 `this` 机制和 JavaScript 保持一致，均取决于函数调�
 - **`this` 参数**  
   在 TypeScript 中，可以为函数添加一个显式的 `this` 参数，从而确保该函数只能在特定的上下文中调用。这种参数在实际运行时不会被传递，但它在编译阶段起到了类型检查的作用。
   ```typescript
-    interface User {
+    interface Person {
         name: string;
-        greet(this: User): void;    
-    }
-  
-    function greet(this: User) {
-      console.log(`Hello, ${this.name}`);
     }
     
-    greet.call({ name: "Alice" }); // 正确调用
-    // greet(); // 编译错误，因为 this 未被指定为 User 类型
+    function greet(this: Person, greeting: string) {
+        console.log(`${greeting}, my name is ${this.name}`);
+    }
+    
+    const person: Person = { name: "Alice" };
+    
+    // 使用 call 方法传入正确的 this 上下文
+    greet.call(person, "Hello");  // 输出：Hello, my name is Alice
+    
+    // 如果直接调用 greet()，编译器会报错，因为 this 无法正确推断
+    // greet("Hi");  // 错误示例
   ```
 
 ---
