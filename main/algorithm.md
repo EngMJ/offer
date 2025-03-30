@@ -236,10 +236,6 @@ console.log(removeDuplicates([1, 2, 2, 3, 4, 4, 5])); // [1, 2, 3, 4, 5]
 动态规划是用来解决优化问题，尤其是在有重叠子问题和最优子结构的场景中。
 
 - **斐波那契数列**：通过递归或迭代计算第 `n` 个斐波那契数。
-- **背包问题**：如 0/1 背包问题。
-- **最小路径和**：在网格中寻找从左上到右下的最短路径。
-
-**示例**：计算斐波那契数
 ```javascript
 function fib(n) {
   let dp = [0, 1];
@@ -250,11 +246,174 @@ function fib(n) {
 }
 console.log(fib(10)); // 55
 ```
+- **背包问题**：如 0/1 背包问题。
+0-1 背包问题要求每个物品只能选取或者不选取，适合使用动态规划来解决。基本思路是建立二维 dp 数组，其中 `dp[i][w]` 表示前 i 个物品在背包容量为 w 时的最大价值。
+
+```js
+// 定义物品，每个物品有重量和价值
+const itemsDP = [
+  { weight: 10, value: 60 },
+  { weight: 20, value: 100 },
+  { weight: 30, value: 120 }
+];
+
+// 动态规划解决 0-1 背包问题
+function knapsackDP(items, capacity) {
+  const n = items.length;
+  // 创建二维数组 dp，(n+1) * (capacity+1)
+  const dp = Array.from({ length: n + 1 }, () => Array(capacity + 1).fill(0));
+
+  // 填表：i 从 1 到 n
+  for (let i = 1; i <= n; i++) {
+    const { weight, value } = items[i - 1];
+    for (let w = 1; w <= capacity; w++) {
+      if (weight > w) {
+        // 当前物品放不下，沿用上一个物品的结果
+        dp[i][w] = dp[i - 1][w];
+      } else {
+        // 选或不选，取最大值
+        dp[i][w] = Math.max(dp[i - 1][w], dp[i - 1][w - weight] + value);
+      }
+    }
+  }
+
+  // 还原选择的物品
+  let w = capacity;
+  const selectedItems = [];
+  for (let i = n; i > 0; i--) {
+    if (dp[i][w] !== dp[i - 1][w]) {
+      selectedItems.push(items[i - 1]);
+      w -= items[i - 1].weight;
+    }
+  }
+
+  return { maxValue: dp[n][capacity], selectedItems };
+}
+
+// 示例：背包容量为 50
+const resultDP = knapsackDP(itemsDP, 50);
+console.log("动态规划结果:", resultDP);
+
+// **说明：**
+// - `dp[i][w]` 表示前 i 个物品在背包容量为 w 时能够获得的最大价值。
+// - 对于每个物品判断是否选取，取不选取和选取两种情况下的较大值。
+// - 最后通过反向遍历 dp 表还原出具体选取的物品。
+```
+
+---
+
+- **最小路径和**：在网格中寻找从左上到右下的最短路径。
+
+给定一个 m×n 的网格，每个单元格包含一个非负整数，从左上角到右下角只允许向右或向下移动，求路径上数字和的最小值。核心思路是构造一个 dp 数组，其中 dp[i][j] 表示从起点到 (i, j) 的最小路径和。
+
+```js
+function minPathSum(grid) {
+  const m = grid.length;
+  if (m === 0) return 0;
+  const n = grid[0].length;
+
+  // 初始化 dp 数组，大小与 grid 相同
+  const dp = Array.from({ length: m }, () => Array(n).fill(0));
+
+  dp[0][0] = grid[0][0];
+
+  // 初始化第一列，只有向下的选择
+  for (let i = 1; i < m; i++) {
+    dp[i][0] = dp[i - 1][0] + grid[i][0];
+  }
+
+  // 初始化第一行，只有向右的选择
+  for (let j = 1; j < n; j++) {
+    dp[0][j] = dp[0][j - 1] + grid[0][j];
+  }
+
+  // 填充 dp 数组，选择上方或左边的较小路径和加上当前值
+  for (let i = 1; i < m; i++) {
+    for (let j = 1; j < n; j++) {
+      dp[i][j] = Math.min(dp[i - 1][j], dp[i][j - 1]) + grid[i][j];
+    }
+  }
+
+  return dp[m - 1][n - 1];
+}
+
+// 示例：定义一个网格
+const grid = [
+  [1, 3, 1],
+  [1, 5, 1],
+  [4, 2, 1]
+];
+
+console.log("最小路径和：", minPathSum(grid));
+// 输出: 最小路径和： 7
+// **说明：**
+// - 初始化第一行和第一列后，其余位置的状态由上方或左侧较小的状态转移得到。
+// - 时间复杂度为 O(m*n)。
+```
+
+---
+
 
 ### 6. **贪心算法 (Greedy Algorithm)**
 贪心算法通过选择当前最优解来构建全局最优解，通常用于求解最优子结构的问题。
 
 - **活动选择问题**：选择最多的互不重叠的活动。
+  给定一系列活动，每个活动有开始时间和结束时间，要求选择最多的互不重叠的活动。贪心策略的关键是先将活动按结束时间进行排序，然后依次选择满足条件的活动。
+
+```js
+// 定义活动，格式为 { start: 开始时间, end: 结束时间 }
+const activities = [
+  { start: 1, end: 4 },
+  { start: 3, end: 5 },
+  { start: 0, end: 6 },
+  { start: 5, end: 7 },
+  { start: 3, end: 9 },
+  { start: 5, end: 9 },
+  { start: 6, end: 10 },
+  { start: 8, end: 11 },
+  { start: 8, end: 12 },
+  { start: 2, end: 14 },
+  { start: 12, end: 16 }
+];
+
+function activitySelection(activities) {
+  // 按结束时间升序排序
+  activities.sort((a, b) => a.end - b.end);
+
+  const selected = [];
+  // 记录上一个被选活动的结束时间，初始为负无穷大
+  let lastEndTime = -Infinity;
+
+  for (const activity of activities) {
+    if (activity.start >= lastEndTime) {
+      // 当前活动的开始时间不早于上一个活动的结束时间，则选择当前活动
+      selected.push(activity);
+      lastEndTime = activity.end;
+    }
+  }
+  return selected;
+}
+
+const selectedActivities = activitySelection(activities);
+console.log("选择的活动：", selectedActivities);
+/*
+输出结果示例：
+选择的活动： [
+  { start: 1, end: 4 },
+  { start: 5, end: 7 },
+  { start: 8, end: 11 },
+  { start: 12, end: 16 }
+]
+*/
+
+// **说明：**
+// - 活动按照结束时间排序后，选择第一个活动，然后选取所有开始时间不早于上一个选择活动结束时间的活动。
+// - 这种贪心策略能够保证得到最多的互不重叠活动。
+// - 时间复杂度主要取决于排序过程，为 O(n log n)。
+```
+
+---
+
 - **零钱兑换问题**：使用最少的硬币找零。
 
 **示例**：找零钱问题

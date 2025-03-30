@@ -103,32 +103,63 @@ subject.notifyObservers('Hello, observers!');
 ```
 
 ### 3. **发布/订阅模式 (Publisher/Subscriber Pattern)**
-**示例**：实现简单的发布/订阅模式。
-```javascript
-class EventBus {
+下面是一个简单的发布订阅模式的实现示例。代码中定义了一个 PubSub 类，它包含了订阅、发布和取消订阅的方法。
+
+```js
+
+// - **subscribe(event, callback):** 为指定事件注册回调函数。
+// - **publish(event, data):** 当某个事件发生时，调用所有注册的回调函数，并传递数据。
+// - **unsubscribe(event, callback):** 将指定事件的回调函数移除，不再接收该事件的通知。
+// 定义一个简单的发布订阅类
+class PubSub {
   constructor() {
-    this.events = {};
+    // 用于保存事件对应的订阅者回调
+    this.subscribers = {};
   }
 
+  // 订阅事件
   subscribe(event, callback) {
-    if (!this.events[event]) {
-      this.events[event] = [];
+    if (!this.subscribers[event]) {
+      this.subscribers[event] = [];
     }
-    this.events[event].push(callback);
+    this.subscribers[event].push(callback);
   }
 
+  // 发布事件
   publish(event, data) {
-    if (this.events[event]) {
-      this.events[event].forEach(callback => callback(data));
-    }
+    if (!this.subscribers[event]) return;
+    // 遍历该事件所有订阅者的回调，并传入数据
+    this.subscribers[event].forEach(callback => callback(data));
+  }
+
+  // 取消订阅
+  unsubscribe(event, callback) {
+    if (!this.subscribers[event]) return;
+    this.subscribers[event] = this.subscribers[event].filter(cb => cb !== callback);
   }
 }
 
-const eventBus = new EventBus();
-eventBus.subscribe('message', (data) => console.log('Received message:', data));
+// 使用示例
+const pubsub = new PubSub();
 
-eventBus.publish('message', 'Hello, subscribers!');
+// 定义一个订阅者的回调函数
+function handler(data) {
+  console.log('Received:', data);
+}
+
+// 订阅 'myEvent' 事件
+pubsub.subscribe('myEvent', handler);
+
+// 发布 'myEvent' 事件，输出 "Received: Hello, PubSub!"
+pubsub.publish('myEvent', 'Hello, PubSub!');
+
+// 取消订阅 'myEvent' 事件
+pubsub.unsubscribe('myEvent', handler);
+
+// 再次发布 'myEvent' 事件，由于已取消订阅，不会输出任何内容
+pubsub.publish('myEvent', 'Hello again!');
 ```
+
 
 ### 4. **模块化模式 (Module Pattern)**
 **示例**：使用 ES6 模块化。
