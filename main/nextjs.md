@@ -1,6 +1,7 @@
 # Next.js 常见面试题
 
 ## [参考: Next.js 常用内容](./simple_nextjs.md)
+## [参考: Next.js 开发部署全过程](./deploy_nextjs.md)
 
 ## 1. **什么是 Next.js？其主要特点有哪些？**  
 Next.js 是一个基于 React 的前端框架，主要提供服务端渲染（SSR）和静态站点生成（SSG）的能力。其主要特点包括：
