@@ -1,5 +1,85 @@
 # Next.js 常用内容
 
+1. packge.json script命令解释
+next dev：启动开发服务器。
+next build：构建用于生产的应用程序。
+next start：启动生产服务器。
+next lint：运行 ESLint。
+
+2. 文件路由
+版本13以前: pages目录下的文件名即为路由路径。
+```txt
+pages/index.js => /
+pages/about.js => /about
+pages/posts/[id].js => /posts/:id
+
+```
+
+版本13以后: app目录下的文件名即为路由路径。
+```txt
+app/page.js => /
+app/about/page.js => /about
+app/posts/[id]/page.js => /posts/:id
+
+```
+
+3. 项目结构
+```text
+my-nextjs-app/
+├── .env                   // 环境变量文件（可有多个，如 .env.development、.env.production 等）
+├── .gitignore             // Git 忽略规则
+├── next.config.ts         // Next.js 配置文件,配置打包规则/国际化等
+├── next-env.d.ts          // ts声明文件
+├── tsconfig.json          // ts配置文件
+├── postcss.config.mjs     // postcss 配置文件
+├── package.json           // 项目依赖、脚本及元数据
+├── tsconfig.json          // TypeScript 配置（或 jsconfig.json，用于 JS 项目）
+├── public/                // 静态资源目录（图片、图标、字体、静态 HTML 等）
+│   ├── vercel.svg
+│   └── images/
+│       └── logo.png
+├── app/                   // App Router 路由目录（推荐，新项目使用）
+│   ├── layout.tsx          // 全局布局文件，所有页面都会继承
+│   ├── page.tsx            // 根页面，响应 "/"
+│   ├── globals.css        // 全局css
+│   ├── favicon.ico        // 网页图标
+│   ├── loading.tsx         // 全局加载状态页面（异步数据加载时显示）
+│   ├── error.tsx           // 全局错误处理页面
+│   ├── not-found.tsx       // 404 页面
+│   ├── dashboard/         // 嵌套路由示例
+│   │   ├── layout.tsx      // dashboard 专用布局，可嵌套全局布局
+│   │   └── page.tsx        // 响应 "/dashboard"
+│   ├── blog/              // 另一组路由示例
+│   │   ├── [id]/          // 动态路由文件夹，id 为动态参数
+│   │   │   └── page.tsx    // 响应 "/blog/xxx"
+│   │   └── page.tsx        // 响应 "/blog"
+│   └── api/               // App Router 内的 API 路由
+│       └── hello/         
+│           └── route.tsx   // 响应 "/api/hello" 的 API 端点
+├── pages/                 // Pages Router 路由目录（传统方式，可选，与 app/ 共存）
+│   ├── _app.js            // 自定义应用组件
+│   ├── _document.js       // 自定义 HTML 文档结构
+│   ├── index.js           // 首页，对应 "/"
+│   ├── about.js           // 关于页面，对应 "/about"
+│   └── api/               // API 路由目录（传统方式）
+│       └── hello.js       // 响应 "/api/hello"
+└── components/            // 公共组件目录，可按业务模块或功能分子目录
+    ├── layout/            // 布局组件，如 Header、Footer、Sidebar 等
+    │   ├── Header.jsx
+    │   └── Footer.jsx
+    ├── cards/             // 卡片、展示组件
+    │   └── CatCard.jsx
+    └── ui/                // 其他常用 UI 组件（按钮、输入框等）
+        └── Button.jsx
+
+```
+
+
+
+
+
+
+
 ## 1. 基础介绍
 
 **概念：**  

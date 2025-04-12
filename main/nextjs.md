@@ -31,8 +31,8 @@ Next.js 提供了以下几种数据获取方法：
 
 ## 4. **Next.js 的路由机制是如何实现的？**  
 Next.js 采用基于文件系统的路由机制。具体来说：
-- 任何放在 `pages` 目录下的 React 组件都会自动映射到对应的 URL 路径，如 `pages/index.js` 对应根路径 `/`；
-- 动态路由使用中括号表示，例如 `pages/posts/[id].js` 对应动态路由 `/posts/:id`；
+- 任何放在 `app` 目录下的 React 组件都会自动映射到对应的 URL 路径，如 `app/index.js` 对应根路径 `/`；
+- 动态路由使用中括号表示，例如 `app/posts/[id].js` 对应动态路由 `/posts/:id`；
 - 提供了 [Link](https://nextjs.org/docs/api-reference/next/link) 组件用于客户端路由导航，并支持自动预加载页面资源。
 
 ---
@@ -166,9 +166,171 @@ Next.js 利用内置的路由组件，在用户浏览当前页面时，会预先
 
 
 
+---
 
+1. **什么是 Next.js 15？**  
+    Next.js 15 是 Next.js 框架的最新版本，它基于 React 提供服务端渲染（SSR）、静态站点生成（SSG）以及全栈开发能力。新版重点在于大幅提升构建速度和开发体验，引入了全新的 Turbopack 编译器、改进的 React 编译器支持以及更智能的错误提示等。  
+   
 
+---
 
+2. **Next.js 15 相较于之前版本有哪些主要改进？**  
+    主要改进包括：
+  - **Turbopack：** 用于替代 Webpack，实现高达 700 倍的构建速度提升。
+  - **全新 React 编译器：** 能够更好地理解 React 代码，自动进行记忆化优化，从而减少手动优化需求。
+  - **更友好的错误提示：** 在开发过程中提供智能错误修复建议，帮助开发者更快定位问题。
+  - **新的缓存与预渲染策略：** 更新了对 fetch 请求默认缓存行为，并引入了部分预渲染（PPR）等特性。  
+    
 
+---
 
+3. **Turbopack 编译器的原理和优势是什么？**  
+    Turbopack 是一款极其高效的打包器，它利用 Rust 语言编写，在构建过程中采用增量编译和并行处理技术，极大减少了文件解析和打包时间。相比传统的 Webpack，Turbopack 能够提升构建速度、减少资源消耗，从而加快开发周期和 CI/CD 部署效率。  
+   
 
+---
+
+4. **Next.js 15 中如何实现服务器端渲染（SSR）？**  
+    Next.js 内置对 SSR 的支持。通过在页面组件中使用 `getServerSideProps` 方法，开发者可以在每次请求时在服务器上获取数据并返回预渲染后的页面。这使得页面在首次加载时即呈现完整的 HTML 内容，有助于 SEO 和首屏加载速度。  
+   
+
+---
+
+5. **静态站点生成（SSG）在 Next.js 15 中的实现原理和应用场景有哪些？**  
+    SSG 在构建时生成静态 HTML 文件。开发者通过在页面中使用 `getStaticProps`（以及动态页面结合 `getStaticPaths`）来预先获取数据并生成页面。适用于内容更新不频繁、对性能和 SEO 要求较高的网站，如博客、文档站点等。  
+   
+
+---
+
+6. **什么是增量静态再生（ISR），如何在 Next.js 15 中配置使用？**  
+    ISR 允许在构建后对部分页面进行更新，而不必重新构建整个站点。通过在 `getStaticProps` 返回对象中设置 `revalidate` 字段（单位为秒），Next.js 会在后台重新生成页面，从而确保页面数据保持最新，同时享受静态文件的高性能。  
+   
+
+---
+
+7. **Next.js 15 中 getStaticProps、getStaticPaths 与 getServerSideProps 有什么区别？**  
+   
+  - **getStaticProps：** 在构建时运行，用于生成静态页面，适用于不频繁更新的内容。
+  - **getStaticPaths：** 用于动态路由页面，预先生成所有可能的静态路径，配合 getStaticProps 使用。
+  - **getServerSideProps：** 每次请求时在服务器端运行，适用于需要实时数据的页面。  
+    各自的选择依据页面数据更新频率和实时性要求。  
+    
+
+---
+
+8. **部分预渲染（Partial Prerendering, PPR）的概念及其优势是什么？**  
+    PPR 是一种混合渲染策略，它允许页面的一部分在构建时静态生成，而另一部分则在运行时动态渲染。这样可以在不牺牲首屏加载速度的前提下，使页面内容保持最新，并优化用户体验。  
+   
+
+---
+
+9. **Next.js 15 对 fetch 请求的默认缓存行为发生了哪些变化？**  
+    在 Next.js 15 中，默认情况下不再自动缓存以下内容：
+  - fetch() 请求
+  - 路由处理程序（如 GET、POST 等）
+  - `<Link>` 客户端导航相关数据  
+    如果需要缓存 fetch 请求，开发者可以在 next.config.js 中通过配置相关选项重新启用缓存。  
+    
+
+---
+
+10. **如何在 Next.js 15 中使用 next/after 实现任务分离？**  
+     next/after 是 Next.js 15 引入的一项功能，用于分离每个服务器请求中的必要任务（如身份验证、数据库操作）和非必要任务（如日志记录、分析）。通过在服务器端代码中调用 experimental.after，可以将这些任务分离开来，保证响应尽快返回，同时异步处理非必要任务。  
+    
+
+---
+
+11. **如何实现动态路由？请举例说明在 Next.js 15 中如何设置和提取动态路径参数。**  
+     Next.js 基于文件系统的路由设计支持动态路由。举例：在 pages 目录下创建文件 `[id].jsx`，该文件中可以通过 `useRouter` 钩子或在 `getStaticProps`／`getServerSideProps` 的 context 参数中获取动态参数（如 id）。例如：
+    ```jsx
+    // pages/[id].jsx
+    import { useRouter } from 'next/router';
+    export default function Post() {
+      const { query: { id } } = useRouter();
+      return <div>当前文章 ID: {id}</div>;
+    }
+    ```
+    
+
+---
+
+12. **Next.js 15 如何实现自动代码拆分和按需加载？**  
+     Next.js 内部利用基于路由和组件的分割技术，自动将代码分割成多个块。只有当用户导航到某个页面时，相关代码才会被加载，这降低了初始加载体积并提升了页面性能。开发者无需手动配置，框架会自动完成这一过程。  
+    
+
+---
+
+13. **Next.js 15 如何处理水合（Hydration）问题以及优化客户端与服务端数据一致性？**  
+     水合指的是客户端接管服务端预渲染的 HTML 并使其变得可交互的过程。Next.js 15 优化了水合过程，通过严格要求数据在服务端与客户端保持一致，同时支持 Suspense 和并发模式，减少水合不一致问题。开发者需确保传递给组件的数据在服务端和客户端完全相同，避免在客户端使用会导致不一致的逻辑（如使用浏览器 API）。  
+    
+
+---
+
+14. **如何在 Next.js 15 中使用 API Routes 构建无服务器函数？**  
+     在 Next.js 中，API Routes 允许你在 pages/api 目录下创建处理 HTTP 请求的函数。这些函数作为无服务器（serverless）函数运行，可以处理数据存取、身份验证等后端逻辑。举例：
+    ```js
+    // pages/api/hello.js
+    export default function handler(req, res) {
+      res.status(200).json({ message: 'Hello, Next.js 15!' });
+    }
+    ```
+    
+
+---
+
+15. **Next.js 15 如何支持最新的 React 19 特性？**  
+     Next.js 15 通过升级内置的 React 编译器来支持 React 19 的新特性，例如客户端与服务器端 Actions 以及自动记忆化优化。新版 React 编译器能更智能地处理组件状态与更新，从而减少不必要的重新渲染，同时提供更清晰的错误提示。  
+    
+
+---
+
+16. **如何在 Next.js 15 中管理全局样式和 CSS 模块？**  
+     Next.js 支持多种 CSS 解决方案：
+  - **全局样式：** 在 pages/_app.js 中引入全局 CSS 文件。
+  - **CSS 模块：** 对于局部组件样式，可以使用 .module.css 文件，通过自动生成的唯一类名来防止样式冲突。  
+    同时 Next.js 15 也支持内置的 Sass、Less 等预处理器。  
+    
+
+---
+
+17. **如何配置环境变量和自定义 Next.js 配置（next.config.js）？**  
+     通过在项目根目录下创建 next.config.js 文件，开发者可以自定义配置项，如设置自定义缓存策略、启用 experimental 特性或配置环境变量。环境变量可以通过 .env 文件管理，并在 next.config.js 中使用 process.env 来读取。
+    ```js
+    // next.config.js
+    module.exports = {
+      env: {
+        CUSTOM_API_URL: process.env.CUSTOM_API_URL,
+      },
+      experimental: {
+        turboMode: true,
+      },
+    };
+    ```
+    
+
+---
+
+18. **Next.js 15 如何与第三方数据源（如外部 API 或数据库）进行无缝集成？**  
+     通过使用 `getServerSideProps` 或 `getStaticProps`，Next.js 能够在服务器端调用外部 API 或数据库查询，将获取的数据作为 props 传递给页面组件。这种方式确保数据在页面渲染前就准备好，同时也可以结合 ISR 进行定时更新。  
+    
+
+---
+
+19. **在 Next.js 15 项目中，如何实现 SEO 优化？**  
+     SEO 优化主要通过以下手段实现：
+  - **预渲染：** 利用 SSR 或 SSG 生成完整 HTML 页面，确保搜索引擎能正确抓取内容。
+  - **动态 head 配置：** 使用 Next.js 内置的 Head 组件动态设置页面标题、描述、关键词等元数据。
+  - **优化链接结构和站点地图：** 提供清晰的 URL 路径和 sitemap.xml 文件。  
+    这些措施综合提升了页面在搜索引擎中的可见性。  
+    
+
+---
+
+20. **如何将 Next.js 15 应用部署到 Vercel 或其他云平台，并利用新命令（如 npx create-next-app@rc）快速启动项目？**  
+     Vercel 是 Next.js 官方推荐的部署平台，部署流程非常简单：
+  - 利用 `npx create-next-app@rc` 命令创建项目，新项目自动配置 Turbopack 等最新特性。
+  - 将项目推送到 GitHub 后，登录 Vercel 并导入仓库，平台会自动构建和部署项目。
+  - Vercel 还支持自定义域名、环境变量配置等高级功能，方便后续维护。  
+    
+
+---
