@@ -370,8 +370,8 @@ doSomething();
 7.  Webpack开启gzip压缩
 8.  如果首屏为登录页，可以做成多入口
 9.  图片懒加载减少占用网络带宽
-10.  页面使用骨架屏
-11.  利用好script标签的async和defer这两个属性。功能独立且不要求马上执行的js文件，可以加入async属性。如果是优先级低且没有依赖的js，可以加入defer属性。
+10. 页面使用骨架屏
+11. 利用好script标签的async和defer这两个属性。功能独立且不要求马上执行的js文件，可以加入async属性。如果是优先级低且没有依赖的js，可以加入defer属性。
 
 可利用`performance.timing`看各个步骤的耗时： 白屏时间：`performance.timing.responseStart - performance.timing.navigationStart` 
 ![](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ee27102c283c42e1b294a23200b2c003~tplv-k3u1fbpfcp-jj-mark:3024:0:0:0:q75.awebp)
