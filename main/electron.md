@@ -65,6 +65,8 @@ fs.readFile('/etc/passwd') // ❌
 * 所有 channel 集中管理
 * Renderer 不能随意发消息
 
+### 注意: preload中的windows与渲染层(页面)的windows并不相关
+
 ---
 
 ## 三、IPC 通信模型（3 种）
