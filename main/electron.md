@@ -65,7 +65,9 @@ fs.readFile('/etc/passwd') // ❌
 * 所有 channel 集中管理
 * Renderer 不能随意发消息
 
-### 注意: preload中的windows与渲染层(页面)的windows并不相关
+### 注意: 
+> 1. preload中的windows与渲染层(页面)的windows并不相关
+> 2. ipc不能传递 DOM / 自定义Class / electron原生API / 函数function 这几类对象
 
 ---
 
