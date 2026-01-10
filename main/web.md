@@ -128,7 +128,50 @@ js
 
 ### 从输入URL到浏览器显示页面过程中都发生了什么
 
-+   [从输入URL到浏览器显示页面过程中都发生了什么](url.md)
+**1. URL 解析**
+
+URL 组成：`协议://域名:端口/路径?参数#锚点`
+```
+http://www.example.com:8080/path/index.html?id=123&page=1#section
+```
+
+**2. DNS 解析**
+
+查找顺序：浏览器缓存 → 系统缓存 → 路由器缓存 → ISP DNS → 递归查询
+
+**3. 检查缓存**
+- **强缓存**：`Cache-Control`、`Expires` → 命中返回 200 (from cache)
+- **协商缓存**：`ETag`/`If-None-Match`、`Last-Modified`/`If-Modified-Since` → 命中返回 304
+
+**4. TCP 三次握手建立连接**
+1. 客户端发送 SYN
+2. 服务器返回 SYN+ACK
+3. 客户端发送 ACK，连接建立
+
+**5. HTTPS 加密（如果是 HTTPS）**
+- 验证 CA 证书
+- 协商加密算法，交换密钥
+- 使用对称加密传输数据
+
+**6. 发送 HTTP 请求**
+- 组装请求报文（请求行、请求头、请求体）
+- 可能经过 CDN、负载均衡
+
+**7. 服务器响应**
+- 解析请求，处理业务逻辑
+- 返回 HTML、CSS、JS 等资源
+
+**8. 浏览器解析渲染**
+- 解析 HTML → DOM 树
+- 解析 CSS → CSSOM 树
+- 合并 → Render 树
+- Layout（布局）→ Paint（绘制）→ Composite（合成）
+
+**9. 执行 JavaScript**
+- 遇到 `<script>` 阻塞解析（除非 async/defer）
+- 可能触发 DOM 操作、网络请求
+
+**10. TCP 四次挥手断开连接**
 
 ### 模块化的理解
 

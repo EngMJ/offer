@@ -1,11 +1,5 @@
 # Vue 面试题
 
-## [Vue 2.x API参考](vue2.md)
-
-## [vue 3.x API参考](vue3.md)
-
-* * *
-
 ## 1. MVVM架构 & 渐进式框架
 Vue 的 MVVM 架构代表 Model-View-ViewModel，它是一种分离关注点的设计模式，当` Model（数据层）`修改时会通知` ViewModel（视图模型层)`修改 `View（视图层）`,反之亦然。
 
@@ -14,28 +8,6 @@ Vue 的 MVVM 架构代表 Model-View-ViewModel，它是一种分离关注点的�
 Vue 的“渐进式框架”设计理念：可以根据项目的实际需要，逐步引入 Vue 的功能，而不必一次性改变整个项目架构,使用vue生态的全部功能。
 
 ## 2. Vue实例挂载的过程中发生了什么?
-
-
-### vue2 挂载过程
-1. 调用 `new Vue(options)` 创建一个 Vue 实例，并传入选项对象（例如 `data`、`methods`、`computed` 等）,在内部初始化一些实例属性($set\$mount等)。
-
-2. 调用 `beforeCreate` 生命周期钩子
-
-3. 初始化 `data`、`props`、`computed`、`methods` 等选项,通过 `Object.defineProperty` 为每个 `data` 属性设置 getter(依赖收集) 和 setter，以实现响应式系统.
-
-4. 调用 `created` 生命周期钩子
-
-5. 检查是否有 `el` 或 `$mount` 挂载点,将实例挂载指定的DOM元素上.
-
-6. 模板编译,将 `template` 内容转换为渲染函数（`render` 函数）,没有 `template`会将 `el` 元素的 HTML 作为模板转化为渲染函数,最终渲染到DOM上。
-
-7. 调用 `beforeMount` 生命周期钩子
-
-8. 创建 Watcher 追踪渲染函数中数据的变化, 并触发 Watcher 执行渲染函数生成虚拟 DOM 树,首次渲染页面。
-
-9. 调用 `mounted` 生命周期钩子
-
-10. 当 `data` 中的属性变化时，会触发响应式系统,触发 Watcher 重新执行渲染函数，生成新的虚拟 DOM 并将其与旧的虚拟 DOM 进行对比（diff 算法），将变化的部分渲染到页面。
 
 ### Vue 3 挂载过程
 
@@ -52,7 +24,7 @@ Vue 的“渐进式框架”设计理念：可以根据项目的实际需要，�
 
 5. 组件挂载前会触发 `beforeMount` 生命周期钩子，此时虚拟 DOM 已经准备好，但还未插入到实际 DOM 中.
 
-6. 在挂载过程中会创建一个渲染 `effect`，类似于 Vue 2 的渲染 Watcher，追踪组件的响应式数据,每次响应式数据发生变化时，`effect` 会重新执行，生成新的虚拟 DOM。
+6. 创建渲染 `effect` 追踪组件的响应式数据，每次响应式数据变化时，`effect` 会重新执行，生成新的虚拟 DOM。
 
 7. `mounted` 生命周期钩子在组件挂载完成后触发，此时组件的 DOM 已经插入到页面中。
 
@@ -97,9 +69,7 @@ Vue 的“渐进式框架”设计理念：可以根据项目的实际需要，�
 
 + 生命周期中的数据请求
 
-    vue2中适合在created中请求,更早调用. 在mounted中请求可能会造成页面闪动.
-
-    vue3中在setup中直接请求,因为这个调用在所有生命周期之前.
+    Vue 3 推荐在 setup 中直接请求，因为 setup 在所有生命周期之前调用。
 
 + setup中为什么没有beforeCreate和created？
 
@@ -109,28 +79,12 @@ Vue 的“渐进式框架”设计理念：可以根据项目的实际需要，�
 
 ## 4. 说一下 Vue 子组件和父组件创建和挂载顺序
 
-创建先父后子，挂载先子后父
+**原则**：创建先父后子，挂载先子后父
 
-### Vue 2 中，父子组件的生命周期顺序：
-    父组件的 beforeCreate
-    父组件的 created
-    父组件的 beforeMount
-    子组件的 beforeCreate
-    子组件的 created
-    子组件的 beforeMount
-    子组件的 mounted
-    父组件的 mounted
-
-###  Vue 3 中，父子组件的生命周期顺序：
-
-    父组件的 beforeCreate
-    父组件的 created
-    子组件的 beforeCreate
-    子组件的 created
-    子组件的 beforeMount
-    子组件的 mounted
-    父组件的 beforeMount
-    父组件的 mounted
+**Vue 3 生命周期顺序**：
+```
+父 setup → 父 beforeMount → 子 setup → 子 beforeMount → 子 mounted → 父 mounted
+```
 
 
 * * *
@@ -142,11 +96,18 @@ Vue 的“渐进式框架”设计理念：可以根据项目的实际需要，�
 
 * * *
 
-## 6. Vue组件为什么只能有一个根元素?
+## 6. Vue 3 多根元素组件
 
-+   `vue2`组件只能有一个根元素，但`vue3`可以多根元素
-+   组件模板会转化为`vdom`,而虚拟DOM是一颗单根树形结构，且`patch`方法在遍历的时候从根节点开始遍历。
-+   `vue3`可写多个根节点，编译时自动使用`Fragment`虚拟节点进行包裹，把多个根节点作为它的children,进行patch时直接遍历children创建或更新。
+Vue 3 支持多根元素组件，编译时自动使用 `Fragment` 虚拟节点进行包裹，把多个根节点作为其 children，patch 时直接遍历 children 创建或更新。
+
+```vue
+<!-- Vue 3 多根元素 -->
+<template>
+  <header>Header</header>
+  <main>Content</main>
+  <footer>Footer</footer>
+</template>
+```
 
 * * *
 
@@ -349,15 +310,6 @@ const AsyncComp = defineAsyncComponent(() =>
 )
 ```
 
-```vue
-// vue2 使用异步组件
-export default {
-  components: {
-    MyAsyncComponent: () => import('./components/MyAsyncComponent.vue')
-  },
-}
-```
-
 * * *
 
 ## 13. 组件与插件的区别
@@ -396,11 +348,9 @@ export default {
     
     **更新真实 DOM**：Vue 将补丁应用到真实 DOM 中，完成页面更新。
 
-+ Vue 2 与 Vue 3 的虚拟 DOM 差异
++ Vue 3 虚拟 DOM 优化
 
-    **Vue 2**：基于 `Snabbdom` 库实现的虚拟 DOM，提供了基础的 Diff 算法。
-    
-    **Vue 3**：Vue 3 的虚拟 DOM 和 Diff 算法经过重新设计，更加高效、灵活。Vue 3 的编译器会在生成虚拟 DOM 时加入 **静态标记**，可以跳过不变的节点，从而减少 Diff 计算，提高渲染性能。
+    Vue 3 的编译器会在生成虚拟 DOM 时加入 **静态标记**，跳过不变的节点，减少 Diff 计算，显著提高渲染性能。
 
 + 虚拟 DOM 示例
 
@@ -434,55 +384,9 @@ const newVNode = {
 
 * * *
 
-### 1. Vue1.x 无diff算法应用
-vue 1.x视图中每个依赖均有更新函数对应，可以做到精准更新，因此并不需要虚拟DOM和patching算法支持.粒度过细导致Vue1.x无法承载较大应用.
-Vue 2 降低Watcher粒度，每个组件只有一个Watcher与之对应，使用patching算法精确寻找变化部分并更新。
+### **Vue 3 的 diff 算法**
 
-### 2. **Vue 2 的 diff 算法**
-基于 [Snabbdom](https://github.com/snabbdom/snabbdom) 的虚拟 DOM 实现，时间复杂度在有key时是O(n),极端情况(乱序情况严重、缺少 key 支持时)是O(n^2).
-
-**特点:**
-1. 同层比较：只比较同一层的节点，避免了跨层级的暴力遍历（理论上全树比较的复杂度为 O(n³)）。
-2. 深度优先遍历: Vue 2 在比较虚拟 DOM 树时采用深度优先递归遍历的方式。
-3. 子节点双端指针策略：从两端同时向中间收拢，可以快速匹配未移动的节点，减少不必要的遍历。
-4. 编译阶段静态节点标记: Vue 2 的静态节点只在模板编译阶段进行标记优化，运行时仍然可能重复渲染。
-5. 依赖 Watcher: Vue 2 的响应式系统基于 `Dep` 和 `Watcher`,每个组件、每个数据都有独立的watcher，会增加性能开销。
-
-
-#### Vue 2 的 Diff 过程
-[参考: vue2 Diff](./vue2_diff.md)
-
-1. **组件更新触发**  
-   数据变化 → 组件重新调用 render → 生成新 VNode 树
-
-2. **进入 patch 流程**  
-   patch(oldVnode, vnode)：
-    - 判断是否为同一节点
-    - 若不同则直接替换；若相同则进入 patchVnode
-
-3. **节点更新（patchVnode）**
-    - 复用旧 DOM（vnode.el 指向旧节点的 DOM）
-    - 文本节点：直接比较文本不同则更新文本
-    - 属性：遍历新旧 VNode 的 data 对象，更新不同的属性
-    - 子节点：
-        - 若为文本与数组的情况，优先处理文本；
-        - 若均为数组，则调用 updateChildren 进行 diff
-
-4. **子节点 diff（updateChildren）**
-    - 初始化头尾指针（oldStartIdx、oldEndIdx、newStartIdx、newEndIdx）
-    - 依次进行四种双端对比（头对头、尾对尾、头对尾、尾对头）,匹配相同节点
-    - 当四种策略都不匹配时,进行乱序查找，通过对旧 children 数组中未处理部分建立 key 映射表,通过 key 匹配新 children 中的key
-    - 对匹配的节点调用 patchVnode 更新，并移动 DOM 位置
-    - 遍历结束后，旧节点剩余未处理节点则删除，新节点剩余未处理节点则新增插入
-
-5. **最终 DOM 更新**  
-   经过以上流程，最终真实 DOM 中仅发生了必要的节点更新、移动、插入与删除，从而达到最小化 DOM 操作的目的。
-
-### 3. **Vue 3 的 diff 算法**
-
-自研虚拟DOM的Diff算法, diff 过程利用头尾双端对比加上中间部分的 key 查找与 LIS 优化，时间复杂度大部分为 O(n).
-
-**基于vue2特点上,进行的优化:**
+自研虚拟DOM的Diff算法，时间复杂度 O(n)，主要优化：
 
 1. 静态提升: Vue 3 会在编译阶段将模板中的静态内容标记为静态节点，并直接提升为常量,静态节点在 diff 阶段被完全跳过
 ```html
@@ -526,13 +430,11 @@ div (block root)
 
 4. 优化双端对比,使用最长递增子序列(LIS)算法：确定哪些旧节点已处于正确顺序，从而减少移动操作.
 
-5. 响应式系统使用`Proxy`动态追踪依赖，避免了 Vue 2 中的 `Watcher` 过多问题
+5. 响应式系统使用 `Proxy` 动态追踪依赖，性能更优
 
 ---
 
 #### Vue 3 的 Diff 过程
-
-[参考: vue3_diff](./vue3_diff.md)
 
 1. **组件层面**
     - 数据变化触发组件重新渲染。
@@ -560,53 +462,7 @@ div (block root)
 
 ## 16. 能说一说双向绑定使用和原理吗？
 
-### **1. Vue2 双向绑定**
-
-**使用方式:**
-
-```html
-// 默认使用
-// v-model是语法糖，默认情况下相当于`:value`和`@input`。
-<input v-model="message">
-
-// 自定义使用
-Vue.component('my-checkbox', {
-    model: {
-        prop: 'checked',  // 将 ':value' 改为 ':checked'
-        event: 'change'   // 将 '@input' 改为 '@change'
-    },
-    props: {
-        checked: Boolean
-    },
-    template: `
-        <input type="checkbox" :checked="checked" @change="$emit('change', $event.target.checked)">
-    `
-});
-    
-    // 使用
- <my-checkbox v-model="isChecked"></my-checkbox>
-    
- new Vue({
-     el: '#app',
-     data: {
-         isChecked: false
-     }
-});
-
-```
-
-**底层原理**
-
-Vue2 中的双向绑定是基于 **Object.defineProperty** 实现的。Vue2 通过`递归遍历data对象`的每一个属性，利用 `Object.defineProperty` 把每个属性转化为 getter 和 setter，从而实现数据的响应式。
-
-- **getter**：用于收集依赖（即订阅者，通常是依赖该数据的组件或视图）。
-- **setter**：在数据变更时触发更新，通知所有订阅者进行视图更新。
-
-Vue2 响应式的局限：
-- 由于 `Object.defineProperty` 只能劫持对象的属性，因此对于新增的属性或数组的变化（如新增元素）无法自动检测到，必须通过 `Vue.set()` 或 `this.$set()` 手动添加响应式。
-
-
-### 2. **Vue3 双向绑定**
+### **Vue 3 双向绑定**
 
 **使用方式:**
 
@@ -678,65 +534,20 @@ Vue2 响应式的局限：
 
 **底层原理**
 
-Vue3 的响应式系统是基于 **Proxy** 实现的。与 Vue2 不同，Vue3 不再需要递归地遍历对象的每个属性，而是`通过 Proxy 对整个data/ref/reactive进行拦截`，这样可以实现对对象新增属性和数组变化的自动响应式支持。
+Vue 3 的响应式系统基于 **Proxy** 实现，通过 Proxy 对整个 data/ref/reactive 进行拦截，可以实现对对象新增属性和数组变化的自动响应式支持。
 
-- **Proxy** 拦截对对象的访问（如读取、修改、删除等），并相应地处理依赖收集和更新。
-- 相比于 Vue2 的 `Object.defineProperty`，`Proxy` 提供了更强大的功能，可以直接监听对象的结构变化（如新增属性或删除属性），从而更高效地实现双向绑定和响应式系统。
+- **Proxy** 拦截对对象的访问（如读取、修改、删除等），并相应地处理依赖收集和更新
+- 可以直接监听对象的结构变化（新增/删除属性），更高效地实现双向绑定
 
-
-### **`v-model`和`sync`修饰符有什么区别:**
-1. 绑定的属性
-- `v-model` 默认绑定的是 `value` 属性（Vue2）或 `modelValue` 属性（Vue3），并监听 `input` 事件或 `update:modelValue` 事件。
-- `sync` 修饰符可以绑定任何属性，`prop` 名可以是任意的，不限于 `value` 或 `modelValue`。
-
-```js
-    // vue2 sync修饰符的使用方法:
-    // 不使用修饰符的原版
-    <text-document
-        v-bind:title="doc.title"
-        v-on:update:title="doc.title = $event"
-    ></text-document>
-    // 使用sync修饰符
-    <text-document v-bind:title.sync="doc.title"></text-document>
-```
-
-2. 绑定的事件
-- `v-model` 默认监听 `input` 事件（Vue2）或 `update:modelValue` 事件（Vue3）。
-- `sync` 修饰符会监听 `update:propName` 事件，`propName` 是自定义的属性名。
-
-3. 使用场景
-- `v-model` 适用于单一的双向绑定，通常用于输入框等需要绑定 `value` 的组件。
-- `sync` 适用于对多个 `prop` 进行双向绑定，特别是需要同时绑定多个属性时。
-
-4. Vue3 中 `sync` 的变化
-- 在 Vue3 中，`sync` 修饰符已被移除，但可以通过手动绑定 `update:propName` 的方式来实现类似的功能。
+> 注：Vue 3 中 `sync` 修饰符已被移除，改为使用 `v-model:propName` 语法实现多属性绑定。
 
 * * *
 
 ## 17. 说一说你对vue响应式理解？
 
-响应式系统是 Vue 框架的核心特性，实现数据驱动的视图更新.
+响应式系统是 Vue 框架的核心特性，实现数据驱动的视图更新。
 
-### **一、Vue 2 的响应式**
-
-1. **数据初始化**：
-    - 在组件初始化时，Vue 会深度优先遍历 `data` 对象的所有属性，通过 `Object.defineProperty` 为其设置 `getter` 和 `setter`。
-2. **依赖追踪**：
-    - 当模板中使用数据时，Vue 会触发 `getter`，将对应的组件 `Watcher` 添加到依赖中。
-3. **响应更新**：
-    - 当数据变化时，触发 `setter`，通知 `Watcher` 重新执行更新操作。
-
-**缺点：**
-- **无法监听属性新增或删除**：
-  Vue 2 无法通过 `Object.defineProperty` 监听对象新增/删除的属性，只能使用 `Vue.set()` / `Vue.delete()`手动添加响应式。
-- **数组监听的局限性**：
-  Vue 2 无法直接监听数组的索引变化或长度变化，需要通过特定的方法（如 `splice`）触发视图更新。
-- **性能问题**：
-  数据初始化时需要递归劫持整个对象，深层嵌套对象性能较低。
-
----
-
-### **二、Vue 3 的响应式**
+### **Vue 3 的响应式**
 
 1. **代理对象**：
     - Vue 3 使用 `reactive` 或 `ref` 包装响应式数据，返回一个`Proxy`对象。
@@ -753,26 +564,23 @@ Vue3 的响应式系统是基于 **Proxy** 实现的。与 Vue2 不同，Vue3 �
 
 ---
 
-### **三、Vue 2 与 Vue 3 响应式对比**
+### **响应式原理对比**
 
-| **特性**                    | **Vue 2**                                     | **Vue 3**                                   |
-|-----------------------------|-----------------------------------------------|---------------------------------------------|
-| **实现方式**                | `Object.defineProperty`                      | `Proxy`                                     |
-| **深层对象监听**            | 递归遍历，每个属性单独劫持                   | 自动追踪，动态监听深层对象                 |
-| **动态属性监听**            | 不支持（需手动使用 `Vue.set`）               | 支持，动态属性自动响应式                   |
-| **数组监听**                | 需要特殊方法（如 `splice`）触发更新          | 原生支持索引和长度变化                     |
-| **性能**                    | 初始化时递归遍历，性能较低                   | 代理整个对象，性能更高                     |
-| **灵活性**                  | 固定属性劫持，动态性较差                     | 灵活代理，动态性更强                       |
-| **兼容性**      | 支持 IE9 及以上                              | 不支持 IE，需现代浏览器支持             |
-| **代码复杂度**              | 较高，需手动递归处理深层嵌套                 | 较低，统一通过 `Proxy` 实现                |
+| **特性**         | **Vue 3 (Proxy)**                    |
+|------------------|--------------------------------------|
+| **实现方式**     | 使用 `Proxy` 代理整个对象           |
+| **深层监听**     | 自动追踪，动态监听                   |
+| **动态属性**     | 自动响应式，无需手动处理             |
+| **数组监听**     | 原生支持索引和长度变化               |
+| **性能**         | 代理整个对象，性能更优               |
+| **兼容性**       | 不支持 IE，需现代浏览器              |
 
 
 * * *
 
 ## 18. 动态给vue的data添加一个新的属性时会发生什么？
-1. vue2 中data直接添加新属性并不会又任何反应,因为使用`Object.defineProperty`的响应式机制,不会动态监听数据. 许使用`Vue.set()`/`Object.assign()`/`$forcecUpdated()` 等API触发页面更新.
 
-2. vue3 中data直接添加新属性,因其使用`proxy`响应式机制,会自动更新页面.
+Vue 3 使用 `Proxy` 响应式机制，动态添加新属性会自动触发更新，无需额外 API。
 
 * * *
 
@@ -785,58 +593,19 @@ Vue3 的响应式系统是基于 **Proxy** 实现的。与 Vue2 不同，Vue3 �
 
 * * *
 
-## 20. Vue.observable你有了解过吗？说说看
+## 20. Vue 3 的 reactive
 
-`observable` API 提供了创建响应式对象的功能，用于实现响应式数据绑定。
+Vue 3 使用 **`reactive`** 创建响应式对象（替代 Vue 2 的 `Vue.observable`）。
 
----
-
-### **一、Vue 2 的 `observable`**
-Vue 2.6+ 引入的 API，用于创建一个可观察的响应式对象，主要用于共享状态管理（类似 Vuex 的轻量实现）。
-
-**1. 使用方式**
-```javascript
-// 创建响应式对象
-const state = Vue.observable({
-  count: 0,
-});
-
-// 修改数据时会触发响应
-state.count++;
-console.log(state.count); // 1
-
-// 在组件中使用
-Vue.component("counter", {
-  template: `<button @click="state.count++">{{ state.count }}</button>`,
-  data() {
-    return { state };
-  },
-});
-```
-
-**2. 缺陷**
-- 不支持对对象属性的动态添加或删除，需使用 `Vue.set()`。
-- 数组的索引或长度变化需要通过特定方法触发更新。
-- 依赖 Vue 2 的响应式机制，性能和灵活性有限。
-
----
-
-### **二、Vue 3 的 `reactive` (替代 `observable`)**
-
-在 Vue 3 中`observable` 不再被推荐使用，使用基于`proxy`的 **`reactive`** 取代。
-
-**1. 使用方式**
 ```javascript
 import { reactive } from "vue";
 
-// 创建响应式对象
 const state = reactive({
   count: 0,
 });
 
 // 修改数据时会触发响应
 state.count++;
-console.log(state.count); // 1
 
 // 在组件中使用
 export default {
@@ -847,19 +616,14 @@ export default {
 };
 ```
 
-**2. 优点**
-- **基于 Proxy**：
-    - 动态监听对象属性的添加、删除和嵌套对象的变化。
-    - 监听数组索引和长度的变化。
-- **适用场景**：
-    - 组件内部状态管理。
-    - 跨组件的全局状态共享（与 `provide/inject` 或第三方库结合）。
+**优点**：
+- 动态监听对象属性的添加、删除和嵌套对象的变化
+- 原生监听数组索引和长度的变化
+- 适用于组件状态管理和跨组件共享
 
 * * *
 
 ## 21. v-show 与 v-if 的区别
-
-在 Vue 2 和 Vue 3 中，`v-show` 和 `v-if` 是控制元素显示与隐藏的两个常用指令。两者在作用、性能以及使用场景上有显著的区别。这些特性在 Vue 2 和 Vue 3 中保持一致。以下是两者的具体对比：
 
 ---
 
@@ -879,117 +643,39 @@ export default {
 
 ## 22. v-if和v-for哪个优先级更高？
 
-元素同时使用两个指令,vue2版本中v-for优先于v-if执行.vue3中则是v-if先与v-for执行.
+**Vue 3 中 `v-if` 优先于 `v-for` 执行。**
 
-1. **vue2 使用该错误用法**
+**注意**: 不推荐同时在同一元素上使用两者，会引发判断错误（`v-if` 执行时 `v-for` 变量尚未定义）。
 
-先执行v-for后执行v-if, 造成极大的`性能浪费`.
+**正确做法：**
+- 使用计算属性或提前过滤数据
+- 将两个指令放在不同元素（`v-for` 在外层 `<template>`）
 
-2. **vue3 使用该错误用法**
+```vue
+<!-- 推荐 -->
+<template v-for="item in items" :key="item.id">
+  <div v-if="item.visible">{{ item.name }}</div>
+</template>
 
-先执行v-if后执行v-for, 可能引发if中的`判断错误`因为此时v-for所定义的变量并未生成.
-
-3. **处理方法：**
-
-    +   使用计算属性或提前过滤数据
-
-    +   将两个指令不要放在同一元素
-
-4. **问题原因:** vue源码判断循序造成的，vue2 判断中el.for快于el.if,vue3正好相反.
-
-```js
-// vue 2x 代码示例
-// \vue-dev\src\compiler\codegen\index.js
-export function genElement (el: ASTElement, state: CodegenState): string {
-    if (el.parent) {
-        el.pre = el.pre || el.parent.pre
-    }
-    if (el.staticRoot && !el.staticProcessed) {
-        return genStatic(el, state)
-    } else if (el.once && !el.onceProcessed) {
-        return genOnce(el, state)
-    } else if (el.for && !el.forProcessed) {
-        return genFor(el, state)
-    } else if (el.if && !el.ifProcessed) {
-        return genIf(el, state)
-    } else if (el.tag === 'template' && !el.slotTarget && !state.pre) {
-        return genChildren(el, state) || 'void 0'
-    } else if (el.tag === 'slot') {
-        return genSlot(el, state)
-    } else {
-        // component or element
-    }
-}
+<!-- 或使用计算属性 -->
+<div v-for="item in visibleItems" :key="item.id">{{ item.name }}</div>
 ```
-
 
 * * *
 
 ## 23. v-once/v-memo的使用场景有哪些？
 
-| 特性             | **`v-once`**      | **`v-memo`**                              |
-|------------------|-------------------|------------------------------------------|
-| **功能**         | 一次性渲染，永不更新        | 按依赖项缓存，依赖变化时重新渲染          |
-| **更新条件**     | 不会更新              | 依赖项变化时重新渲染                     |
-| **适用场景**     | 完全静态的内容(版权/固定文本等) | 复杂逻辑、条件性更新                      |
-| **性能优化**     | 初次渲染后跳过后续的依赖跟踪    | 根据依赖项避免不必要的渲染               |
-| **支持的 Vue 版本** | Vue 2 和 Vue 3     | Vue 3                                    |
-| **灵活性**       | 固定（不可更新）          | 灵活（依赖变化时更新）                   |
+| 特性         | **`v-once`**          | **`v-memo`**                |
+|--------------|----------------------|----------------------------|
+| **功能**     | 一次性渲染，永不更新   | 按依赖项缓存，依赖变化时重新渲染 |
+| **更新条件** | 不会更新              | 依赖项变化时重新渲染          |
+| **适用场景** | 完全静态的内容         | 复杂逻辑、条件性更新          |
+| **灵活性**   | 固定（不可更新）        | 灵活（依赖变化时更新）        |
 
 
 * * *
 
 ## 24. 你写过自定义指令吗？使用场景有哪些？
-
-### **Vue 2 中的自定义指令**
-
-1. **全局指令**
-```javascript
-// 注册全局指令
-Vue.directive('focus', {
-  // 钩子函数
-  inserted(el) {
-    el.focus();
-  },
-});
-```
-
-2. **局部指令**
-```javascript
-export default {
-  directives: {
-    focus: {
-      bind(el,binding,vnode) {},// 只调用一次，指令第一次绑定到元素时调用
-      inserted(el,binding,vnode) { // 被绑定元素插入父节点时调用
-        el.focus();
-      },
-      update(el,binding,vnode,oldVnode) { // 所在组件的 VNode 更新时调用
-        // el: 指令所绑定的元素，可以用来操作 DOM
-        // binding: 一个对象，包含以下属性：
-            //   name: 指令名，不包括 v- 前缀
-            //   value: 指令的绑定值
-            //   oldValue: 指令绑定的前一个值
-            //   expression: 绑定值的字符串形式
-            //   arg: 传给指令的参数
-            //   modifiers: 一个包含修饰符的对象
-        // vnode: Vue 编译生成的虚拟节点
-        // oldVnode: 上一个虚拟节点  
-      },
-      componentUpdated(el,binding,vnode,oldVnode) {}, // 指令所在组件的 VNode 及其子 VNode 全部更新后调用
-      unbind(el,binding,vnode) {}, // 只调用一次，指令与元素解绑时调用
-    },
-  },
-};
-```
-
-3. **使用方式**
-```vue
-<template>
-  <input v-focus />
-</template>
-```
-
----
 
 ### **Vue 3 中的自定义指令**
 
@@ -1163,81 +849,26 @@ app.directive('fade', {
 
 * * *
 
-## 25. 说下$attrs和$listeners的使用场景
+## 25. 说下$attrs的使用场景
 
-`$attrs` 父子组件中`传递未显式声明的属性`.
+`$attrs` 用于父子组件中传递未显式声明的属性和事件（Vue 3 中 `$listeners` 已合并到 `$attrs`）。
 
-`$listeners` 父子组件中传递`事件监听器`.
+**使用场景：属性透传**
 
-### Vue2 `$attrs`和`$listeners`
-**`$attrs`**
-- **Vue 2**: `$attrs` 是一个对象，包含**未被组件声明为 `props`** 的特性（包括动态绑定的属性）。
-- **Vue 3**: 移除`$listeners`,`$attrs` 的功能不变，但同时包含了 `$listeners` 的功能。
-
-**使用场景:**
-**动态传递未声明的属性**
-用于将父组件传递的非 `props` 属性绑定到子组件或其 DOM 上。
 ```vue
 <!-- 父组件 -->
-<template>
-  <ChildComponent id="my-id" title="Hello" class="custom-class" />
-</template>
-```
+<ChildComponent id="my-id" title="Hello" @click="handleClick" />
 
-```vue
 <!-- 子组件 -->
 <template>
-  // 将`id` 和 `class` 绑定到元素
   <div v-bind="$attrs">I'm a child!</div>
 </template>
 
-<script>
-export default {
-  props: ['title'], // `title` 被声明为 `props`，`id` 和 `class` 会存放在 `$attrs` 中。 
-};
+<script setup>
+defineOptions({
+  inheritAttrs: false // 禁用自动绑定到根元素
+})
 </script>
-```
-
----
-
-**高阶组件 (HOC) 属性透传**
-在封装组件时，需要透传父组件传入的所有非 `props` 属性到底层组件。
-
-**示例：属性透传**
-```vue
-<template>
-  <BaseInput v-bind="$attrs" />
-</template>
-
-<script>
-export default {
-  inheritAttrs: false, // 禁用自动绑定到根元素
-};
-</script>
-```
-
----
-
-**`$listeners`**
-
-- `$listeners` 是一个对象，包含传递给组件但未显式绑定的**事件监听器**。
-
-**使用场景:**
-** 动态传递事件监听器**
-用于将父组件传递的事件动态绑定到子组件。
-```vue
-<!-- 父组件 -->
-<template>
-  <ChildComponent @click="handleClick" @focus="handleFocus" />
-</template>
-```
-
-```vue
-<!-- 子组件 -->
-<template>
-  // 父组件的 `@click` 和 `@focus` 会被动态绑定到按钮上
-  <button v-on="$listeners">Click me</button>
-</template>
 ```
 ---
 
@@ -1379,108 +1010,56 @@ count.value = 10;
 ## 27. 插槽 slot的使用
 
 ### 1. 默认 slot
+```vue
+<!-- 子组件 -->
+<slot></slot>
 
-- **Vue2 & Vue3**：  
-  子组件中定义默认 slot 的方式都是使用 `<slot></slot>`。
+<!-- 父组件 -->
+<ChildComponent>默认内容</ChildComponent>
+```
 
 ### 2. 具名 slot
+```vue
+<!-- 子组件 -->
+<slot name="header"></slot>
+<slot name="footer"></slot>
 
-- **Vue2**：  
-  子组件中可以用 `<slot name="header"></slot>` 定义命名 slot。  
-  父组件中使用时，可以采用早期的写法：
-  ```html
-  <template slot="header">
-    <!-- slot 内容 -->
-  </template>
-  ```
-
-- **Vue3**：  
-  语法保持了相似的定义方式，子组件依然使用 `<slot name="header"></slot>`，  
-  但父组件中推荐使用新的 v-slot 语法（包括其缩写形式）：
-  ```html
-  <template #header>
-    <!-- slot 内容 -->
-  </template>
-  ```
+<!-- 父组件使用 # 缩写 -->
+<ChildComponent>
+  <template #header>头部内容</template>
+  <template #footer>底部内容</template>
+</ChildComponent>
+```
 
 ### 3. 作用域 slot（Scoped Slot）
+```vue
+<!-- 子组件 -->
+<script setup>
+const items = ref([{ id: 1, name: 'Item 1' }])
+</script>
+<template>
+  <slot name="item" v-for="item in items" :item="item" :key="item.id"></slot>
+</template>
 
-- **Vue2**：  
-  在 Vue2 中，早期使用 `slot-scope` 属性来传递插槽中的数据，例如：
-  ```html
-  <template slot="item" slot-scope="props">
-    {{ props.text }}
+<!-- 父组件 -->
+<ChildComponent>
+  <template #item="{ item }">
+    {{ item.name }}
   </template>
-  ```
-  从 Vue2.6 开始，引入了 `v-slot` 语法作为推荐方式：
-  ```html
-  <template v-slot:item="props">
-    {{ props.text }}
-  </template>
-  ```
-
-- **Vue3**：  
-  Vue3 完全废弃了旧的 `slot-scope` 语法，只保留了 `v-slot`（以及其缩写 `#`）语法。  
-  因此在 Vue3 中定义作用域 slot 的写法为：
-  ```vue
-    // child.vue
-    <script setup>
-       import { ref } from 'vue'
-       let count = ref(0)
-       let arg = ref({a:1})
-    </script>
-    
-    <template>
-       <div class="container">
-          <slot name="item" :props="arg"></slot>
-       </div>
-    </template>
-  ```
-  ```html
-  <template #item="props">
-    {{ props.text }}
-  </template>
-  ```
+</ChildComponent>
+```
 
 ***
 
 ## 28. 说说nextTick的使用和原理？
 
-`nextTick` 是 Vue 中用于延迟执行某个回调函数的 API，它会在下次 DOM 更新循环结束后执行，确保在执行时，DOM 已经被更新。
+`nextTick` 在下次 DOM 更新循环结束后执行回调，确保 DOM 已更新。
 
 **使用场景：**
-+   created中想要获取DOM时
-+   响应式数据变化后获取DOM更新后的状态,如在更新数据后进行元素的滚动或焦点操作。
-+   vue3可在组件外部使用时，不依赖于 Vue 实例
+- 响应式数据变化后获取 DOM 更新后的状态
+- 在 setup 或 created 中需要获取 DOM 时
 
-### **Vue 2 使用nextTick**
-
-在 Vue 2 中，`nextTick` 是 Vue 实例的方法，可以在 Vue 实例的上下文中使用，也可以通过 `Vue.nextTick()` 来调用。
-
-**使用示例**：
-```javascript
-// Vue 实例上下文中
-this.$nextTick(() => {
-  console.log('DOM 已更新');
-});
-
-// 全局使用
-Vue.nextTick(() => {
-  console.log('DOM 已更新');
-});
-```
-
-**Vue 2 的实现原理**
-1. 数据修改触发 DOM 更新。
-2. 调用`nextTick` 加入执行队列，统一批处理`nextTick`减少性能开销。
-3. 默认通过`Promise`微任务调用`nextTick`中的回调函数,在不支持Promise的情况下使用 微任务`MutationObserver` => 宏任务`setTimeout` / `setImmediate` 等实现异步调用。
-
-
-### **Vue 3 使用nextTick**
-
-在 Vue 3 中，`nextTick` 是从 `vue` 包中导出的独立函数，而不是 Vue 实例的方法。
-
-**使用示例**：
+**Vue 3 使用**：
 ```javascript
 import { nextTick } from 'vue';
 
@@ -1489,9 +1068,7 @@ nextTick(() => {
 });
 ```
 
-**Vue 3 的实现原理**
-1. Vue 3 的响应式系统检测到数据变化并更新虚拟 DOM。
-2. 默认通过`Promise`微任务调用`nextTick`中的回调函数,在不支持Promise的情况下使用 微任务`MutationObserver` => 宏任务`setTimeout` / `setImmediate` 等实现异步调用。
+**原理**：通过 `Promise` 微任务将回调加入队列，批处理执行以减少性能开销。
 
 * * *
 
@@ -1575,7 +1152,7 @@ nextTick(() => {
 
 9. **增强单文件组件（SFC）**
     - `<script setup>` 提供简洁语法。
-    - `<style>` 新增支持 选择器 / Modules & useCssModule() & $style / v-bind。 [参考: vue3 Style](./vue3.md#style)
+    - `<style>` 新增支持选择器、CSS Modules、`useCssModule()`、`v-bind()` 等
 
 
 **优化:**
@@ -1601,38 +1178,6 @@ nextTick(() => {
 ## 33. 你是怎么处理vue项目中的错误的？
 
 分为`逻辑错误`与`请求错误`,再根据错误类型进行`捕获上报`.
-
-### **Vue 2 项目中的错误处理**
-
-+ **全局错误处理**
-使用 Vue 提供的 `Vue.config.errorHandler` 方法，可以捕获所有未被处理的错误。
-
-```javascript
-import Vue from 'vue';
-
-Vue.config.errorHandler = (err, vm, info) => {
-  console.error(`[Vue error]: ${err.message}`);
-  console.error(`[Component name]: ${vm.$options.name || 'anonymous'}`);
-  console.error(`[Error info]: ${info}`);
-  // 可以上报错误到服务端
-};
-```
-
-+ **组件级错误处理**
-在单个组件中，可以使用 `errorCaptured` 钩子捕获子组件抛出的错误。
-
-```javascript
-export default {
-  name: 'MyComponent',
-  errorCaptured(err, vm, info) {
-    console.error(`[Captured error]: ${err.message}`);
-    // 返回 false 阻止错误向上传递
-    return false;
-  },
-};
-```
-
----
 
 ### **Vue 3 项目中的错误处理**
 
@@ -2341,7 +1886,7 @@ onMounted(async () => {
 
 ## 49. 对vuex理解？
 
-Vuex 是 Vue2 官方提供的状态管理库，主要用于集中管理应用的状态（数据）和跨组件的状态共享。
+Vuex 是 Vue 官方提供的状态管理库，用于集中管理应用的状态和跨组件的状态共享（Vue 3 推荐使用 Pinia）。
 
 ---
 
@@ -2986,3 +2531,559 @@ export function createStore(options) {
 ```
 
 * * *
+
+## 56. Vue 3.5 新特性
+
+> Vue 3.5 代号 "Tengen Toppa Gurren Lagann"，是一个功能丰富的次要版本更新
+
+### 56.1 响应式 Props 解构（稳定）
+
+在 Vue 3.5 中，`defineProps` 的解构变量现在自动具有响应式，无需额外配置：
+
+```vue
+<script setup>
+// Vue 3.5 之前需要启用实验性功能
+// Vue 3.5 中已稳定，自动响应式
+const { count = 0, msg = 'hello' } = defineProps(['count', 'msg'])
+
+// 解构后的变量是响应式的
+// 可以在 watch、computed 中正常使用
+watch(() => count, (newVal) => {
+  console.log('count changed:', newVal)
+})
+</script>
+```
+
+### 56.2 useTemplateRef()
+
+新增 `useTemplateRef()` API，提供更灵活的模板引用方式：
+
+```vue
+<script setup>
+import { useTemplateRef, onMounted } from 'vue'
+
+// 通过字符串 key 获取模板引用
+const inputRef = useTemplateRef('input')
+
+onMounted(() => {
+  inputRef.value?.focus()
+})
+</script>
+
+<template>
+  <input ref="input" />
+</template>
+```
+
+**相比 `ref` 的优势：**
+- 可以在组件逻辑中使用动态的 key
+- 更好的 TypeScript 类型推断
+- 更清晰的语义
+
+```vue
+<script setup>
+import { useTemplateRef } from 'vue'
+
+// 动态 key
+const dynamicRef = useTemplateRef(() => props.refKey)
+</script>
+```
+
+### 56.3 useId()
+
+生成在服务端和客户端渲染中稳定的唯一 ID：
+
+```vue
+<script setup>
+import { useId } from 'vue'
+
+// 生成唯一 ID，SSR 安全
+const id = useId()
+</script>
+
+<template>
+  <form>
+    <label :for="id">用户名</label>
+    <input :id="id" type="text" />
+  </form>
+</template>
+```
+
+**应用场景：**
+- 表单字段关联（label-input）
+- 无障碍访问（ARIA 属性）
+- SSR 水合时保持一致性
+
+### 56.4 onWatcherCleanup()
+
+在 watcher 中注册清理回调，优雅处理副作用：
+
+```vue
+<script setup>
+import { watch, onWatcherCleanup } from 'vue'
+import { ref } from 'vue'
+
+const searchQuery = ref('')
+
+watch(searchQuery, (query) => {
+  const controller = new AbortController()
+  
+  fetch(`/api/search?q=${query}`, { signal: controller.signal })
+    .then(res => res.json())
+    .then(data => {
+      // 处理数据
+    })
+  
+  // 注册清理函数，在下次 watch 执行前或组件卸载时调用
+  onWatcherCleanup(() => {
+    controller.abort()
+  })
+})
+</script>
+```
+
+### 56.5 watch pause/resume
+
+watch 返回对象新增 `pause` 和 `resume` 方法：
+
+```vue
+<script setup>
+import { watch, ref } from 'vue'
+
+const count = ref(0)
+
+const { pause, resume, stop } = watch(count, (val) => {
+  console.log('count:', val)
+})
+
+// 暂停监听
+function pauseWatch() {
+  pause()
+}
+
+// 恢复监听
+function resumeWatch() {
+  resume()
+}
+
+// 完全停止监听
+function stopWatch() {
+  stop()
+}
+</script>
+```
+
+### 56.6 Deferred Teleport
+
+`<Teleport>` 组件支持 `defer` 属性，延迟到目标元素存在时再传送：
+
+```vue
+<template>
+  <!-- defer 属性允许 Teleport 延迟到目标元素存在时再传送 -->
+  <Teleport defer to="#late-container">
+    <div>这个内容会等待 #late-container 存在后再传送</div>
+  </Teleport>
+  
+  <!-- 目标容器可以在 Teleport 之后渲染 -->
+  <div id="late-container"></div>
+</template>
+```
+
+### 56.7 SSR 改进 / Lazy Hydration
+
+Vue 3.5 改进了服务端渲染和水合：
+
+```vue
+<script setup>
+import { defineAsyncComponent, hydrateOnVisible, hydrateOnIdle } from 'vue'
+
+// 懒惰水合 - 当组件可见时才水合
+const LazyComponent = defineAsyncComponent({
+  loader: () => import('./HeavyComponent.vue'),
+  hydrate: hydrateOnVisible()
+})
+
+// 懒惰水合 - 浏览器空闲时水合
+const IdleComponent = defineAsyncComponent({
+  loader: () => import('./IdleComponent.vue'),
+  hydrate: hydrateOnIdle()
+})
+
+// 懒惰水合 - 满足条件时水合
+const ConditionalComponent = defineAsyncComponent({
+  loader: () => import('./ConditionalComponent.vue'),
+  hydrate: hydrateOnInteraction(['click', 'mouseover'])
+})
+</script>
+
+<template>
+  <LazyComponent />
+  <IdleComponent />
+  <ConditionalComponent />
+</template>
+```
+
+**水合策略：**
+- `hydrateOnVisible()` - 元素可见时水合
+- `hydrateOnIdle()` - 浏览器空闲时水合
+- `hydrateOnInteraction(events)` - 用户交互时水合
+- `hydrateOnMediaQuery(query)` - 媒体查询匹配时水合
+
+### 56.8 响应式系统性能优化
+
+Vue 3.5 对响应式系统进行了重大优化：
+
+1. **内存优化**
+   - 响应式系统内存使用减少 56%
+   - 大型数组的响应式处理更高效
+
+2. **计算属性优化**
+   - computed 依赖追踪更加精确
+   - 减少不必要的重新计算
+
+3. **数组性能优化**
+   - 数组操作（push、pop 等）性能提升
+   - 大数组的响应式追踪更高效
+
+```vue
+<script setup>
+import { ref, computed, shallowRef } from 'vue'
+
+// Vue 3.5 中大数组性能更好
+const bigArray = ref(new Array(10000).fill(0))
+
+// 对于不需要深度响应式的场景，使用 shallowRef 进一步优化
+const shallowArray = shallowRef([])
+</script>
+```
+
+### 56.9 其他改进
+
+1. **自定义元素改进**
+```js
+import { defineCustomElement } from 'vue'
+
+const MyElement = defineCustomElement({
+  // 支持 configureApp 配置应用实例
+  configureApp(app) {
+    app.config.errorHandler = (err) => {
+      console.error(err)
+    }
+  },
+  // ...组件选项
+})
+```
+
+2. **Transition 组件改进**
+```vue
+<template>
+  <!-- 新增 enterFromClass 和 leaveToClass 属性 -->
+  <Transition
+    enterFromClass="custom-enter-from"
+    leaveToClass="custom-leave-to"
+  >
+    <div v-if="show">内容</div>
+  </Transition>
+</template>
+```
+
+3. **app.onUnmount() 钩子**
+```js
+const app = createApp(App)
+
+// 应用卸载时执行清理
+app.onUnmount(() => {
+  console.log('App unmounted')
+})
+```
+
+### 56.10 从 Vue 3.4 升级到 Vue 3.5
+
+1. **安装更新**
+```bash
+npm install vue@3.5
+```
+
+2. **破坏性变更**
+   - 极少的破坏性变更，大多数项目可直接升级
+   - 部分内部 API 类型变更
+
+3. **弃用警告**
+   - 旧的 `$refs` 访问方式将在未来版本中弃用
+   - 建议迁移到 `useTemplateRef()`
+
+---
+
+## 57. Vue Router 核心知识
+
+### 57.1 History 和 Hash 模式区别
+
+| 特性 | Hash 模式 | History 模式 |
+|------|----------|-------------|
+| URL 形式 | `/#/path` | `/path` |
+| 服务器配置 | 无需配置 | 需要配置回退 |
+| SEO | 不友好 | 友好 |
+| 兼容性 | 更好 | IE10+ |
+
+```js
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
+
+const router = createRouter({
+  history: createWebHistory(), // 或 createWebHashHistory()
+  routes: [...]
+})
+```
+
+### 57.2 动态路由与路由懒加载
+
+```js
+const routes = [
+  // 动态路由参数
+  { path: '/user/:id', component: UserProfile },
+  
+  // 路由懒加载
+  { 
+    path: '/about', 
+    component: () => import('./views/About.vue') 
+  },
+  
+  // 嵌套路由
+  {
+    path: '/parent',
+    component: Parent,
+    children: [
+      { path: 'child', component: Child }
+    ]
+  }
+]
+```
+
+### 57.3 导航守卫
+
+**守卫类型及执行顺序**：
+1. `beforeRouteLeave` - 离开当前组件
+2. `beforeEach` - 全局前置守卫
+3. `beforeRouteUpdate` - 组件复用时
+4. `beforeEnter` - 路由独享守卫
+5. `beforeRouteEnter` - 进入组件（无法访问 this）
+6. `beforeResolve` - 全局解析守卫
+7. `afterEach` - 全局后置钩子
+
+```js
+// 全局守卫
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next({ name: 'login' })
+  } else {
+    next()
+  }
+})
+
+// 组合式 API
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
+
+onBeforeRouteLeave((to, from) => {
+  const answer = window.confirm('确定离开？')
+  if (!answer) return false
+})
+```
+
+### 57.4 useRoute 和 useRouter
+
+```js
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()   // 当前路由信息
+const router = useRouter() // 路由实例
+
+// 路由信息
+console.log(route.path, route.params, route.query, route.meta)
+
+// 编程式导航
+router.push('/home')
+router.push({ name: 'user', params: { id: 123 }})
+router.replace('/login')
+router.go(-1)
+```
+
+---
+
+## 58. Pinia 状态管理
+
+### 58.1 Pinia vs Vuex 区别
+
+| 特性 | Pinia | Vuex |
+|------|-------|------|
+| 架构 | 无 mutations | actions/mutations 分离 |
+| TypeScript | 原生支持 | 需要额外配置 |
+| 模块化 | 扁平化，无命名空间 | 需要 modules 和命名空间 |
+| 体积 | 更小（~1KB） | 较大 |
+| DevTools | 支持 | 支持 |
+
+### 58.2 定义 Store（组合式 API）
+
+```js
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+
+export const useCounterStore = defineStore('counter', () => {
+  // state
+  const count = ref(0)
+  
+  // getters
+  const doubleCount = computed(() => count.value * 2)
+  
+  // actions
+  function increment() {
+    count.value++
+  }
+  
+  async function fetchData() {
+    const res = await fetch('/api/data')
+    count.value = await res.json()
+  }
+
+  return { count, doubleCount, increment, fetchData }
+})
+```
+
+### 58.3 在组件中使用
+
+```vue
+<script setup>
+import { useCounterStore } from '@/stores/counter'
+import { storeToRefs } from 'pinia'
+
+const store = useCounterStore()
+
+// 解构保持响应式
+const { count, doubleCount } = storeToRefs(store)
+
+// 直接修改
+store.count++
+
+// 批量修改
+store.$patch({ count: 10 })
+
+// 重置
+store.$reset()
+
+// 订阅变化
+store.$subscribe((mutation, state) => {
+  console.log('state changed:', state)
+})
+</script>
+```
+
+### 58.4 Store 间交互
+
+```js
+import { useUserStore } from './user'
+
+export const useCartStore = defineStore('cart', () => {
+  const userStore = useUserStore()
+  
+  const items = ref([])
+  
+  const total = computed(() => {
+    // 可以直接访问其他 store
+    if (userStore.isVip) {
+      return items.value.reduce((sum, i) => sum + i.price * 0.9, 0)
+    }
+    return items.value.reduce((sum, i) => sum + i.price, 0)
+  })
+
+  return { items, total }
+})
+```
+
+---
+
+## 59. Vuex 核心概念
+
+### 59.1 核心概念
+
+```js
+import { createStore } from 'vuex'
+
+const store = createStore({
+  state: () => ({ count: 0 }),
+  
+  getters: {
+    doubleCount: state => state.count * 2
+  },
+  
+  mutations: {
+    INCREMENT(state, payload) {
+      state.count += payload
+    }
+  },
+  
+  actions: {
+    async fetchAndIncrement({ commit }) {
+      const data = await fetch('/api')
+      commit('INCREMENT', data.value)
+    }
+  },
+  
+  modules: {
+    user: userModule,
+    cart: cartModule
+  }
+})
+```
+
+### 59.2 actions 和 mutations 的区别
+
+| 特性 | mutations | actions |
+|------|----------|---------|
+| 同步/异步 | 必须同步 | 可以异步 |
+| 调用方式 | commit | dispatch |
+| 作用 | 直接修改 state | 提交 mutation |
+| DevTools | 可追踪 | 可追踪 |
+
+### 59.3 组合式 API 中使用
+
+```vue
+<script setup>
+import { useStore } from 'vuex'
+import { computed } from 'vue'
+
+const store = useStore()
+
+const count = computed(() => store.state.count)
+const doubleCount = computed(() => store.getters.doubleCount)
+
+const increment = () => store.commit('INCREMENT', 1)
+const fetchData = () => store.dispatch('fetchAndIncrement')
+</script>
+```
+
+---
+
+## 60. 图片懒加载指令实现
+
+```js
+// directives/lazy.js
+const lazyLoad = {
+  mounted(el, binding) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          el.setAttribute('src', binding.value)
+          observer.unobserve(el)
+        }
+      })
+    }, { threshold: 0.1 })
+    observer.observe(el)
+  }
+}
+
+// 注册指令
+app.directive('lazy', lazyLoad)
+
+// 使用
+// <img v-lazy="imageUrl" />
+```
+
+---

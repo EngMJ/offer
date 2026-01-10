@@ -32,16 +32,16 @@ CSS3 中的盒模型有以下两种：**标准盒模型**、**IE（替代）盒�
 ### 3\. 水平垂直居中
 
 +   文本水平居中：`text-algin: center`
-+   文本垂直居中：`line-height`等于容器`height`；`display: flex; algin-items: center;`
++   文本垂直居中：`line-height`等于容器`height`；`display: flex; align-items: center;`
 +   div水平居中：
     1.  margin: 0 auto;
-    2.  已知父元素宽度：margin-left: width / 2; transform: tranlateX(-50%)
-    3.  未知父元素宽度：position: absolute: top: 50%; transform: tranlateY(-50%)
+    2.  已知父元素宽度：margin-left: width / 2; transform: translateX(-50%)
+    3.  未知父元素宽度：position: absolute; left: 50%; transform: translateX(-50%)
     4.  display: flex; justify-content: center;
 +   div垂直居中：
-    1.  已知父元素高度：margin-top: height / 2; transform: tranlateY(-50%)
-    2.  未知父元素高度：position: absolute: top: 50%; transform: tranlateY(-50%)
-    3.  display: flex; algin-items: center;
+    1.  已知父元素高度：margin-top: height / 2; transform: translateY(-50%)
+    2.  未知父元素高度：position: absolute; top: 50%; transform: translateY(-50%)
+    3.  display: flex; align-items: center;
 
 ### 4\. 移除inline-block间隙
 
@@ -341,6 +341,175 @@ CSS Animation就是为了解决这些问题而提出的。
 | **relative** | 否              | 元素在文档流中的原始位置                                  | 可通过 `top/right/bottom/left` 相对于原始位置进行微调，原位置空间仍保留  | 调整位置微偏移；作为绝对定位子元素的参照    |
 | **absolute** | 是              | 最近的已定位祖先元素（即设置了除 static 以外的 position），无则参照文档或视口 | 完全脱离文档流，不占原有空间，可精确定位，可能会覆盖其他元素          | 弹出层、提示框、精确布局                   |
 | **fixed**    | 是              | 相对于视口（viewport）                                   | 脱离文档流，位置固定，即使页面滚动也保持在固定位置                    | 固定导航条、浮动操作按钮、返回顶部按钮         |
-| **sticky**   | 部分脱离        | 在正常文档流中，但达到设定阈值后相对于视口固定              | 结合了 relative 和 fixed 的特性，初始表现为相对定位，滚动到指定位置后变为固定 | 粘性页眉、表头、侧边栏等需要“粘住”的元素        |
+| **sticky**   | 部分脱离        | 在正常文档流中，但达到设定阈值后相对于视口固定              | 结合了 relative 和 fixed 的特性，初始表现为相对定位，滚动到指定位置后变为固定 | 粘性页眉、表头、侧边栏等需要"粘住"的元素        |
+
+---
+
+### 13\. 隐藏元素的方法
+
+| 方法 | 占据空间 | 事件监听 | 子元素可见 | 说明 |
+|------|----------|----------|------------|------|
+| `display: none` | 否 | 否 | 否 | 完全从文档流移除，触发重排 |
+| `visibility: hidden` | 是 | 否 | 可设置 visible 显示 | 仅触发重绘 |
+| `opacity: 0` | 是 | 是 | 否 | 元素透明，仍可交互 |
+| `position: absolute; left: -9999px` | 否 | 是 | 是 | 移出可视区域 |
+| `clip-path: polygon(0 0, 0 0, 0 0, 0 0)` | 是 | 否 | 否 | CSS3 裁剪 |
+| `transform: scale(0)` | 是 | 否 | 否 | 缩放为0 |
+
+---
+
+### 14\. 伪类和伪元素的区别
+
+**伪类（Pseudo-classes）**：用于选择元素的特定状态，使用单冒号 `:`
+```css
+a:hover { color: red; }      /* 鼠标悬停状态 */
+li:first-child { }           /* 第一个子元素 */
+input:focus { }              /* 获得焦点 */
+input:disabled { }           /* 禁用状态 */
+```
+
+**伪元素（Pseudo-elements）**：用于创建不在 DOM 中的虚拟元素，使用双冒号 `::`
+```css
+p::before { content: "→"; }  /* 元素内容前插入 */
+p::after { content: "←"; }   /* 元素内容后插入 */
+p::first-line { }            /* 第一行 */
+p::first-letter { }          /* 首字母 */
+::selection { }              /* 选中的文本 */
+```
+
+**主要区别**：
+- 伪类选择已存在的元素的状态
+- 伪元素创建虚拟元素添加内容
+- CSS3 规范建议伪元素使用 `::` 以区分
+
+---
+
+### 15\. CSS3 新特性
+
+**选择器**：
+- 属性选择器：`[attr^=value]`、`[attr$=value]`、`[attr*=value]`
+- 结构伪类：`:nth-child()`、`:nth-of-type()`、`:last-child`、`:not()`
+
+**视觉效果**：
+- `border-radius`：圆角
+- `box-shadow`：盒阴影
+- `text-shadow`：文字阴影
+- `gradient`：渐变（linear-gradient、radial-gradient）
+- `filter`：滤镜
+
+**布局**：
+- Flexbox 弹性布局
+- Grid 网格布局
+- `calc()` 计算函数
+- 多列布局（column-count、column-gap）
+
+**动画与变换**：
+- `transition`：过渡动画
+- `animation`：关键帧动画
+- `transform`：2D/3D 变换
+
+**其他**：
+- `@media` 媒体查询
+- `var()` CSS 变量
+- `@font-face` 自定义字体
+
+---
+
+### 16\. Grid 网格布局
+
+**容器属性**：
+```css
+.container {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;      /* 列定义 */
+  grid-template-rows: 100px auto 100px;    /* 行定义 */
+  gap: 10px;                               /* 间距 */
+  grid-template-areas:                     /* 区域命名 */
+    "header header header"
+    "sidebar main aside"
+    "footer footer footer";
+}
+```
+
+**项目属性**：
+```css
+.item {
+  grid-column: 1 / 3;         /* 跨列 */
+  grid-row: 1 / 2;            /* 跨行 */
+  grid-area: header;          /* 放置到命名区域 */
+  justify-self: center;       /* 单元格内水平对齐 */
+  align-self: center;         /* 单元格内垂直对齐 */
+}
+```
+
+**Grid vs Flexbox**：
+- Grid：二维布局，同时控制行和列
+- Flexbox：一维布局，控制行或列
+- 复杂布局优先考虑 Grid，组件内部布局优先 Flexbox
+
+---
+
+### 17\. 层叠上下文与 z-index
+
+**形成层叠上下文的条件**：
+1. 根元素（html）
+2. `position` 为 `absolute/relative` 且 `z-index` 不为 `auto`
+3. `position` 为 `fixed/sticky`
+4. `opacity` 小于 1
+5. `transform`、`filter`、`perspective` 不为 `none`
+6. `will-change` 指定上述属性
+7. Flex/Grid 子元素且 `z-index` 不为 `auto`
+
+**层叠顺序（从低到高）**：
+1. 层叠上下文的背景和边框
+2. z-index 为负的子元素
+3. 块级元素
+4. 浮动元素
+5. 行内元素
+6. z-index: 0 / auto
+7. z-index 为正的子元素
+
+**注意**：`z-index` 只在同一层叠上下文内比较，子元素的 `z-index` 再大也无法超越父级层叠上下文
+
+---
+
+### 18\. 响应式设计
+
+**媒体查询**：
+```css
+/* 移动优先 */
+.container { width: 100%; }
+
+@media (min-width: 768px) {
+  .container { width: 750px; }
+}
+
+@media (min-width: 1024px) {
+  .container { width: 970px; }
+}
+```
+
+**常用断点**：
+- 手机：< 768px
+- 平板：768px - 1024px
+- 桌面：> 1024px
+
+**响应式方案**：
+1. 媒体查询 + 百分比布局
+2. rem + 动态设置根字体大小
+3. vw/vh 视口单位
+4. CSS 容器查询（@container）
+
+---
+
+### 19\. CSS 性能优化
+
+1. **选择器优化**：避免过度嵌套，避免使用通配符
+2. **减少重排重绘**：使用 `transform` 代替 `top/left`
+3. **使用 CSS 合并**：减少 HTTP 请求
+4. **使用 CSS Sprites**：小图标合并
+5. **避免使用 @import**：阻塞并行下载
+6. **使用 will-change**：提示浏览器优化
+7. **启用 GPU 加速**：`transform: translateZ(0)`
 
 ---

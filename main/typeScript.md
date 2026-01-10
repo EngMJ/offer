@@ -1369,3 +1369,273 @@ TypeScript 的 `this` 机制和 JavaScript 保持一致，均取决于函数调�
 
 ---
 
+## 32. TypeScript 5.5 - 5.9 新特性汇总
+
+> TypeScript 5.x 版本系列带来了许多重要改进，以下是 5.5 至 5.9 版本的关键新特性
+
+### 32.1 TypeScript 5.5 新特性
+
+#### 推断类型谓词 (Inferred Type Predicates)
+
+TypeScript 5.5 可以从函数体自动推断类型谓词：
+
+```typescript
+// 之前需要显式声明类型谓词
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+// TypeScript 5.5 可以自动推断
+function isDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
+}
+
+const values = [1, undefined, 3, undefined, 5];
+// TypeScript 自动推断 filtered 的类型为 number[]
+const filtered = values.filter(isDefined);
+```
+
+#### 正则表达式语法检查
+
+TypeScript 5.5 增加了对正则表达式的基本语法检查：
+
+```typescript
+// TypeScript 5.5 会报错：无效的正则表达式
+const regex1 = /[/;  // 错误：未闭合的字符类
+
+// 正确的正则表达式
+const regex2 = /\d+/;
+```
+
+#### 独立声明 (Isolated Declarations)
+
+新增 `--isolatedDeclarations` 选项，确保每个文件可以独立生成声明文件：
+
+```json
+{
+  "compilerOptions": {
+    "isolatedDeclarations": true
+  }
+}
+```
+
+### 32.2 TypeScript 5.6 新特性
+
+#### 可空类型迭代器方法
+
+TypeScript 5.6 改进了对可空值的迭代器方法支持：
+
+```typescript
+// 允许在可能为 null/undefined 的数组上使用迭代器方法
+const maybeArray: number[] | undefined = getNumbers();
+// TypeScript 5.6 提供更好的类型推断
+const result = maybeArray?.map(x => x * 2) ?? [];
+```
+
+#### --noUncheckedSideEffectImports 选项
+
+新增编译选项用于检查副作用导入：
+
+```typescript
+// 启用后，会检查这类导入是否确实存在
+import './styles.css';
+import 'polyfill';
+```
+
+```json
+{
+  "compilerOptions": {
+    "noUncheckedSideEffectImports": true
+  }
+}
+```
+
+#### 禁止可空表达式比较
+
+TypeScript 5.6 会对可能无意义的比较发出警告：
+
+```typescript
+function compare(x: string | undefined) {
+  // 警告：这个比较始终为 true，因为 undefined 和 string 都不等于 false
+  if (x != false) { }
+}
+```
+
+### 32.3 TypeScript 5.7 新特性
+
+#### 路径重写选项 (Path Rewriting)
+
+新增 `--rewriteRelativeImportExtensions` 选项：
+
+```json
+{
+  "compilerOptions": {
+    "rewriteRelativeImportExtensions": true
+  }
+}
+```
+
+```typescript
+// 源代码
+import { helper } from './utils.ts';
+
+// 编译后自动重写为
+import { helper } from './utils.js';
+```
+
+#### 编辑器搜索改进
+
+TypeScript 5.7 改进了 VS Code 等编辑器中的符号搜索功能，提供更准确的结果。
+
+#### 新增 target 支持
+
+支持更多 ECMAScript 目标版本：
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2024"
+  }
+}
+```
+
+### 32.4 TypeScript 5.8 新特性
+
+#### return 语句中的窄化类型
+
+TypeScript 5.8 改进了 return 语句中的类型窄化：
+
+```typescript
+function process(value: string | number) {
+  if (typeof value === 'string') {
+    return value.toUpperCase(); // 正确推断为 string
+  }
+  return value.toFixed(2); // 正确推断为 number
+}
+```
+
+#### 性能改进
+
+- 构建速度提升
+- 内存占用优化
+- 类型检查效率改进
+
+#### 更好的 JSDoc 支持
+
+改进对 JSDoc 注释的解析和类型推断：
+
+```javascript
+/**
+ * @param {string} name
+ * @returns {Promise<User>}
+ */
+async function getUser(name) {
+  // TypeScript 能正确推断返回类型
+}
+```
+
+### 32.5 TypeScript 5.9 新特性
+
+#### 改进的类型推断
+
+TypeScript 5.9 进一步增强了类型推断能力：
+
+```typescript
+// 改进的泛型推断
+function createPair<T, U>(first: T, second: U) {
+  return { first, second };
+}
+
+// TypeScript 5.9 更好地推断复杂类型
+const pair = createPair({ name: 'Alice' }, [1, 2, 3]);
+```
+
+#### 更好的 Decorator 支持
+
+TypeScript 5.9 改进了对装饰器的支持：
+
+```typescript
+// 标准装饰器语法
+function logged<This, Args extends any[], Return>(
+  target: (this: This, ...args: Args) => Return,
+  context: ClassMethodDecoratorContext
+) {
+  return function (this: This, ...args: Args): Return {
+    console.log(`Calling ${String(context.name)}`);
+    return target.apply(this, args);
+  };
+}
+
+class MyClass {
+  @logged
+  greet(name: string) {
+    return `Hello, ${name}!`;
+  }
+}
+```
+
+#### 增强的 satisfies 运算符
+
+TypeScript 5.9 扩展了 `satisfies` 运算符的使用场景：
+
+```typescript
+type RGB = [number, number, number];
+type Color = RGB | string;
+
+const palette = {
+  red: [255, 0, 0],
+  green: '#00ff00',
+  blue: [0, 0, 255],
+} satisfies Record<string, Color>;
+
+// palette.red 被推断为 [number, number, number]，而非 Color
+const r = palette.red[0]; // number
+```
+
+#### 模块解析改进
+
+新增模块解析选项和改进：
+
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true
+  }
+}
+```
+
+#### 性能优化
+
+- 编译器启动时间减少
+- 增量编译更快
+- 语言服务响应更快
+
+### 32.6 从旧版本升级到 TypeScript 5.9
+
+1. **安装更新**
+```bash
+npm install typescript@5.9 --save-dev
+```
+
+2. **更新 tsconfig.json**
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true
+  }
+}
+```
+
+3. **主要注意事项**
+   - 检查弃用的 API 和选项
+   - 测试正则表达式语法
+   - 验证类型谓词推断是否符合预期
+   - 确认装饰器语法兼容性
+
+---
+

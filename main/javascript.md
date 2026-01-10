@@ -1,8 +1,6 @@
-## 数据类型
+## 一、数据类型
 
-以下是比较重要的几个 js 变量要掌握的点。
-
-#### 1.1 基本的数据类型介绍，及值类型和引用类型的理解
+### 1.1 基本的数据类型介绍，及值类型和引用类型的理解
 
 在 JS 中共有 `8`  种基础的数据类型，分别为： `Undefined` 、 `Null` 、 `Boolean` 、 `Number` 、 `String` 、 `Object` 、 `Symbol` 、 `BigInt` 。
 
@@ -168,9 +166,9 @@ console.log(isEqual(0.1, 0.2, 0.3)); // true
 +   简单的说，作用域就是变量与函数的可访问范围，即作用域控制着变量与函数的可见性和生命周期。作用域是一套规则，在当前作用域以及嵌套的子作用域中根据标识符名称进行变量查找。
 +   作用域链的作用是保证执行环境里有权访问的变量和函数是有序的，作用域链的变量只能向上访问，变量访问到window对象即被终止，作用域链向下访问变量是不被允许的。
 
-##  原型和原型链
+## 二、原型和原型链
 
-可以说这部分每家面试官都会问了。。首先理解的话，其实一张图即可，一段代码即可。
+可以说这部分每家面试官都会问了。首先理解的话，其实一张图即可，一段代码即可。
 
 ```javascript
 function Foo() {}
@@ -179,42 +177,417 @@ let f1 = new Foo();
 let f2 = new Foo();
 ```
 
-千万别畏惧下面这张图，特别有用，一定要搞懂，熟到提笔就能默画出来。 ![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4a61ca07672a45d3aecf382100cc9719~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
+千万别畏惧下面这张图，特别有用，一定要搞懂，熟到提笔就能默画出来。
 
-总结：
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4a61ca07672a45d3aecf382100cc9719~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
-+   原型：每一个 JavaScript 对象（null 除外）在创建的时候就会与之关联另一个对象，这个对象就是我们所说的原型，每一个对象都会从原型"继承"属性，其实就是 `prototype` 对象。
-+   原型链：由相互关联的原型组成的**链状结构**就是原型链。
+**总结：**
 
-先说出总结的话，再举例子说明如何顺着原型链找到某个属性。
++   **原型**：每一个 JavaScript 对象（null 除外）在创建的时候就会与之关联另一个对象，这个对象就是我们所说的原型，每一个对象都会从原型"继承"属性，其实就是 `prototype` 对象。
++   **原型链**：由相互关联的原型组成的**链状结构**就是原型链。
 
-参考：[原型链知识](proto.md)
+### 2.1 原型的作用
 
-参考：[JavaScript 深入之从原型到原型链](https://github.com/mqyqingfeng/blog/issues/2 "https://github.com/mqyqingfeng/blog/issues/2") 掌握基本概念，再阅读这篇文章[轻松理解 JS 原型原型链](https://juejin.cn/post/6844903989088092174 "https://juejin.cn/post/6844903989088092174")加深上图的印象。
+原型在 Javascript 中是一个非常重要的概念，其作用是：**共享属性**
 
-## JavaScript 面向对象&继承
+如果在一个对象上找不到某个属性，就会去它的原型对象上找，以此类推直至找到，或者寻找到原型链的终点都没找到则不存在这个属性。
 
-+   参考：[JavaScript面向对象&继承](inherit.md)
+### 2.2 `__proto__` & `constructor`
 
-## 闭包及练习题
++   **`__proto__`**：隐式原型，多数浏览器实现了此属性用来访问对象的原型。
++   **constructor**：构造器，创建一个函数时会为它增加一个 prototype 属性，指向原型对象，原型对象自动获得一个名为 constructor 的属性，指回与之关联的构造函数。
 
-+   参考：[Javascript闭包详解](closure.md)
+### 2.3 原型链示意图
 
-## 函数节流和防抖
+原型链最终会指向 `Object.prototype`，原型链的终点是 `Object.prototype.__proto__` 也就是 `null`。
 
-+   参考：[函数节流和防抖](throttle_debounce.md)
+![img](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/911b3e448e5248ec96d973b076e012c7~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp)
 
-## Javascript 中的this
+### 2.4 原型属性判断方法
 
-+   参考：[Javascript 中的this（包含apply、call、bind）](this.md)
+```javascript
+// getPrototypeOf - 访问指定对象的 prototype
+Object.getPrototypeOf(obj);
 
-## 动手实现apply、call、bind
+// setPrototypeOf - 设置指定对象的 prototype
+Object.setPrototypeOf(obj, obj1);
 
-+   参考：[动手实现apply、call、bind](apply.md)
+// hasOwnProperty - 是否仅属于对象本身的属性
+obj.hasOwnProperty('name');
 
-## 字符串/数组/数字/对象 常用API
+// in - 对象或原型链上存在就返回 true
+'name' in obj;
 
-+   参考：[内置API](_api.md)
+// Object.keys - 对象上所有可枚举的实例本身属性
+Object.keys(obj);
+```
+
+---
+
+## 三、JavaScript 继承
+
+### 3.1 原型链继承
+
+**原理**：使用父类的实例重写子类的原型。
+
+```js
+function SuperType(){
+    this.property = true;
+}
+SuperType.prototype.getSuperValue = function(){
+    return this.property;
+};
+function SubType(){
+    this.subproperty = false;
+}
+// 继承了 SuperType
+SubType.prototype = new SuperType();
+
+var instance = new SubType();
+alert(instance.getSuperValue()); // true
+```
+
+**缺点**：
+1. 父类包含引用类型值的原型属性会被所有子类共享；
+2. 在创建子类的实例时，不能向父类的构造函数中传递参数。
+
+### 3.2 借用构造函数
+
+**原理**：在子类构造函数的内部调用父类的构造函数。
+
+```js
+function SuperType(){
+    this.colors = ["red", "blue", "green"];
+}
+function SubType(){
+    SuperType.call(this);
+}
+var instance1 = new SubType();
+instance1.colors.push("black");
+alert(instance1.colors); // "red,blue,green,black"
+
+var instance2 = new SubType();
+alert(instance2.colors); // "red,blue,green"
+```
+
+**优点**：属性和方法不会被子类所共享，可以向父类传参。  
+**缺点**：父类中的方法无法被复用。
+
+### 3.3 组合式继承
+
+**原理**：使用原型链实现对原型属性和方法的继承，借用构造函数实现对实例属性的继承。
+
+```js
+function SuperType(name){
+    this.name = name;
+    this.colors = ["red", "blue", "green"];
+}
+SuperType.prototype.sayName = function(){
+    alert(this.name);
+};
+function SubType(name, age){
+    SuperType.call(this, name); // 继承属性
+    this.age = age;
+}
+SubType.prototype = new SuperType(); // 继承方法
+SubType.prototype.constructor = SubType;
+```
+
+**缺点**：调用两次父类构造函数。
+
+### 3.4 寄生组合式继承（推荐）
+
+```js
+function inheritPrototype(subType, superType){
+    var prototype = Object.create(superType.prototype);
+    prototype.constructor = subType;
+    subType.prototype = prototype;
+}
+
+function SuperType(name){
+    this.name = name;
+}
+SuperType.prototype.sayName = function(){
+    alert(this.name);
+};
+function SubType(name, age){
+    SuperType.call(this, name);
+    this.age = age;
+}
+inheritPrototype(SubType, SuperType);
+```
+
+### 3.5 ES6 class 继承
+
+```js
+class Person {
+    constructor(age) {
+        this.age_ = age;
+    }
+    sayAge() {
+        console.log(this.age_);
+    }
+    static create() {
+        return new Person(Math.floor(Math.random()*100));
+    }
+}
+
+class Doctor extends Person {}
+
+const doctor = new Doctor(32);
+doctor.sayAge(); // 32
+```
+
+本质上是 **寄生组合式继承** 的语法糖。
+
+---
+
+## 四、闭包
+
+> 闭包是指有权访问另一个函数作用域中的变量的函数。
+
+闭包简单理解就是**内嵌函数**，内部函数使用外部函数的变量，通过输入或返回函数实现。
+
+### 4.1 变量的作用域
+
+变量的作用域，就是指变量的有效范围。随着代码执行环境创建的作用域链往外层逐层搜索，一直搜索到全局对象为止。
+
+### 4.2 变量的生存周期
+
++   全局变量生存周期是永久的，除非主动销毁
++   函数作用域会随着函数调用的结束而被销毁
++   当函数内部调用外部变量就产生了**闭包**
+
+### 4.3 闭包总结
+
++   **形成**：函数中嵌套函数
++   **作用**：函数内部调用外部变量、构造函数的私有属性、延长变量生命周期
++   **优点**：变量长期存在内存中、模块化代码避免全局污染、私有属性
++   **缺点**：无法回收闭包中引用变量，容易造成内存泄漏
+
+### 4.4 闭包应用
+
+#### 构造函数的私有属性
+```js
+function Person(param) {
+    var name = param.name; // 私有属性
+    this.age = 18; // 共有属性
+    this.sayName = function () {
+        console.log(name);
+    }
+}
+const tom = new Person({name: 'tom'});
+tom.name = 'jerry'; // 无法修改私有属性
+tom.sayName(); // tom
+```
+
+#### 计算缓存
+```js
+var square = (function () {
+    var cache = {};
+    return function(n) {
+        if (!cache[n]) {
+            cache[n] = n * n;
+        }
+        return cache[n];
+    }
+})();
+```
+
+### 4.5 闭包高频面试题
+
+```js
+// 经典 for 循环问题
+for (var i = 0; i < 5; i++) {
+    setTimeout(function(){ console.log(i); }, 0);
+}
+// 输出: 5 5 5 5 5
+
+// 解决方案1：IIFE
+for (var i = 0; i < 5; i++) {
+    (function(j){
+        setTimeout(function(){ console.log(j); }, 0);
+    })(i);
+}
+// 输出: 0 1 2 3 4
+
+// 解决方案2：let
+for (let i = 0; i < 5; i++) {
+    setTimeout(function(){ console.log(i); }, 0);
+}
+// 输出: 0 1 2 3 4
+```
+
+---
+
+## 五、函数节流和防抖
+
+### 5.1 节流（Throttle）
+
+只在开始执行一次，未执行完成过程中触发的忽略，核心在于**开关锁**。
+
+**例如**：多次点击按钮提交表单，**第一次有效**
+
+```js
+function throttle(fn, delay) {
+    var timer = null;
+    return function () {
+        if (timer) { return false; }
+        var that = this;
+        var args = arguments;
+        fn.apply(that, args);
+        timer = setTimeout(function () {
+            clearTimeout(timer);
+            timer = null;
+        }, delay || 500);
+    };
+}
+```
+
+### 5.2 防抖（Debounce）
+
+只执行最后一个被触发的，清除之前的异步任务，核心在于**清零**。
+
+**例如**：页面滚动处理事件，搜索框输入联想，**最后一次有效**
+
+```js
+function debounce(fn, delay) {
+    var timer = null;
+    return function () {
+        var that = this;
+        var args = arguments;
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            fn.apply(that, args);
+        }, delay || 500);
+    };
+}
+```
+
+### 5.3 图解对比
+
+```
+原始事件触发:
+| | | | | | | | | | | | | | | | | | | | | (连续快速触发)
+
+节流 (每 100ms 执行一次):
+| _ _ _ _ | _ _ _ _ | _ _ _ _ | _ _ _ _ | (固定频率执行第一次)
+
+防抖 (等待 100ms):
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ | (仅执行最后一次)
+```
+
+**记忆口诀**：节流是单位时间内只触发首次，防抖是只触发最后一次。
+
+---
+
+## 六、this 指向
+
+this 总是指向**执行时**的**当前对象**，取决于函数的调用方式。
+
+### 6.1 作为对象的方法调用
+
+```js
+var obj = {
+    a: 1,
+    getA() {
+        alert(this === obj); // true
+        alert(this.a); // 1
+    }
+};
+obj.getA();
+```
+
+### 6.2 作为普通函数调用
+
+this 指向全局对象（浏览器中是 window）
+
+```js
+window.name = 'globalName';
+var myObject = {
+    name: 'sven',
+    getName: function(){ return this.name; }
+};
+var getName = myObject.getName;
+console.log(getName()); // globalName（this 丢失）
+```
+
+### 6.3 构造器调用
+
+构造器里的 this 指向返回的实例对象（除非显式返回一个对象）
+
+```js
+var MyClass = function(){
+    this.name = 'sven';
+};
+var obj = new MyClass();
+alert(obj.name); // sven
+```
+
+### 6.4 call / apply 调用
+
+可以动态改变函数的 this 指向
+
+```js
+var obj1 = { name: 'sven' };
+var obj2 = { name: 'anne' };
+function getName(){ return this.name; }
+console.log(getName.call(obj2)); // anne
+```
+
+### 6.5 箭头函数中的 this
+
+在箭头函数声明时就绑定对应的 this（词法作用域），后续任何地方调用 this 都一样。
+
+---
+
+## 七、apply、call、bind 实现
+
+### 7.1 区别
+
++   `call` 和 `apply` 会立即执行，区别仅在于传入参数形式的不同
++   `bind` 会返回一个修改原函数 this 与参数的函数
+
+### 7.2 手写实现
+
+```js
+// apply 实现
+Function.prototype.myApply = function (context) {
+    var context = context || window;
+    var args = arguments[1] || [];
+    context.fn = this;
+    var result = context.fn(...args);
+    delete context.fn;
+    return result;
+}
+
+// call 实现
+Function.prototype.myCall = function(context){ 
+    var args = [];
+    for (var i = 1; i < arguments.length; i++) {
+        args.push(arguments[i]);
+    }
+    return this.myApply(context, args);
+};
+
+// bind 实现
+Function.prototype.myBind = function(context){ 
+    var self = this;
+    var arg1 = Array.prototype.slice.call(arguments, 1);
+    return function innerFun(){ 
+        var arg2 = Array.prototype.slice.call(arguments);
+        return self.apply(
+            this instanceof innerFun ? this : context, 
+            arg1.concat(arg2)
+        );
+    }
+};
+```
+
+### 7.3 用途
+
+1. **改变 this 指向**
+2. **借用其他对象的方法**：`Array.prototype.push.call(arrayLike, 'item')`
 
 ## Javascript 小技巧帮你提升代码质量
 
@@ -687,7 +1060,7 @@ function ajaxGet(url, params, success, fail) {
     function encodeParams(obj){
 	return Object
             .keys(obj)
-            .map(function(key) {return encodeURIConponent(key) + '=' +encodeURIConponent(obj[key])})
+            .map(function(key) {return encodeURIComponent(key) + '=' + encodeURIComponent(obj[key])})
             .join('&');
     }
 }
@@ -751,6 +1124,80 @@ document.body.addEventListener('click', e => console.log(e));
 +   所以，之所以为null的情况是，当调用console.log(e)时，currentTarget属性是有值的，但是过后这个值就被重置为null了。所以当你展开事件对象，看到的就是null。
 
 
+## let/const/var 的区别
+
+| 特性 | var | let | const |
+|------|-----|-----|-------|
+| 作用域 | 函数作用域 | 块级作用域 | 块级作用域 |
+| 变量提升 | 是（值为 undefined） | 否（暂时性死区 TDZ） | 否（暂时性死区 TDZ） |
+| 重复声明 | 允许 | 不允许 | 不允许 |
+| 重新赋值 | 允许 | 允许 | 不允许（对象属性可修改） |
+| 全局声明挂载 window | 是 | 否 | 否 |
+
+```javascript
+// 暂时性死区（TDZ）
+console.log(a); // undefined（变量提升）
+var a = 1;
+
+console.log(b); // ReferenceError（暂时性死区）
+let b = 2;
+
+// const 引用类型
+const obj = { name: 'test' };
+obj.name = 'changed'; // 允许
+obj = {}; // TypeError
+```
+
+---
+
+## == 和 === 的区别
+
+**`===` 严格相等**：类型和值都相等才返回 true
+
+**`==` 宽松相等**：会进行类型转换后比较
+
+**类型转换规则**：
+1. `null == undefined` 为 true
+2. 数字和字符串比较，字符串转数字
+3. 布尔值转数字（true → 1, false → 0）
+4. 对象与原始值比较，对象调用 valueOf/toString
+
+```javascript
+// 经典面试题
+[] == false    // true  [] → '' → 0, false → 0
+[] == ![]      // true  ![] → false → 0, [] → 0
+{} == !{}      // false {} → NaN, !{} → false → 0
+null == undefined  // true
+null === undefined // false
+NaN == NaN     // false
+```
+
+**建议**：始终使用 `===` 进行比较
+
+---
+
+## null 和 undefined 的区别
+
+| 特性 | null | undefined |
+|------|------|-----------|
+| 含义 | 空值，表示"无"对象 | 未定义，表示缺少值 |
+| typeof | "object"（历史遗留 bug） | "undefined" |
+| 转数字 | 0 | NaN |
+| 场景 | 主动赋值表示空 | 变量声明未赋值 |
+
+```javascript
+// undefined 产生场景
+let a;              // 声明未赋值
+function fn(b) {}   // 参数未传递
+fn();               // b 为 undefined
+const obj = {};
+obj.name;           // 访问不存在的属性
+function f() {}     // 函数无返回值
+f();                // 返回 undefined
+```
+
+---
+
 ## 微前端
 
 微前端是将传统前端单体应用拆分成多个小型、独立的前端子应用的架构方式。每个子应用可以由不同团队独立开发、部署和维护，就像微服务在后端架构中的作用一样。
@@ -793,7 +1240,112 @@ document.body.addEventListener('click', e => console.log(e));
 | **Webpack Module Federation** | Webpack 5 内置的模块共享机制，实现运行时动态加载和模块联邦         | 无需额外引入框架，适合现有 Webpack 项目，实现模块级的按需加载       | 需要对 Webpack 有深入了解，调试和跨应用依赖管理可能较为复杂              |
 | **Piral**                   | 平台化微前端解决方案，提供丰富的 API 和插件支持                  | 高度可扩展，适合构建插件化的微前端系统，降低应用间耦合性             | 社区生态较小，文档和支持资源相对有限，初期上手可能需要额外投入            |
 
+---
 
+## 数组常用方法区别
+
+### map vs forEach
+```javascript
+// forEach：遍历，无返回值
+arr.forEach(item => console.log(item));
+
+// map：遍历，返回新数组
+const newArr = arr.map(item => item * 2);
+```
+
+### filter vs find
+```javascript
+// filter：返回所有符合条件的元素数组
+const evens = arr.filter(item => item % 2 === 0);
+
+// find：返回第一个符合条件的元素
+const first = arr.find(item => item > 5);
+```
+
+### some vs every
+```javascript
+// some：只要有一个满足就返回 true
+const hasEven = arr.some(item => item % 2 === 0);
+
+// every：所有都满足才返回 true
+const allPositive = arr.every(item => item > 0);
+```
+
+### reduce 累加器
+```javascript
+// 求和
+const sum = arr.reduce((acc, cur) => acc + cur, 0);
+
+// 数组去重
+const unique = arr.reduce((acc, cur) => 
+  acc.includes(cur) ? acc : [...acc, cur], []);
+
+// 数组扁平化
+const flat = arr.reduce((acc, cur) => 
+  acc.concat(Array.isArray(cur) ? cur.flat() : cur), []);
+```
+
+---
+
+## Promise 静态方法区别
+
+| 方法 | 说明 | 返回时机 |
+|------|------|----------|
+| `Promise.all` | 全部成功才成功 | 任一失败立即失败 |
+| `Promise.allSettled` | 等待全部完成 | 无论成功失败都返回结果 |
+| `Promise.race` | 返回最先完成的 | 第一个完成（无论成功失败） |
+| `Promise.any` | 返回最先成功的 | 第一个成功，全失败才失败 |
+
+```javascript
+// all：全部成功
+Promise.all([p1, p2, p3]).then(results => {});
+
+// allSettled：获取所有结果
+Promise.allSettled([p1, p2]).then(results => {
+  // [{status: 'fulfilled', value: ...}, {status: 'rejected', reason: ...}]
+});
+
+// race：竞速
+Promise.race([p1, p2]).then(first => {});
+
+// any：任一成功（ES2021）
+Promise.any([p1, p2]).then(first => {}).catch(errors => {});
+```
+
+---
+
+## async/await 原理
+
+**本质**：Generator + 自动执行器的语法糖
+
+```javascript
+// async 函数返回 Promise
+async function fn() {
+  return 1;
+}
+fn(); // Promise {fulfilled: 1}
+
+// await 等待 Promise 完成
+async function getData() {
+  try {
+    const res = await fetch('/api');
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// 并行执行
+async function parallel() {
+  const [res1, res2] = await Promise.all([fetch(url1), fetch(url2)]);
+}
+```
+
+**注意事项**：
+- await 只能在 async 函数中使用（ES2022 支持顶层 await）
+- await 后面的代码相当于放在 .then() 中执行
+- 多个无依赖的 await 应该用 Promise.all 并行
 
 ---
 

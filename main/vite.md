@@ -1,17 +1,72 @@
-# Vite 5.4.9 概述
+# Vite 8.x 概述
+
+## Vite 8 新特性
+
+### 重大更新
+
+1. **Rolldown 打包器（基于 Rust）**
+   - Vite 8 默认使用 Rolldown 作为生产环境打包器
+   - Rolldown 是基于 Rust 编写的高性能打包器，与 Rollup API 兼容
+   - 构建速度显著提升，大型项目构建时间可减少 50% 以上
+   - 开发和生产环境构建一致性大幅改善
+
+2. **Environment API（稳定版）**
+   - 支持多环境构建（客户端、SSR、Edge 等）
+   - 每个环境可以有独立的配置和优化策略
+   - 框架开发者可以更灵活地控制不同环境的行为
+
+3. **Node.js 版本要求**
+   - 最低要求 Node.js 22.x 或 20.19+
+   - 不再支持 Node.js 18
+
+4. **默认浏览器兼容性目标**
+   - 默认目标更改为 "Baseline Widely Available"
+   - 确保支持主流浏览器中已广泛可用的 Web 平台特性
+
+5. **Module Runner API**
+   - 替代原有的 `ssrLoadModule`
+   - 提供更强大的模块执行能力
+
+### 配置变更
+
+```js
+// Vite 8 新增/变更的配置
+export default defineConfig({
+  // Environment API 配置
+  environments: {
+    client: {
+      build: {
+        outDir: 'dist/client',
+      },
+    },
+    ssr: {
+      build: {
+        outDir: 'dist/server',
+      },
+    },
+  },
+  
+  // 新的默认值
+  json: {
+    stringify: true, // Vite 8 默认为 true
+  },
+})
+```
+
+---
 
 ## Vite 与 webpack 优缺点
 
-| 特性             | Vite                                        | Webpack               |
+| 特性             | Vite 8                                      | Webpack               |
 |----------------|---------------------------------------------|-----------------------|
-| **开发启动速度**     | 快,使用原生 ES 模块（ESM）和 `esbuild` 预构建依赖，按需编译启动内容 | 较慢，需要先打包整个项目再启动       |
-| **热更新速度**      | 快，基于原生 ESM,按需更新实际变化的模块                      | 较慢，尤其在大型项目中, 重新打包整个模块 |
-| **打包速度**       | 生产模式使用 Rollup，速度较快                          | 灵活扩展性强，支持复杂场景，但较慢     |
-| **生态系统**       | 较少，基于 Rollup                                | 成熟，插件丰富，支持复杂场景        |
-| **配置复杂度**      | 简单，开箱即用,扩展性相对不足                             | 配置复杂，尤其是在复杂项目中, 扩展性强  |
+| **开发启动速度**     | 极快，使用原生 ES 模块（ESM）和 `esbuild` 预构建依赖，按需编译 | 较慢，需要先打包整个项目再启动       |
+| **热更新速度**      | 极快，基于原生 ESM，按需更新实际变化的模块                    | 较慢，尤其在大型项目中，重新打包整个模块 |
+| **打包速度**       | 生产模式使用 Rolldown（Rust），速度极快                 | 灵活扩展性强，支持复杂场景，但较慢     |
+| **生态系统**       | 成熟，兼容 Rollup 插件生态                          | 成熟，插件丰富，支持复杂场景        |
+| **配置复杂度**      | 简单，开箱即用，Environment API 增强扩展性              | 配置复杂，尤其是在复杂项目中，扩展性强  |
 | **浏览器支持**      | 现代浏览器优先，需插件支持旧浏览器                           | 广泛支持新旧版浏览器            |
-| **开发与生产构建一致性** | 开发环境使用 ESBUILD，生产环境使用 Rollup,构建一致性并不稳定      | 构建一致性是稳定的             |
-| **适用场景**       | 适合中小型项目和现代框架开发                              | 适合大型项目和复杂构建场景         |
+| **开发与生产构建一致性** | Rolldown 统一构建，一致性显著改善                       | 构建一致性是稳定的             |
+| **适用场景**       | 适合各种规模项目和现代框架开发                             | 适合大型项目和复杂构建场景         |
 
 ## 配置示例
 
@@ -785,3 +840,79 @@ export default defineConfig({
   ],
 });
 ```
+
+---
+
+## 从旧版本迁移到 Vite 8
+
+### 从 Vite 7 迁移
+
+1. **Node.js 版本升级**
+   ```bash
+   # 确保 Node.js 版本 >= 22.x 或 20.19+
+   node -v
+   ```
+
+2. **更新依赖**
+   ```bash
+   npm install vite@latest
+   ```
+
+3. **配置调整**
+   ```js
+   // vite.config.js
+   export default defineConfig({
+     // json.stringify 默认值已改为 true
+     // 如需保持旧行为，显式设置为 false
+     json: {
+       stringify: false,
+     },
+   })
+   ```
+
+4. **Rolldown 打包器**
+   - Vite 8 默认使用 Rolldown，大部分 Rollup 插件仍然兼容
+   - 如遇兼容性问题，检查插件是否支持 Rolldown
+
+### 从 Vite 5/6 迁移
+
+1. **Environment API 迁移**
+   ```js
+   // 旧版本
+   export default defineConfig({
+     ssr: {
+       target: 'node',
+     },
+   })
+   
+   // Vite 8 推荐
+   export default defineConfig({
+     environments: {
+       ssr: {
+         build: {
+           ssr: true,
+         },
+       },
+     },
+   })
+   ```
+
+2. **ssrLoadModule 迁移**
+   ```js
+   // 旧版本
+   const module = await vite.ssrLoadModule('/src/entry-server.js')
+   
+   // Vite 8 使用 Module Runner
+   const runner = createModuleRunner(environment)
+   const module = await runner.import('/src/entry-server.js')
+   ```
+
+### 破坏性变更清单
+
+| 变更项 | 旧行为 | 新行为 |
+|--------|--------|--------|
+| Node.js 要求 | >= 18 | >= 20.19 或 >= 22 |
+| 默认打包器 | Rollup | Rolldown |
+| `json.stringify` | 默认 false | 默认 true |
+| SSR API | `ssrLoadModule` | Module Runner API |
+| 浏览器目标 | 自定义默认值 | Baseline Widely Available |

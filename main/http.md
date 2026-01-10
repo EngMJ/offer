@@ -159,3 +159,179 @@ Content-Type: text/html; charset=iso-8859-1
 +   `public`：可以被所有的用户缓存，包括终端用户和CDN等中间代理服务器。
 +   `private`：只能被终端用户的浏览器缓存，不允许CDN等中继缓存服务器对其缓存。
 +   `max-age`：指示客户机可以接收生存期不大于指定时间（以秒为单位）的响应。
+
+---
+
+### 7\. GET 和 POST 的区别
+
+| 特性 | GET | POST |
+|------|-----|------|
+| 参数位置 | URL 查询字符串 | 请求体 |
+| 长度限制 | 受 URL 长度限制（约 2KB） | 无限制 |
+| 安全性 | 参数暴露在 URL，不安全 | 相对安全 |
+| 缓存 | 可被缓存 | 默认不缓存 |
+| 幂等性 | 幂等（多次请求结果相同） | 非幂等 |
+| 后退/刷新 | 无害 | 数据会被重新提交 |
+| 书签 | 可收藏为书签 | 不可收藏 |
+| 数据类型 | 仅支持 ASCII | 支持多种编码 |
+
+**使用场景**：
+- GET：获取数据、搜索、查询
+- POST：提交表单、上传文件、创建资源
+
+---
+
+### 8\. HTTP 和 HTTPS 的区别
+
+| 特性 | HTTP | HTTPS |
+|------|------|-------|
+| 端口 | 80 | 443 |
+| 安全性 | 明文传输，不安全 | SSL/TLS 加密，安全 |
+| 证书 | 不需要 | 需要 CA 证书 |
+| 性能 | 较快 | 略慢（加密开销） |
+| SEO | 无影响 | 搜索引擎更青睐 |
+
+**HTTPS 工作流程**：
+1. 客户端发起 HTTPS 请求
+2. 服务器返回证书（包含公钥）
+3. 客户端验证证书有效性
+4. 客户端生成随机对称密钥，用公钥加密后发送
+5. 服务器用私钥解密获得对称密钥
+6. 双方使用对称密钥加密通信
+
+---
+
+### 9\. TCP 和 UDP 的区别
+
+| 特性 | TCP | UDP |
+|------|-----|-----|
+| 连接 | 面向连接（三次握手） | 无连接 |
+| 可靠性 | 可靠（确认机制、重传） | 不可靠 |
+| 顺序 | 保证顺序 | 不保证顺序 |
+| 速度 | 较慢 | 较快 |
+| 头部开销 | 20 字节 | 8 字节 |
+| 流量控制 | 有 | 无 |
+| 拥塞控制 | 有 | 无 |
+| 传输方式 | 字节流 | 数据报 |
+
+**使用场景**：
+- TCP：网页、邮件、文件传输（可靠性要求高）
+- UDP：视频、直播、游戏、DNS（实时性要求高）
+
+---
+
+### 10\. CORS 跨域
+
+**同源策略**：协议、域名、端口都相同才是同源
+
+**跨域解决方案**：
+
+1. **CORS（跨域资源共享）**
+```http
+# 服务器响应头
+Access-Control-Allow-Origin: https://example.com
+Access-Control-Allow-Methods: GET, POST, PUT
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Allow-Credentials: true
+```
+
+2. **JSONP**（仅支持 GET）
+```javascript
+function callback(data) {
+  console.log(data);
+}
+// <script src="https://api.com?callback=callback"></script>
+```
+
+3. **代理服务器**
+```javascript
+// Vite / Webpack devServer 代理
+proxy: {
+  '/api': {
+    target: 'https://api.example.com',
+    changeOrigin: true
+  }
+}
+```
+
+4. **postMessage**（跨窗口通信）
+
+**简单请求 vs 预检请求**：
+- 简单请求：GET/HEAD/POST，且 Content-Type 为 text/plain、multipart/form-data、application/x-www-form-urlencoded
+- 预检请求：先发 OPTIONS 请求询问服务器是否允许
+
+---
+
+### 11\. WebSocket
+
+**特点**：
+- 全双工通信（服务器可主动推送）
+- 持久连接（一次握手，持续通信）
+- 协议标识：ws:// 或 wss://（加密）
+- 较低开销（数据帧头部仅 2-10 字节）
+
+```javascript
+// 客户端
+const ws = new WebSocket('wss://example.com/socket');
+
+ws.onopen = () => {
+  ws.send('Hello Server');
+};
+
+ws.onmessage = (event) => {
+  console.log('收到消息:', event.data);
+};
+
+ws.onclose = () => {
+  console.log('连接关闭');
+};
+
+ws.onerror = (error) => {
+  console.error('错误:', error);
+};
+```
+
+**与 HTTP 长轮询对比**：
+| 特性 | WebSocket | 长轮询 |
+|------|-----------|--------|
+| 连接 | 持久连接 | 每次新建连接 |
+| 方向 | 双向通信 | 服务器响应后才能发送 |
+| 开销 | 低 | 高（频繁建立连接） |
+| 实时性 | 高 | 较低 |
+
+---
+
+### 12\. HTTP 请求方法
+
+| 方法 | 描述 | 幂等 | 安全 |
+|------|------|------|------|
+| GET | 获取资源 | ✓ | ✓ |
+| POST | 创建资源 | ✗ | ✗ |
+| PUT | 更新/替换资源 | ✓ | ✗ |
+| PATCH | 部分更新资源 | ✗ | ✗ |
+| DELETE | 删除资源 | ✓ | ✗ |
+| HEAD | 获取响应头 | ✓ | ✓ |
+| OPTIONS | 获取支持的方法 | ✓ | ✓ |
+| CONNECT | 建立隧道 | ✗ | ✗ |
+| TRACE | 追踪路径 | ✓ | ✗ |
+
+**幂等**：多次执行结果相同
+**安全**：不修改资源
+
+---
+
+### 13\. CDN 原理
+
+**CDN（内容分发网络）**：将内容缓存到离用户最近的节点
+
+**工作流程**：
+1. 用户访问域名，DNS 解析到 CDN 负载均衡
+2. CDN 根据用户 IP、节点负载等选择最优节点
+3. 如果节点有缓存，直接返回；否则回源获取
+4. 缓存内容到节点，下次直接返回
+
+**优点**：
+- 加速访问（就近获取）
+- 减轻源站压力
+- 提高可用性（节点故障自动切换）
+- 抵御 DDoS 攻击

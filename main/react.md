@@ -1,134 +1,36 @@
 ## 一、 类组件生命周期
 
-### 1.1 React v16.0 前的生命周期
+> 注：React 19 推荐使用函数组件 + Hooks，类组件仅用于维护遗留代码
 
-![image](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/586c05295e8f4966b560cd79a59ee975~tplv-k3u1fbpfcp-jj-mark:3024:0:0:0:q75.awebp#?w=2648&h=1116&s=199932&e=png&b=fdfbfb)
+### 1.1 现代生命周期
 
-1.  挂载阶段:
+**挂载阶段**：`constructor` → `getDerivedStateFromProps` → `render` → `componentDidMount`
 
-+   `constructor`(构造函数)
-+   `componentWillMount`(组件将要渲染)
-+   `render`(渲染组件)
-+   `componentDidMount`(组件渲染完成)
+**更新阶段**：`getDerivedStateFromProps` → `shouldComponentUpdate` → `render` → `getSnapshotBeforeUpdate` → `componentDidUpdate`
 
-2.  更新阶段: 分两种情况一种是 `state` 更新、一种是 `props` 更新
+**卸载阶段**：`componentWillUnmount`
 
-+   `componentWillReceiveProps`(组件 `props` 变更)
-+   `shouldComponentUpdate`(组件是否渲染)
-+   `componentWillUpdate`(组件将要更新)
-+   `render`(渲染组件)
-+   `componentDidUpdate`(组件更新完成)
+### 1.2 关键生命周期
 
-3.  卸载阶段:
-
-+   `componentWillUnmount`(组件将要卸载)
-
-### 1.2 React v16.0 后的生命周期
-
-![image](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e3d44324b51047d7ae3ba73f9766883b~tplv-k3u1fbpfcp-jj-mark:3024:0:0:0:q75.awebp#?w=2095&h=1193&s=105941&e=png&b=faf7f7)
-
-> +   删除了几个 `will` 相关的生命周期(原因下面解释)
-> +   新增了两个生命周期 `getDerivedStateFromProps` `getSnapshotBeforeUpdate`
-
-1.  挂载阶段:
-
-+   `constructor`(构造函数)
-+   `getDerivedStateFromProps`(派生 `props`)
-+   `render`(渲染组件)
-+   `componentDidMount`(组件渲染完成)
-
-2.  更新阶段:
-
-+   `getDerivedStateFromProps`(派生 `props`)
-+   `shouldComponentUpdate`(组件是否渲染)
-+   `render`(渲染组件)
-+   `getSnapshotBeforeUpdate`(获取快照)
-+   `componentDidUpdate`(组件更新完成)
-
-3.  卸载阶段:
-
-+   `componentWillUnmount`(组件将要卸载)
-
-### 1.3 getDerivedStateFromProps
-
-`getDerivedStateFromProps` 首先它是 `静态` 方法, 方法参数分别下一个 `props`、上一个 `state`, 这个生命周期函数是为了替代 `componentWillReceiveProps` 而存在的, 主要作用就是监听 `props` 然后修改当前组件的 `state`
-
+**getDerivedStateFromProps**（静态方法）：根据 props 派生 state
 ```js
-// 监听 props 如果返回非空值, 则将返回值作为新的 state 否则不进行任何处理
 static getDerivedStateFromProps(nextProps, prevState) {
-  const { type } = nextProps;
-
-  // 返回 nuyll: 对于 state 不进行任何操作
-  if (type === prevState.type) {
-    return null;
+  if (nextProps.value !== prevState.value) {
+    return { value: nextProps.value };
   }
-
-  // 返回具体指则更新 state
-  return { type }
+  return null;
 }
 ```
 
-### 1.4 getSnapshotBeforeUpdate
-
-`getSnapshotBeforeUpdate` 生命周期将在 `render` 之后 `DOM` 变更之前被调用, 此生命周期的返回值将作为 `componentDidUpdate` 的第三个参数进行传递, 当然通常不需要此生命周期, 但在重新渲染期间需要手动保留 `DOM` 信息时就特别有用
-
+**getSnapshotBeforeUpdate**：在 DOM 更新前获取快照
 ```js
-getSnapshotBeforeUpdate(prevProps, prevState){
-  console.log(5);
-  return 999;
+getSnapshotBeforeUpdate(prevProps, prevState) {
+  return this.listRef.scrollHeight;
 }
-
 componentDidUpdate(prevProps, prevState, snapshot) {
-  console.log(6, snapshot);
+  // snapshot 是 getSnapshotBeforeUpdate 的返回值
 }
 ```
-
-打印结果:
-
-```text
-5
-6 999
-```
-
-**缘由:**
-
-+   大多数开发者使用 `componentWillUpdate` 的场景是配合 `componentDidUpdate`, 分别获取 `渲染` 前后的视图状态, 进行必要的处理, 但随着 `React` `异步渲染` 等机制的到来, `渲染` 过程可以被分割成多次完成, 还可以被 `暂停` 甚至 `回溯`, 这导致 `componentWillUpdate` 和 `componentDidUpdate` 执行前后可能会间隔很长时间, 足够使用户进行交互操作更改当前组件的状态, 这样可能会导致难以追踪的 `BUG`
-    +   所以就新增了 `getSnapshotBeforeUpdate` 生命周期, 目的就是就是为了解决上述问题并取代 `componentWillUpdate`, 因为 `getSnapshotBeforeUpdate` 方法是在 `componentWillUpdate` 后(如果存在的话), 在 `React` 真正更改 `DOM` 前调用的, 它获取到组件状态信息会更加可靠
-    +   除此之外, `getSnapshotBeforeUpdate` 还有一个十分明显的好处: 它调用的结果会作为第三个参数传入 `componentDidUpdate` 避免了 `componentWillUpdate` 和 `componentDidUpdate` 配合使用时将组件临时的状态数据存在组件实例上浪费内存
-    +   同时 `getSnapshotBeforeUpdate` 返回的数据在 `componentDidUpdate` 中用完即被销毁, 效率更高
-
-### 1.5 React v16.0 之后为什么要删除 Will 相关生命周期
-
-1.  **被删除的生命周期:**
-
-+   `componentWillReceiveProps`
-+   `componentWillMount`
-+   `componentWillUpdate`
-
-2.  **删除原因:**
-
-+   这些生命周期方法经常被误解和巧妙地误用
-+   它们的潜在误用可能会在异步渲染中带来更多问题, 所以如果现有项目中使用了这几个生命周期, 将会在控制台输出如下警告! 大致意思就是这几个生命周期将在 `18.x` 彻底下线, 如果一定要使用可以带上 `UNSAFE_` 前缀
-
-![image](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d3a37aea15174abfa4272cad2f860021~tplv-k3u1fbpfcp-jj-mark:3024:0:0:0:q75.awebp#?w=1130&h=104&s=11864&e=png&b=342b00)
-
-3.  **为何移除 `componentWillMount`:** 因为在 `异步渲染机制` 中允许对组件进行中断停止等操作, 可能会导致单个组件实例 `componentWillMount` 被多次调用, 很多开发者目前会将事件绑定、异步请求等写在 `componentWillMount` 中, 一旦异步渲染时 `componentWillMount` 被多次调用, 将会导致:
-
-+   进行重复的事件监听, 无法正常取消重复的事件, 严重点可能会导致内存泄漏
-+   发出重复的异步网络请求, 导致 `IO` 资源被浪费
-+   补充: 现在, `React` 推荐将原本在 `componentWillMount` 中的网络请求移到 `componentDidMount` 中, 至于这样会不会导致请求被延迟发出影响用户体验, `React` 团队是这么解释的: `componentWillMount`、`render` 和 `componentDidMount` 方法虽然存在调用先后顺序, 但在大多数情况下, 几乎都是在很短的时间内先后执行完毕, 几乎不会对用户体验产生影响。
-
-4.  **为何移除 `componentWillUpdate`:**
-
-+   大多数开发者使用 `componentWillUpdate` 的场景是配合 `componentDidUpdate`, 分别获取 `渲染` 前后的视图状态, 进行必要的处理, 但随着 `React` `异步渲染` 等机制的到来, `渲染` 过程可以被分割成多次完成, 还可以被 `暂停` 甚至 `回溯`, 这导致 `componentWillUpdate` 和 `componentDidUpdate` 执行前后可能会间隔很长时间, 足够使用户进行交互操作更改当前组件的状态, 这样可能会导致难以追踪的 `BUG`
-+   所以后面新增了 `getSnapshotBeforeUpdate` 生命周期, 目的就是就是为了解决上述问题并取代 `componentWillUpdate`, 因为 `getSnapshotBeforeUpdate` 方法是在 `componentWillUpdate` 后(如果存在的话), 在 `React` 真正更改 `DOM` 前调用的, 它获取到组件状态信息会更加可靠
-+   除此之外, `getSnapshotBeforeUpdate` 还有一个十分明显的好处: 它的返回结果会作为 `componentDidUpdate` 的第三个参数进行传递, 从而避免了 `componentWillUpdate` 和 `componentDidUpdate` 配合使用时将组件临时的状态数据存在组件实例上引起的浪费内存
-+   同时 `getSnapshotBeforeUpdate` 返回的数据在 `componentDidUpdate` 中用完即被销毁, 效率更高
-
-**参考**:
-
-+   [谈谈 React 新的生命周期钩子](https://zhuanlan.zhihu.com/p/42413419 "https://zhuanlan.zhihu.com/p/42413419")
-+   [异步渲染更新](https://legacy.reactjs.org/blog/2018/03/27/update-on-async-rendering.html#initializing-state "https://legacy.reactjs.org/blog/2018/03/27/update-on-async-rendering.html#initializing-state")
 
 ### 1.6 异步渲染
 
@@ -2017,302 +1919,521 @@ const slowHandle = () => {
 +   [React 性能优化 | 包括原理、技巧、Demo、工具使用](https://juejin.cn/post/6935584878071119885#heading-30 "https://juejin.cn/post/6935584878071119885#heading-30")
 +   [React 性能优化最佳实践（十九）](https://juejin.cn/post/7064804207722758157#heading-18 "https://juejin.cn/post/7064804207722758157#heading-18")
 
-## 十九、React 18 更新内容有哪些?
+## 十九、React 18/19 核心特性
 
-> 主基调: 并发性是 React 18 的主要优势之一
+> React 19 继承了 React 18 的并发特性，以下是核心概念
 
-### 9.1 彻底放弃 IE
+### 9.1 自动批处理
 
-1.  `17` 修复 `IE` 兼容问题
-2.  `18` 彻底放弃 `IE` 的支持
-
-### 9.2 自动批处理
-
-1.  我们都知道在 `React 18` 之前:
-
-+   在合成事件、生命周期中如果多次修改 `state`, 会进行批处理, 然后只会触发一次 `render`
-+   在定时器、`promise.then`、原生事件处理函数中不会进行批处理
-+   这里之所以会有两种不同情况, 主要原因是早期对于 `批处理` 是通过一个状态作为批处理依据, 具体可查阅上文 `7.2 React 的更新机制: 异步 OR 同步` 部分内
+所有状态更新自动批处理，基于 Fiber 调度器以任务优先级为依据：
 
 ```js
-function App() {
-  const [count, setCount] = useState(0);
-  const [flag, setFlag] = useState(false);
+// 多次 setState 只会触发一次渲染
+function handleClick() {
+  setCount(c => c + 1);
+  setFlag(f => !f);
+  // 只会触发一次 render
+}
 
-  function handleClick() {
-    setCount((c) => c + 1); 
-    setFlag((f) => !f); 
-  }
+// 退出批处理：flushSync
+import { flushSync } from 'react-dom';
+flushSync(() => setCount(c => c + 1)); // 立即更新
+```
+
+### 9.2 createRoot API
+
+```js
+import ReactDOM from 'react-dom/client';
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+```
+
+### 9.3 Suspense
+
+```jsx
+<Suspense fallback={<Loading />}>
+  <AsyncComponent />
+</Suspense>
+```
+
+未提供 `fallback` 时渲染为空（不再向上传递）。
+
+### 9.4 并发模式（Concurrent Mode）
+
+基于 Fiber 架构实现，支持任务优先级和可中断渲染。
+
+**useTransition**：标记非紧急更新，保持 UI 响应
+```js
+const [isPending, startTransition] = useTransition();
+
+startTransition(() => {
+  setList(new Array(10000).fill(null)); // 非紧急更新
+});
+```
+
+**useDeferredValue**：延迟值更新
+```js
+const deferredList = useDeferredValue(list); // 非紧急时才更新
+```
+
+**区别**：`useTransition` 延迟逻辑执行，`useDeferredValue` 延迟值响应。
+
+## 二十、React 19 新特性
+
+> React 19 是一个重大版本更新，带来了许多期待已久的新特性和改进
+
+### 10.1 Actions（异步转换）
+
+Actions 是 React 19 的核心特性之一，用于处理表单提交和数据变更：
+
+```jsx
+// 传统方式
+function UpdateName() {
+  const [name, setName] = useState("");
+  const [error, setError] = useState(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsPending(true);
+    const error = await updateName(name);
+    setIsPending(false);
+    if (error) {
+      setError(error);
+      return;
+    }
+    redirect("/path");
+  };
 
   return (
     <div>
-      <button onClick={handleClick}>Next</button>
-      <h1 style={flag ? { color: "blue" } : { color: "black" }}>{count}</h1>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <button onClick={handleSubmit} disabled={isPending}>
+        Update
+      </button>
+      {error && <p>{error}</p>}
     </div>
   );
 }
-```
 
-2.  在 `React 18` 之后所有的更新都将自动批处理:
-
-+   主要原因是不再通过 `状态` 来作为批处理依据, 改为基于 `fiber` 的调度器(Scheduler)以任务优先级为依据来进行批处理
-+   通过 `Scheduler` 来进行任务调度, 在事件中是同步状态更新(合成事件、生命周期)则立即进行状态合并,是异步状态更新(定时器、`promise.then`、原生事件处理函数)则等待事件执行完成再进行状态更新合并,最后合并渲染只进行一次DOM更新,从而实现了自动批处理
-+   参考: [React18精读一: Automatic Batching 自动批处理](https://zhuanlan.zhihu.com/p/523683561 "https://zhuanlan.zhihu.com/p/523683561")
-
-3.  如何退出批处理: `flushSync` 强制同步更新
-
-```js
-import React, { useState } from 'react';
-import { flushSync } from 'react-dom';
-
-const App: React.FC = () => {
-  const [count1, setCount1] = useState(0);
-  const [count2, setCount2] = useState(0);
+// React 19 使用 useActionState
+function UpdateName() {
+  const [error, submitAction, isPending] = useActionState(
+    async (previousState, formData) => {
+      const error = await updateName(formData.get("name"));
+      if (error) {
+        return error;
+      }
+      redirect("/path");
+      return null;
+    },
+    null
+  );
 
   return (
-    <div
-      onClick={() => {
-        // 第一次更新
-        flushSync(() => {
-          setCount1(count => count + 1);
-        });
-        // 第二次更新
-        flushSync(() => {
-          setCount2(count => count + 1);
-        });
-      }}
-    >
-      <div>count1: {count1}</div>
-      <div>count2: {count2}</div>
-    </div>
+    <form action={submitAction}>
+      <input type="text" name="name" />
+      <button type="submit" disabled={isPending}>Update</button>
+      {error && <p>{error}</p>}
+    </form>
   );
-};
-
-export default App;
-```
-
-### 9.3 Render API
-
-> 修改了将组件挂载到 `root` 节点的一个 `api`
-
-1.  旧版本
-
-```js
-import React from 'react';
-import ReactDOM from 'react-dom';
-const root = document.getElementById('root');
-ReactDOM.render(<App />, root);
-```
-
-2.  `18` 版本: 支持并发模式渲染
-
-```js
-// React 18
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-
-const root = document.getElementById('root');
-
-ReactDOM.createRoot(root).render(<App />);
-```
-
-### 9.4 删除: 卸载组件时的更新状态的警告
-
-> 参考: [react-18/discussions/82](https://github.com/reactwg/react-18/discussions/82 "https://github.com/reactwg/react-18/discussions/82")
-
-1.  背景: `18` 之前我们如果在组件卸载后, 尝试修改状态就会在控制台抛出异常
-
-```js
-useEffect(() => {
-  function handleChange() {
-    setState(store.getState())
-  }
-  store.subscribe(handleChange)
-
-  return () => store.unsubscribe(handleChange)
-  // 这里如果没有解除订阅, 那么控制台将会抛出如下错误
-  // Warning: Can't perform a React state update on an unmounted component. This is a no-op, but it indicates a memory leak in your application. To fix, cancel all subscriptions and asynchronous tasks in a useEffect cleanup function.
-}, [])
-```
-
-2.  目的: 如上代码如果忘记调用 `unsubscribe` 解除订阅, 就会出现内存泄露!! 所以为了避免出现这种问题, 所以就设置了上面的警告信息!!
-
-3.  为什么要去除: 主要原因还是警告具有误导性, 如下代码是一个比较常见的场景, 在执行 `post('/someapi')` 期间如果组件卸载, 后面调用 `setPending`, 在 `18` 之前这里将会抛出错误, 但实际上这里并没有太大的毛病, 也并没有存在内存泄露问题!!!
-
-
-```js
-async function handleSubmit() {
-  setPending(true)
-  await post('/someapi') // component might unmount while we're waiting
-  setPending(false)
 }
 ```
 
-4.  在 `18` 之前人们为了抑制这个错误, 经常写如下代码:
+### 10.2 新 Hooks
 
-```js
-let isMountedRef = useRef(false)
-useEffect(() => {
-  isMountedRef.current = true
-  return () => {
-    isMountedRef.current = false
-  }
-}, [])
+#### useActionState
 
-async function handleSubmit() {
-  setPending(true)
-  await post('/someapi')
-  if (!isMountedRef.current) {
-    setPending(false)
-  }
+管理表单 Action 状态的 Hook：
+
+```jsx
+import { useActionState } from 'react';
+
+function Form() {
+  // 参数: action函数, 初始状态, permalink(可选)
+  const [state, formAction, isPending] = useActionState(
+    async (prevState, formData) => {
+      const result = await submitForm(formData);
+      return result;
+    },
+    { message: '' }
+  );
+
+  return (
+    <form action={formAction}>
+      <input name="email" type="email" />
+      <button disabled={isPending}>
+        {isPending ? '提交中...' : '提交'}
+      </button>
+      {state.message && <p>{state.message}</p>}
+    </form>
+  );
 }
-
 ```
 
-5.  看起来上面解决方法实际比原来的问题更加糟糕, 所以最后还是删了吧.... 后面看看有没其他手段来规避内存泄露
+#### useFormStatus
 
-### 9.5 关于 React 组件的返回值
+在表单子组件中获取父级 form 的提交状态：
 
-> 参考: [react-18/discussions/75](https://github.com/reactwg/react-18/discussions/75 "https://github.com/reactwg/react-18/discussions/75")
+```jsx
+import { useFormStatus } from 'react-dom';
 
-1.  在 `React 17` 中, 如果需要返回一个空组件, 只允许返回 `null`, 如果返回了 `undefined` 控制台则会在运行时抛出一个错误
-
-2.  在 `React 18` 中, 既能返回 `null`, 也能返回 `undefined` (但是 `React 18` 的 `dts` 文件还是会检查, 只允许返回 `null`, 这里我们可以忽略这个类型错误
-
-3.  之前为什么要这么设计: 在编码过程中忘记 `return`, 是比较容易犯的一个错误, 为了帮助用户发现这个问题, 所以就有了这个警告
-
-4.  那现在为什么又允许了:
-
-
-+   在 `Suspense` 中允许为 `fallback` 为 `undefined`, 所以为了保持一致性, 顾允许返回 `undefined`
-+   考虑到现在类型系统和 `Eslint` 都已经非常成熟、健壮, 通过它们就可以很好避免这类低级错误了
-
-### 9.6 严格模式下第二次渲染期间抑制日志
-
-1.  背景:
-
-+   为了防止组件内有什么意外的副作用, 而引起 `BUG`, 所以严格模式下 `React` 在开发模式中会刻意执行两次渲染, 尽可能把问题提前暴露出来, 来提前预防
-+   而 `React` 为了让日志更容易阅读, 通过修改 `console` 中的方法, 取消了其中一次渲染的控制台日志
-
-2.  问题: 开发人员在调试过程中会存在很多困惑
-
-3.  展望未来: `React` 将不再默认在第二次渲染期间抑制日志, 如果安装了 `React DevTools > 4.18.0`, 第二次渲染期间的日志现在将以柔和的颜色显示在控制台中
-
-
-### 9.7 Suspense
-
-> 参考: [react-18/discussions/72](https://github.com/reactwg/react-18/discussions/72 "https://github.com/reactwg/react-18/discussions/72")
-
-1.  更新前: 如果 `Suspense` 组件没有提供 `fallback` 属性, `React` 就会跳过它, 继续讲错误向上传递, 直到被最近的 `Suspense` 捕获到
-
-```js
-<Suspense fallback={<Loading />}> // 这个边界被使用，显示 Loading 组件
-  <Suspense>  // 这个边界被跳过，没有 fallback 属性
-    <Page />
-  </Suspense>
-</Suspense>
-```
-
-2.  更新后: 如果 `Suspense` 组件没有提供 `fallback` 属性, 错误不会往外层传递, 而是展示为空
-
-```js
-<Suspense fallback={<Loading />}> //  不使用
-  <Suspense> //  这个边界被使用, 将 fallback 渲染为 null
-    <Page />
-  </Suspense>
-</Suspense>
-```
-
-3.  为什么要做调整: `Suspense` 的错误如果一直往外透传, 那么这样会导致混乱、难以调试的情况发生
-
-### 9.8 Concurrent Mode(并发模式)
-
-> 并不是一个功能, 而是一个底层设计
-
-1.  使用新版本的 `createRoot(root).render` 来挂载节点将启用 `并发模式`, 但是并没开启 `并发更新`, 要相启用相应的 `并发更新` 需要使用相应的 `api`
-
-![image](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/10519f26155944128decd0d49d2c76f4~tplv-k3u1fbpfcp-jj-mark:3024:0:0:0:q75.awebp#?w=581&h=599&s=17383&e=png&b=fefefe)
-
-2.  开启并发更新: `useTransition`, 如下代码 `useTransition` 返回两个数组参数
-
-+   `isPending` 表示是否正在等待中
-+   `useTransition` 接收一个回调函数, 函数中的状态修改将被标记为 `非紧急渲染` 任务, 这样的话在大量的任务下也能保持 `UI` 能够快速的响应, 从而来显著改善用户交互
-
-```js
-import React, { useState, useEffect, useTransition } from 'react';
-
-const App = () => {
-  const [list, setList] = useState([]);
-  const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    // 使用了并发特性，开启并发更新
-    startTransition(() => {
-      setList(new Array(10000).fill(null));
-    });
-  }, []);
+function SubmitButton() {
+  // 必须在 <form> 的子组件中使用
+  const { pending, data, method, action } = useFormStatus();
   
   return (
-    <>
-      {list.map((_, i) => (
-        <div key={i}>{i}</div>
-      ))}
-    </>
+    <button type="submit" disabled={pending}>
+      {pending ? '提交中...' : '提交'}
+    </button>
   );
-};
+}
+
+function Form() {
+  return (
+    <form action={submitAction}>
+      <input name="name" />
+      <SubmitButton />
+    </form>
+  );
+}
 ```
 
-3.  开启并发更新: `useDeferredValue`, 返回一个延迟响应的值, 可以让一个 `state` 延迟生效, 只有当前没有紧急更新时, 该值才会变为最新值! 同 `useTransition` 一样都是标记了一次非紧急更新
+#### useOptimistic
 
-```js
-import React, { useState, useEffect, useDeferredValue } from 'react';
+实现乐观更新（在异步操作完成前先显示预期结果）：
 
-const App = () => {
-  const [list, setList] = useState([]);
+```jsx
+import { useOptimistic } from 'react';
 
-  // 使用了并发特性，开启并发更新
-  const deferredList = useDeferredValue(list);
+function MessageList({ messages, sendMessage }) {
+  const [optimisticMessages, addOptimisticMessage] = useOptimistic(
+    messages,
+    (state, newMessage) => [
+      ...state,
+      { text: newMessage, sending: true }
+    ]
+  );
 
-  useEffect(() => {
-    setList(new Array(10000).fill(null));
-  }, []);
+  async function handleSubmit(formData) {
+    const message = formData.get("message");
+    // 立即显示乐观结果
+    addOptimisticMessage(message);
+    // 实际发送
+    await sendMessage(message);
+  }
 
   return (
     <>
-      {deferredList.map((_, i) => (
-        <div key={i}>{i}</div>
+      {optimisticMessages.map((msg, i) => (
+        <div key={i}>
+          {msg.text}
+          {msg.sending && <small>（发送中...）</small>}
+        </div>
       ))}
+      <form action={handleSubmit}>
+        <input name="message" />
+        <button type="submit">发送</button>
+      </form>
     </>
   );
-};
+}
 ```
 
-4.  `useDeferredValue` 与 `useTransition` 的区别
+### 10.3 use() API
 
-+   相同: 从功能、作用以及内部的实现上来讲, 他们是一样的都是标记成了延迟更新任务
-+   不同: `useTransition` 是一段逻辑延迟更新, 而 `useDeferredValue` 是把一个值延迟更新.
+`use` 是一个新的 API，可以在渲染期间读取资源（如 Promise 或 Context）：
 
-5.  简单总结: 所有的东西都是基于 `fiber` 架构实现的, `fiber` 为状态更新提供了可中断的能力
+```jsx
+import { use, Suspense } from 'react';
 
-+   并发更新的意义就是 `交替执行` 不同的任务(任务可以划分优先级, 高优先级的先执行), 当预留的时间不够用时, `React` 将线程控制权交还给浏览器, 等待下一帧时间到来, 然后继续被中断的工作
-+   并发模式是实现并发更新的基本前提, 同时时间切片是实现并发更新的具体手段
+// 读取 Promise
+function Comments({ commentsPromise }) {
+  // 在渲染期间读取 Promise，会自动挂起组件
+  const comments = use(commentsPromise);
+  return comments.map(comment => <p key={comment.id}>{comment.text}</p>);
+}
 
-### 9.9 几个新的 API
+function Page({ commentsPromise }) {
+  return (
+    <Suspense fallback={<div>加载评论中...</div>}>
+      <Comments commentsPromise={commentsPromise} />
+    </Suspense>
+  );
+}
 
-1.  `useId`:
+// 读取 Context（可以在条件语句中使用）
+function HorizontalRule({ show }) {
+  if (show) {
+    const theme = use(ThemeContext);
+    return <hr className={theme} />;
+  }
+  return null;
+}
+```
 
-+   参考: [为了生成唯一id, React18专门引入了新Hook: useId](https://zhuanlan.zhihu.com/p/437913203 "https://zhuanlan.zhihu.com/p/437913203")
-+   主要适用于 `SSR`(服务端渲染), 让服务端渲染的组件生成 `id` 与客户端渲染的组件的 `id` 一致
+**注意**: `use` 与普通 Hooks 不同，可以在循环和条件语句中调用。
 
-2.  `useSyncExternalStore`:
-    +   参考: [React 18 撕裂介绍](https://juejin.cn/post/6999778495077302302 "https://juejin.cn/post/6999778495077302302")
-    +   参考: [React 的并发悖论](https://zhuanlan.zhihu.com/p/623324430 "https://zhuanlan.zhihu.com/p/623324430")
-    +   视图撕裂: 对于开启并发更新的 `React`, 更新流程可能中断, 因任务更新时间不一致,渲染内容冲突的现象
-    +   `React` 的 `API` 已经原生的解决的并发特性下的撕裂(`tear`)问题, 但是对于 `redux` 等外部框架它在控制状态时可能并非直接使用的 `React`的 `API`(`useState`), 而是自己在外部维护了一个 `store` 对象, 它脱离了 `React` 的管理, 也就无法依靠 `React` 自动解决撕裂问题。因此, `React` 对外提供了这样一个 `API`, 帮助这类框架开发者(有外部 `store` 需求的)解决撕裂问题
-    +   对于如何解决外部框架的并发特性下的撕裂(`tear`)问题, `React` 目前并没有好的一个方案, 目前 `useSyncExternalStore` 的作用其实是状态管理库触发的更新都以同步的方式执行, 这样就不会有同步时机的问题了
-3.  `useInsertionEffect`: 这个 `Hooks` 只建议 `css-in-js` 库来使用, 这个 `Hooks` 执行时机在 `DOM` 生成之后, `useLayoutEffect` 之前, `它的工作原理大致和 useLayoutEffect` 相同, 只是此时无法访问 `DOM` 节点的引用, 一般用于提前注入 `<style>` 脚本
+### 10.4 Server Components（服务器组件）
 
-## 二十、使用 React 需要注意的事项有哪些?
+React 19 正式稳定了 Server Components：
+
+```jsx
+// Server Component（默认）
+// 在服务器上渲染，不会发送到客户端
+async function BlogPost({ id }) {
+  // 可以直接访问数据库、文件系统等
+  const post = await db.posts.findOne({ id });
+  
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      <p>{post.content}</p>
+      {/* 嵌套客户端组件 */}
+      <LikeButton postId={id} />
+    </article>
+  );
+}
+
+// Client Component
+'use client';
+
+import { useState } from 'react';
+
+function LikeButton({ postId }) {
+  const [liked, setLiked] = useState(false);
+  
+  return (
+    <button onClick={() => setLiked(!liked)}>
+      {liked ? '❤️' : '🤍'}
+    </button>
+  );
+}
+```
+
+### 10.5 Server Actions（服务器动作）
+
+允许客户端组件调用服务器端的异步函数：
+
+```jsx
+// actions.js
+'use server';
+
+export async function createPost(formData) {
+  const title = formData.get('title');
+  const content = formData.get('content');
+  
+  // 服务器端逻辑
+  await db.posts.create({ title, content });
+  revalidatePath('/posts');
+}
+
+// CreatePost.jsx
+'use client';
+
+import { createPost } from './actions';
+
+function CreatePost() {
+  return (
+    <form action={createPost}>
+      <input name="title" placeholder="标题" />
+      <textarea name="content" placeholder="内容" />
+      <button type="submit">创建文章</button>
+    </form>
+  );
+}
+```
+
+### 10.6 ref 作为 prop
+
+React 19 中，函数组件可以直接接收 `ref` 作为 prop，不再需要 `forwardRef`：
+
+```jsx
+// React 19 之前
+const Input = forwardRef((props, ref) => {
+  return <input ref={ref} {...props} />;
+});
+
+// React 19
+function Input({ ref, ...props }) {
+  return <input ref={ref} {...props} />;
+}
+
+// 使用
+function Form() {
+  const inputRef = useRef(null);
+  return <Input ref={inputRef} placeholder="输入..." />;
+}
+```
+
+### 10.7 ref 清理函数
+
+ref 回调现在支持返回清理函数：
+
+```jsx
+function Component() {
+  return (
+    <input
+      ref={(element) => {
+        // 元素挂载时执行
+        if (element) {
+          element.focus();
+        }
+        // 返回清理函数，在元素卸载时执行
+        return () => {
+          // 清理逻辑
+          console.log('元素已卸载');
+        };
+      }}
+    />
+  );
+}
+```
+
+### 10.8 Context 直接作为 Provider
+
+不再需要 `<Context.Provider>`，可以直接使用 `<Context>`：
+
+```jsx
+const ThemeContext = createContext('light');
+
+// React 19 之前
+function App({ children }) {
+  return (
+    <ThemeContext.Provider value="dark">
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+// React 19
+function App({ children }) {
+  return (
+    <ThemeContext value="dark">
+      {children}
+    </ThemeContext>
+  );
+}
+```
+
+### 10.9 文档元数据原生支持
+
+React 19 支持在组件中直接渲染 `<title>`、`<meta>`、`<link>` 等标签：
+
+```jsx
+function BlogPost({ post }) {
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      {/* 这些标签会自动提升到 <head> 中 */}
+      <title>{post.title} - 我的博客</title>
+      <meta name="description" content={post.summary} />
+      <meta name="keywords" content={post.keywords.join(', ')} />
+      <link rel="canonical" href={`https://example.com/posts/${post.slug}`} />
+      <p>{post.content}</p>
+    </article>
+  );
+}
+```
+
+### 10.10 资源加载 API
+
+React 19 提供了新的资源预加载 API：
+
+```jsx
+import { prefetchDNS, preconnect, preload, preinit } from 'react-dom';
+
+function Component() {
+  // DNS 预解析
+  prefetchDNS('https://example.com');
+  
+  // 预连接
+  preconnect('https://api.example.com');
+  
+  // 预加载资源
+  preload('https://example.com/font.woff2', { as: 'font' });
+  preload('https://example.com/styles.css', { as: 'style' });
+  
+  // 预初始化（加载并执行脚本或样式）
+  preinit('https://example.com/script.js', { as: 'script' });
+  
+  return <div>...</div>;
+}
+```
+
+### 10.11 其他改进
+
+1. **更好的错误处理**
+   - `onCaughtError`: 当 Error Boundary 捕获错误时调用
+   - `onUncaughtError`: 当错误未被捕获时调用
+   - `onRecoverableError`: 当发生可恢复错误时调用
+
+```jsx
+createRoot(container, {
+  onCaughtError: (error, errorInfo) => {
+    console.error('Caught error:', error, errorInfo.componentStack);
+  },
+  onUncaughtError: (error, errorInfo) => {
+    console.error('Uncaught error:', error, errorInfo.componentStack);
+  },
+  onRecoverableError: (error, errorInfo) => {
+    console.error('Recoverable error:', error, errorInfo.componentStack);
+  }
+}).render(<App />);
+```
+
+2. **样式表支持**
+   - 支持 `<link rel="stylesheet">` 的优先级和去重
+
+```jsx
+function Component() {
+  return (
+    <>
+      <link rel="stylesheet" href="styles.css" precedence="default" />
+      <link rel="stylesheet" href="theme.css" precedence="high" />
+      <div>内容</div>
+    </>
+  );
+}
+```
+
+3. **异步脚本支持**
+
+```jsx
+function Component() {
+  return (
+    <>
+      <script async src="https://example.com/analytics.js" />
+      <div>内容</div>
+    </>
+  );
+}
+```
+
+### 10.12 从 React 18 迁移到 React 19
+
+1. **安装更新**
+```bash
+npm install react@19 react-dom@19
+```
+
+2. **主要变更**
+   - `forwardRef` 不再需要，但仍可使用
+   - `<Context.Provider>` 改为 `<Context>`
+   - ref 清理函数是新行为，确保不会意外返回函数
+   - `useFormState` 重命名为 `useActionState`
+
+3. **废弃 API 移除**
+   - `propTypes` 和 `defaultProps` 对函数组件完全废弃
+   - 移除 `contextTypes` 和 `getChildContext`（老式 Context API）
+   - 移除字符串 refs
+   - 移除模块模式的工厂组件
+   - `ReactDOM.render` 和 `ReactDOM.hydrate` 被移除
+
+4. **TypeScript 变更**
+   - `useRef` 现在要求传入参数
+   - `ReactElement` 类型变更
+
+## 二十一、使用 React 需要注意的事项有哪些?
 
 1.  `state` 不可直接进行修改
 
@@ -2329,5 +2450,225 @@ const App = () => {
 7.  避免过度使用 `Redux`
 
 
-## 二十一、React-router
-+   参考: [React-router API列表](./react_router.md)
+## 二十二、React Router v6
+
+### 22.1 核心概念
+
+React Router v6 提供了声明式的路由管理，是 React 应用中最常用的路由库。
+
+**路由器类型**：
+- `BrowserRouter` - 使用 HTML5 History API（推荐）
+- `HashRouter` - 使用 URL 哈希
+- `MemoryRouter` - 内存中管理路由（用于测试）
+- `StaticRouter` - 服务端渲染
+
+### 22.2 基本用法
+
+```tsx
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+
+function App() {
+  return (
+    <BrowserRouter>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/about">About</Link>
+      </nav>
+      
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/user/:id" element={<UserProfile />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+### 22.3 嵌套路由与 Outlet
+
+```tsx
+function Dashboard() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <nav>
+        <Link to="messages">Messages</Link>
+        <Link to="tasks">Tasks</Link>
+      </nav>
+      <Outlet /> {/* 子路由渲染位置 */}
+    </div>
+  );
+}
+
+// 路由配置
+<Routes>
+  <Route path="dashboard" element={<Dashboard />}>
+    <Route index element={<DashboardHome />} />
+    <Route path="messages" element={<Messages />} />
+    <Route path="tasks" element={<Tasks />} />
+  </Route>
+</Routes>
+```
+
+### 22.4 编程式导航
+
+```tsx
+import { useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom';
+
+function UserProfile() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const handleClick = () => {
+    navigate('/home');              // 跳转
+    navigate(-1);                   // 后退
+    navigate('/login', { replace: true }); // 替换历史记录
+    navigate('/user', { state: { from: location } }); // 传递状态
+  };
+  
+  return <div>User {id}</div>;
+}
+```
+
+### 22.5 路由守卫（Protected Route）
+
+```tsx
+function ProtectedRoute({ children }) {
+  const { user } = useAuth();
+  const location = useLocation();
+  
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
+  return children;
+}
+
+// 使用
+<Route 
+  path="/dashboard" 
+  element={
+    <ProtectedRoute>
+      <Dashboard />
+    </ProtectedRoute>
+  } 
+/>
+```
+
+### 22.6 useRoutes（配置式路由）
+
+```tsx
+import { useRoutes } from 'react-router-dom';
+
+function App() {
+  const element = useRoutes([
+    { path: '/', element: <Home /> },
+    { path: '/about', element: <About /> },
+    {
+      path: '/dashboard',
+      element: <Dashboard />,
+      children: [
+        { index: true, element: <DashboardHome /> },
+        { path: 'settings', element: <Settings /> },
+      ],
+    },
+  ]);
+  
+  return element;
+}
+```
+
+---
+
+## 二十三、React 图片懒加载
+
+### 23.1 IntersectionObserver 实现
+
+```tsx
+import { useRef, useEffect, useState } from 'react';
+
+function LazyImage({ src, alt, placeholder = '/loading.gif' }) {
+  const [imageSrc, setImageSrc] = useState(placeholder);
+  const imgRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setImageSrc(src);
+          observer.unobserve(imgRef.current);
+        }
+      },
+      { rootMargin: '0px 0px 200px 0px' }
+    );
+
+    if (imgRef.current) {
+      observer.observe(imgRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [src]);
+
+  return <img ref={imgRef} src={imageSrc} alt={alt} />;
+}
+```
+
+### 23.2 传统滚动监听实现
+
+```tsx
+function LazyLoadContainer({ children }) {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = containerRef.current;
+      const images = container.querySelectorAll('img[data-src]');
+      
+      images.forEach(img => {
+        const rect = img.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          img.src = img.dataset.src;
+          img.removeAttribute('data-src');
+        }
+      });
+    };
+
+    const throttledScroll = throttle(handleScroll, 200);
+    window.addEventListener('scroll', throttledScroll);
+    handleScroll(); // 初次加载
+
+    return () => window.removeEventListener('scroll', throttledScroll);
+  }, []);
+
+  return <div ref={containerRef}>{children}</div>;
+}
+```
+
+### 23.3 使用 react-lazyload 库
+
+```tsx
+import LazyLoad from 'react-lazyload';
+
+function ImageGallery({ images }) {
+  return (
+    <div>
+      {images.map((src, i) => (
+        <LazyLoad 
+          key={i}
+          height={200}
+          offset={100}
+          placeholder={<div className="placeholder" />}
+        >
+          <img src={src} alt={`Image ${i}`} />
+        </LazyLoad>
+      ))}
+    </div>
+  );
+}
+```
+
+---
