@@ -1,4 +1,4 @@
-## 一、数据类型
+## 数据类型
 
 ### 1.1 基本的数据类型介绍，及值类型和引用类型的理解
 
@@ -166,7 +166,7 @@ console.log(isEqual(0.1, 0.2, 0.3)); // true
 +   简单的说，作用域就是变量与函数的可访问范围，即作用域控制着变量与函数的可见性和生命周期。作用域是一套规则，在当前作用域以及嵌套的子作用域中根据标识符名称进行变量查找。
 +   作用域链的作用是保证执行环境里有权访问的变量和函数是有序的，作用域链的变量只能向上访问，变量访问到window对象即被终止，作用域链向下访问变量是不被允许的。
 
-## 二、原型和原型链
+## 原型和原型链
 
 可以说这部分每家面试官都会问了。首先理解的话，其实一张图即可，一段代码即可。
 
@@ -224,7 +224,7 @@ Object.keys(obj);
 
 ---
 
-## 三、JavaScript 继承
+## JavaScript 继承
 
 ### 3.1 原型链继承
 
@@ -342,11 +342,11 @@ doctor.sayAge(); // 32
 
 ---
 
-## 四、闭包
+## 闭包
 
 > 闭包是指有权访问另一个函数作用域中的变量的函数。
 
-闭包简单理解就是**内嵌函数**，内部函数使用外部函数的变量，通过输入或返回函数实现。
+通俗理解：**函数 A 里面有个函数 B，函数 B 用到了函数 A 的变量，把函数 B 拿到外面去用，这就形成了闭包**。闭包让函数 A 的变量不会被销毁，一直"活"在内存里。
 
 ### 4.1 变量的作用域
 
@@ -420,7 +420,7 @@ for (let i = 0; i < 5; i++) {
 
 ---
 
-## 五、函数节流和防抖
+## 函数节流和防抖
 
 ### 5.1 节流（Throttle）
 
@@ -481,7 +481,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ | (仅执行最后一次)
 
 ---
 
-## 六、this 指向
+## this 指向
 
 this 总是指向**执行时**的**当前对象**，取决于函数的调用方式。
 
@@ -541,7 +541,7 @@ console.log(getName.call(obj2)); // anne
 
 ---
 
-## 七、apply、call、bind 实现
+## apply、call、bind 实现
 
 ### 7.1 区别
 
@@ -1242,47 +1242,432 @@ f();                // 返回 undefined
 
 ---
 
-## 数组常用方法区别
+## 数组常用方法
 
-### map vs forEach
+### 创建与转换
 ```javascript
-// forEach：遍历，无返回值
-arr.forEach(item => console.log(item));
+// Array.from：类数组/可迭代对象转数组
+Array.from('abc');           // ['a', 'b', 'c']
+Array.from({ length: 3 });   // [undefined, undefined, undefined]
+Array.from({ length: 3 }, (_, i) => i); // [0, 1, 2]
+
+// Array.of：创建数组（解决 new Array 的歧义）
+Array.of(3);        // [3]
+Array.of(1, 2, 3);  // [1, 2, 3]
+new Array(3);       // [empty × 3]
+
+// Array.isArray：判断是否为数组
+Array.isArray([]);  // true
+Array.isArray({});  // false
+
+// 展开运算符
+const copy = [...arr];
+const merged = [...arr1, ...arr2];
+```
+
+### 增删方法（改变原数组）
+```javascript
+const arr = [1, 2, 3];
+
+// push：末尾添加，返回新长度
+arr.push(4);        // 4, arr: [1, 2, 3, 4]
+
+// pop：末尾删除，返回删除元素
+arr.pop();          // 4, arr: [1, 2, 3]
+
+// unshift：开头添加，返回新长度
+arr.unshift(0);     // 4, arr: [0, 1, 2, 3]
+
+// shift：开头删除，返回删除元素
+arr.shift();        // 0, arr: [1, 2, 3]
+
+// splice(start, deleteCount, ...items)：删除/替换/插入
+arr.splice(1, 1);         // [2], arr: [1, 3]（删除）
+arr.splice(1, 0, 2);      // [], arr: [1, 2, 3]（插入）
+arr.splice(1, 1, 'a');    // [2], arr: [1, 'a', 3]（替换）
+
+// fill：填充数组
+[1, 2, 3].fill(0);        // [0, 0, 0]
+[1, 2, 3].fill(0, 1, 2);  // [1, 0, 3]
+
+// copyWithin：内部复制
+[1, 2, 3, 4].copyWithin(0, 2); // [3, 4, 3, 4]
+
+// reverse：反转数组
+[1, 2, 3].reverse();      // [3, 2, 1]
+
+// sort：排序（默认按字符串排序）
+[3, 1, 2].sort();                    // [1, 2, 3]
+[3, 1, 2].sort((a, b) => b - a);     // [3, 2, 1]（降序）
+```
+
+### 截取方法（不改变原数组）
+```javascript
+const arr = [1, 2, 3, 4, 5];
+
+// slice(start, end)：截取，支持负数
+arr.slice(1, 3);   // [2, 3]
+arr.slice(-2);     // [4, 5]
+arr.slice();       // [1, 2, 3, 4, 5]（浅拷贝）
+
+// concat：合并数组
+arr.concat([6, 7]); // [1, 2, 3, 4, 5, 6, 7]
+```
+
+### 查找方法
+```javascript
+const arr = [1, 2, 3, 2, 1];
+
+// indexOf/lastIndexOf：返回索引，找不到返回 -1
+arr.indexOf(2);      // 1
+arr.lastIndexOf(2);  // 3
+
+// includes：是否包含（ES7）
+arr.includes(2);     // true
+arr.includes(2, 2);  // true（从索引 2 开始查找）
+
+// find：返回第一个满足条件的元素
+arr.find(x => x > 1);      // 2
+
+// findIndex：返回第一个满足条件的索引
+arr.findIndex(x => x > 1); // 1
+
+// findLast/findLastIndex：从后往前查找（ES2023）
+arr.findLast(x => x > 1);      // 2
+arr.findLastIndex(x => x > 1); // 3
+
+// at：按索引取值，支持负数（ES2022）
+arr.at(0);   // 1
+arr.at(-1);  // 1
+```
+
+### 遍历方法
+```javascript
+const arr = [1, 2, 3];
+
+// forEach：遍历，无返回值，不能 break
+arr.forEach((item, index, array) => {
+  console.log(item, index);
+});
 
 // map：遍历，返回新数组
-const newArr = arr.map(item => item * 2);
-```
+const doubled = arr.map(x => x * 2); // [2, 4, 6]
 
-### filter vs find
-```javascript
-// filter：返回所有符合条件的元素数组
-const evens = arr.filter(item => item % 2 === 0);
+// filter：过滤，返回符合条件的新数组
+const evens = arr.filter(x => x % 2 === 0); // [2]
 
 // find：返回第一个符合条件的元素
-const first = arr.find(item => item > 5);
+const first = arr.find(x => x > 1); // 2
+
+// some：有一个满足就返回 true
+arr.some(x => x > 2);  // true
+
+// every：全部满足才返回 true
+arr.every(x => x > 0); // true
+
+// reduce：累加器，从左到右
+arr.reduce((acc, cur) => acc + cur, 0); // 6
+
+// reduceRight：累加器，从右到左
+[[1], [2], [3]].reduceRight((acc, cur) => acc.concat(cur), []); // [3, 2, 1]
 ```
 
-### some vs every
+### 扁平化方法
 ```javascript
-// some：只要有一个满足就返回 true
-const hasEven = arr.some(item => item % 2 === 0);
+const arr = [1, [2, [3, [4]]]];
 
-// every：所有都满足才返回 true
-const allPositive = arr.every(item => item > 0);
+// flat：扁平化，参数为深度（默认 1）
+arr.flat();      // [1, 2, [3, [4]]]
+arr.flat(2);     // [1, 2, 3, [4]]
+arr.flat(Infinity); // [1, 2, 3, 4]（完全扁平化）
+
+// flatMap：map + flat(1)
+[1, 2].flatMap(x => [x, x * 2]); // [1, 2, 2, 4]
 ```
 
-### reduce 累加器
+### 其他方法
 ```javascript
-// 求和
+// join：数组转字符串
+[1, 2, 3].join('-'); // '1-2-3'
+
+// toString：数组转字符串
+[1, 2, 3].toString(); // '1,2,3'
+
+// keys/values/entries：返回迭代器
+[...['a', 'b'].keys()];    // [0, 1]
+[...['a', 'b'].values()];  // ['a', 'b']
+[...['a', 'b'].entries()]; // [[0, 'a'], [1, 'b']]
+
+// toReversed/toSorted/toSpliced：不改变原数组的版本（ES2023）
+const arr = [3, 1, 2];
+arr.toReversed();         // [2, 1, 3]，arr 不变
+arr.toSorted();           // [1, 2, 3]，arr 不变
+arr.toSpliced(1, 1, 'a'); // [3, 'a', 2]，arr 不变
+arr.with(1, 'a');         // [3, 'a', 2]，arr 不变
+```
+
+### 常用技巧
+```javascript
+// 数组去重
+const unique = [...new Set(arr)];
+const unique = arr.filter((item, index) => arr.indexOf(item) === index);
+
+// 数组求和
 const sum = arr.reduce((acc, cur) => acc + cur, 0);
 
-// 数组去重
-const unique = arr.reduce((acc, cur) => 
-  acc.includes(cur) ? acc : [...acc, cur], []);
+// 数组最大/最小值
+const max = Math.max(...arr);
+const min = Math.min(...arr);
 
-// 数组扁平化
-const flat = arr.reduce((acc, cur) => 
-  acc.concat(Array.isArray(cur) ? cur.flat() : cur), []);
+// 数组乱序
+arr.sort(() => Math.random() - 0.5);
+
+// 数组分组（ES2023 Object.groupBy）
+const grouped = Object.groupBy(users, user => user.age > 18 ? 'adult' : 'minor');
+
+// 生成 0-n 数组
+const arr = Array.from({ length: n }, (_, i) => i);
+const arr = [...Array(n).keys()];
+
+// 清空数组
+arr.length = 0;
+
+// 删除假值
+arr.filter(Boolean); // 删除 false, 0, '', null, undefined, NaN
+```
+
+---
+
+## 字符串常用方法
+
+### 查找类方法
+```javascript
+const str = 'Hello World';
+
+// indexOf/lastIndexOf：返回索引，找不到返回 -1
+str.indexOf('o');      // 4
+str.lastIndexOf('o');  // 7
+
+// includes：是否包含（ES6）
+str.includes('World'); // true
+
+// startsWith/endsWith：是否以指定字符串开头/结尾（ES6）
+str.startsWith('Hello'); // true
+str.endsWith('World');   // true
+
+// search：支持正则，返回索引
+str.search(/world/i);  // 6
+
+// match：匹配正则，返回数组
+str.match(/o/g);       // ['o', 'o']
+
+// at：按索引取字符，支持负数（ES2022）
+str.at(0);   // 'H'
+str.at(-1);  // 'd'
+```
+
+### 截取类方法
+```javascript
+const str = 'Hello World';
+
+// slice(start, end)：支持负数，不改变原字符串
+str.slice(0, 5);   // 'Hello'
+str.slice(-5);     // 'World'
+
+// substring(start, end)：不支持负数，会自动交换参数
+str.substring(0, 5); // 'Hello'
+str.substring(5, 0); // 'Hello'（自动交换）
+
+// substr(start, length)：已废弃，不推荐使用
+str.substr(0, 5);  // 'Hello'
+```
+
+### 转换类方法
+```javascript
+// split：字符串转数组
+'a,b,c'.split(',');  // ['a', 'b', 'c']
+'hello'.split('');   // ['h', 'e', 'l', 'l', 'o']
+
+// toUpperCase/toLowerCase
+'hello'.toUpperCase(); // 'HELLO'
+'HELLO'.toLowerCase(); // 'hello'
+
+// trim/trimStart/trimEnd：去除空格
+'  hello  '.trim();      // 'hello'
+'  hello  '.trimStart(); // 'hello  '
+'  hello  '.trimEnd();   // '  hello'
+
+// replace/replaceAll
+'hello'.replace('l', 'L');    // 'heLlo'（只替换第一个）
+'hello'.replaceAll('l', 'L'); // 'heLLo'（替换全部，ES2021）
+'hello'.replace(/l/g, 'L');   // 'heLLo'（正则全局替换）
+
+// concat：拼接字符串（推荐用 + 或模板字符串）
+'hello'.concat(' ', 'world'); // 'hello world'
+```
+
+### 填充与重复
+```javascript
+// padStart/padEnd：填充到指定长度（ES2017）
+'5'.padStart(2, '0');  // '05'
+'5'.padEnd(3, '0');    // '500'
+'123'.padStart(5);     // '  123'（默认用空格填充）
+
+// repeat：重复
+'ab'.repeat(3);        // 'ababab'
+```
+
+### 常用技巧
+```javascript
+// 字符串反转
+'hello'.split('').reverse().join(''); // 'olleh'
+
+// 首字母大写
+const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+
+// 统计字符出现次数
+const count = (str, char) => str.split(char).length - 1;
+
+// 驼峰转换
+'hello-world'.replace(/-([a-z])/g, (_, c) => c.toUpperCase()); // 'helloWorld'
+
+// 模板字符串
+const name = 'World';
+`Hello ${name}!`; // 'Hello World!'
+```
+
+---
+
+## 对象常用方法
+
+### 创建与复制
+```javascript
+// Object.create：以指定原型创建对象
+const obj = Object.create(proto);
+const pureObj = Object.create(null); // 无原型的纯净对象
+
+// Object.assign：浅拷贝合并对象（后面覆盖前面）
+const merged = Object.assign({}, obj1, obj2);
+
+// 展开运算符：浅拷贝（ES2018）
+const copy = { ...obj };
+const merged = { ...obj1, ...obj2 };
+```
+
+### 遍历方法
+```javascript
+const obj = { a: 1, b: 2, c: 3 };
+
+// Object.keys：返回可枚举属性名数组
+Object.keys(obj);    // ['a', 'b', 'c']
+
+// Object.values：返回属性值数组（ES2017）
+Object.values(obj);  // [1, 2, 3]
+
+// Object.entries：返回键值对数组（ES2017）
+Object.entries(obj); // [['a', 1], ['b', 2], ['c', 3]]
+
+// Object.fromEntries：键值对数组转对象（ES2019）
+Object.fromEntries([['a', 1], ['b', 2]]); // { a: 1, b: 2 }
+
+// for...in：遍历可枚举属性（包括原型链）
+for (let key in obj) {
+  if (obj.hasOwnProperty(key)) {
+    console.log(key, obj[key]);
+  }
+}
+```
+
+### 属性描述符
+```javascript
+// Object.defineProperty：定义单个属性
+Object.defineProperty(obj, 'name', {
+  value: 'test',
+  writable: false,      // 是否可修改
+  enumerable: true,     // 是否可枚举
+  configurable: false   // 是否可删除/重新配置
+});
+
+// Object.defineProperties：定义多个属性
+Object.defineProperties(obj, {
+  name: { value: 'test', writable: false },
+  age: { value: 18, enumerable: true }
+});
+
+// Object.getOwnPropertyDescriptor：获取属性描述符
+Object.getOwnPropertyDescriptor(obj, 'name');
+
+// Object.getOwnPropertyNames：获取所有自有属性名（包括不可枚举）
+Object.getOwnPropertyNames(obj);
+```
+
+### 对象限制
+```javascript
+// Object.freeze：冻结对象（不能增删改）- 浅冻结
+const frozen = Object.freeze({ a: 1 });
+frozen.a = 2;     // 静默失败，严格模式报错
+frozen.b = 3;     // 静默失败
+
+// Object.seal：密封对象（不能增删，可改）
+const sealed = Object.seal({ a: 1 });
+sealed.a = 2;     // 可以修改
+sealed.b = 3;     // 静默失败
+
+// Object.preventExtensions：禁止扩展（不能增，可删改）
+const obj = Object.preventExtensions({ a: 1 });
+
+// 检测方法
+Object.isFrozen(frozen);           // true
+Object.isSealed(sealed);           // true
+Object.isExtensible(obj);          // false
+```
+
+### 原型相关
+```javascript
+// Object.getPrototypeOf：获取原型
+Object.getPrototypeOf(obj);
+
+// Object.setPrototypeOf：设置原型（性能差，不推荐）
+Object.setPrototypeOf(obj, proto);
+
+// hasOwnProperty：是否自有属性
+obj.hasOwnProperty('name');
+
+// Object.hasOwn：ES2022 新增，推荐使用
+Object.hasOwn(obj, 'name');
+
+// isPrototypeOf：检查原型链
+Array.prototype.isPrototypeOf([]); // true
+```
+
+### 常用技巧
+```javascript
+// 判断空对象
+Object.keys(obj).length === 0;
+
+// 对象解构与默认值
+const { name = 'default', age } = obj;
+
+// 动态属性名
+const key = 'name';
+const obj = { [key]: 'value' };
+
+// 可选链（ES2020）
+const value = obj?.nested?.property;
+
+// 空值合并（ES2020）
+const value = obj.name ?? 'default';
+
+// 对象转 Map
+const map = new Map(Object.entries(obj));
+
+// Map 转对象
+const obj = Object.fromEntries(map);
+
+// 过滤对象属性
+const filtered = Object.fromEntries(
+  Object.entries(obj).filter(([key, val]) => val > 0)
+);
 ```
 
 ---
