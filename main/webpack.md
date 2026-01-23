@@ -3,6 +3,22 @@
 ### 1\. 概述 
 +   `webpack` 是一个模块打包工具，你可以使用webpack管理你的**模块依赖**，并**编绎输出**模块们所需的静态文件。
 
+#### Webpack5 重要更新
+
+| 特性 | 说明 |
+| --- | --- |
+| **持久化缓存** | `cache: { type: 'filesystem' }` 内置文件缓存，大幅提升二次构建速度，替代 `hard-source-webpack-plugin` |
+| **Asset Modules** | 内置资源模块，替代 `url-loader`、`file-loader`、`raw-loader` |
+| **模块联邦** | `ModuleFederationPlugin` 支持跨应用共享模块 |
+| **Tree Shaking 优化** | 支持嵌套 tree shaking、内部模块 tree shaking |
+| **output.clean** | 内置清理输出目录，替代 `clean-webpack-plugin` |
+| **fullhash** | `[hash]` 更名为 `[fullhash]`，`contenthash` 计算更精确 |
+| **移除 Node.js Polyfill** | 不再自动引入 Node.js 核心模块的 polyfill |
+| **默认压缩器** | 内置 `TerserPlugin`，无需额外安装 |
+| **this.getOptions()** | Loader 中使用 `this.getOptions()` 替代 `loader-utils` 的 `getOptions` |
+| **ESLint** | `eslint-loader` 废弃，使用 `eslint-webpack-plugin` |
+| **devServer 配置** | `contentBase` → `static`，`clientLogLevel` → `client.logging` 等 |
+
 ### [2\. 核心打包原理实现](https://github.com/EngMJ/Webpack4/tree/master/webpackGenerate)
 
     核心文件如下:
@@ -19,8 +35,8 @@
 **编写一个babel-loader**:
 
 ```js
-// 定义
-const { getOptions } = require('loader-utils');
+// 定义 (webpack5 写法)
+// webpack5 中 loader-utils 的 getOptions 已废弃，使用 this.getOptions() 替代
 const { validate } = require('schema-utils');
 const babel = require('@babel/core');
 const util = require('util');
@@ -33,8 +49,8 @@ const babelSchema = require('./babelSchema.json');
 const transform = util.promisify(babel.transform);
 
 module.exports = function (content, map, meta) {
-    // 获取loader的options配置
-    const options = getOptions(this) || {};
+    // webpack5: 使用 this.getOptions() 获取 loader 的 options 配置
+    const options = this.getOptions() || {};
     // 校验babel的options的配置
     validate(babelSchema, options, {
         name: 'Babel Loader'
@@ -155,17 +171,20 @@ module.exports = CopyWebpackPlugin;
 ```js
 const { resolve } = require('path')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require('webpack');
 const AddAssetHtmlWebpackPlugin = require('add-asset-html-webpack-plugin');
-const hardSourceWebpackPlugin = require('hard-source-webpack-plugin');
+// webpack5 内置持久化缓存，不再需要 hard-source-webpack-plugin
 const TerserWebpackPlugin = require('terser-webpack-plugin')
+// webpack5 使用 css-minimizer-webpack-plugin 替代 optimize-css-assets-webpack-plugin
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 const CompressionWebpackPlugin = require('compression-webpack-plugin')
 const ImageMinimizerWebpackPlugin = require('image-minimizer-webpack-plugin')
-const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin')
+// webpack5 使用 eslint-webpack-plugin 替代 eslint-loader
+const ESLintPlugin = require('eslint-webpack-plugin')
 // webpack5 模块联邦
 const { ModuleFederationPlugin } = require('webpack').container;
+const zlib = require('zlib');
 
 /*
   tree shaking：去除无用代码
@@ -178,9 +197,13 @@ const { ModuleFederationPlugin } = require('webpack').container;
       所以可以配置："sideEffects": ["*.css", "*.less"] 不会对css/less文件tree shaking处理
 */
 /**
- * webpack 5 tree Shaking优化,增加cache属性,将hash转变为fullhash,不再为 Node.js 模块自动引用 polyfill、也内置了terser进行代码压缩
- * fullhash 是根据打包中的所有文件计算出来的 hash 值，在一次打包中，所有的资源出口文件的filename获得的[hash]都是一样的
- * contenthash webpack4对于添加注释和修改变量其实，是会影响它的一个contenthash值的计算. webpack 5不会影响,contenthash值不变
+ * webpack5 特性：
+ * - tree shaking 优化
+ * - 增加 cache 属性实现持久化缓存
+ * - [hash] 更名为 [fullhash]
+ * - 不再自动引入 Node.js 模块的 polyfill
+ * - 内置 terser 进行代码压缩
+ * - contenthash 计算更精确，添加注释和修改变量不会影响 contenthash 值
  * */
 
 
@@ -214,19 +237,25 @@ module.exports = {
 */
     output: {
         // 使用contenthash配合cache-control能有效配合浏览器缓存
-        // chunkshash hash 分别代表对应块hash与文件打包hash，chunkhash可能相同，
+        // chunkhash hash 分别代表对应块hash与文件打包hash，chunkhash可能相同，
         // 而hash则是每次打包都不同，不管内容是否有变化
+        // webpack5: [hash] 已更名为 [fullhash]
         filename: 'js/build_[contenthash:10].js',
         path: resolve(__dirname, 'build'),
+        // webpack5: 替代 clean-webpack-plugin，每次构建前清理输出目录
+        clean: true,
         // 所有资源引入公共路径前缀 --> 'imgs/a.jpg' --> '/imgs/a.jpg'
-        // 通过cross-env设置打包环境变量, 在根据变量打包时进行动态选择,各个配置项参数可以动态修改publicPath, 实现不同项目使用不同的资源路径
+        // 通过cross-env设置打包环境变量，根据变量打包时进行动态选择，各个配置项参数可以动态修改publicPath，实现不同项目使用不同的资源路径
         // package.json: scripts: { "dev": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.js", }
         publicPath: '/',
         chunkFilename: 'js/[name]_chunk_[contenthash:10].js', // 非入口chunk的名称
-        library: '[name]', // 打包整个库后向外暴露的变量名
-        libraryTarget: 'window' // 变量名添加到哪个变量上 browser
+        // webpack5: library 配置方式更新
+        library: {
+            name: '[name]',
+            type: 'window' // 替代 libraryTarget，可选值: 'var', 'module', 'assign', 'this', 'window', 'self', 'global', 'commonjs', 'umd' 等
+        }
         // libraryTarget: 'global' // 变量名添加到哪个变量上 node
-        // libraryTarget: 'commonjs' // 变量名添加到哪个变量上 conmmonjs模块 exports
+        // libraryTarget: 'commonjs' // 变量名添加到哪个变量上 commonjs模块 exports
     },
     module: {
         // 防止 webpack 解析那些任何与给定正则表达式相匹配的文件。
@@ -236,102 +265,90 @@ module.exports = {
         noParse:/jquery/,
         rules: [
             {
-                test: /\.less/,
+                test: /\.less$/,
                 use: [
                     // 'style-loader', // 以style标签行内样式的方式,插入head标签中
                     MiniCssExtractPlugin.loader, // 打包成css单文件
                     'css-loader', // 加载读取css文件内容
                     {
-                        // 还需要子pakege.json中定义browserslist
+                        // 还需要在 package.json 中定义 browserslist
                         // 为css样式添加兼容前缀
+                        // webpack5 postcss-loader 配置方式更新
                         loader: 'postcss-loader',
                         options: {
-                            ident:'postcss',
-                            plugins: () => [require('postcss-preset-env')()]
+                            postcssOptions: {
+                                plugins: [
+                                    'postcss-preset-env'
+                                ]
+                            }
                         }
                     },
-                    {
-                        // 处理less文件,转换为css文件
-                        loders: 'less-loader',
-                        options: {
-                        }
-                    }
+                    // 处理less文件,转换为css文件
+                    'less-loader'
                 ]
             },
             {
                 oneOf:[
                     {
                         test: /\.js$/,
+                        // webpack5 内置缓存，不再需要 cache-loader
                         use: [
-                            'cache-loader', // 缓存对应loader所转换的文件
-                            'thread-loader',
+                            'thread-loader', // 多线程编译
                             {
                                 loader: 'babel-loader',
                                 options: {
-                                    // cacheDirectory: true,
+                                    // webpack5 babel-loader 内置缓存支持
+                                    cacheDirectory: true,
+                                    cacheCompression: false, // 关闭缓存压缩，提升构建速度
                                     presets: [
-                                        '@babel/preset-env',
-                                        {
+                                        ['@babel/preset-env', {
                                             useBuiltIns: 'usage', // 按需加载
-                                            corejs: { version:3 }, // 制定core-js版本
-                                            target: { // 制定向后兼容到什么版本
+                                            corejs: { version: 3 }, // 指定 core-js 版本
+                                            targets: { // 指定向后兼容到什么版本
                                                 chrome: '60',
-                                                fireox: '50',
+                                                firefox: '50',
                                                 safari: '10',
                                                 ie: '9',
                                                 edge: '17'
                                             }
-                                        }
+                                        }]
                                     ]
                                 }
                             }
                         ],
-                        includes: /src/,
-                        excludes: /node_modules/
+                        include: /src/,
+                        exclude: /node_modules/ 
                     },
+                    // 配置移至 plugins 中
                     {
-                        test: /\.js$/,
-                        use: [
-                            'cache-loader', // 缓存
-                            'thread-loader', // 多线程
-                            {
-                                loader: 'eslint-loader',
-                                options: {
-                                    fix: true
-                                }
+                        // webpack5 Asset Modules 替代 url-loader
+                        test: /\.(jpg|png|gif|jpeg|webp|svg)$/,
+                        type: 'asset',
+                        parser: {
+                            dataUrlCondition: {
+                                maxSize: 8 * 1024 // 小于 8kb 转为 base64
                             }
-                        ],
-                        enforce: 'pre', // 先执行
-                        // enforce: 'post', // 延后执行
-                        includes: /src/
-                    },
-                    {
-                        test: /\.(jpg|png|gif)$/,
-                        use: 'url-loader',
-                        options: {
-                            limit: 8 * 1024, // 大小小于这个的文件全部转换为base64编码方式加载
-                            name: '[name]_[contenthash:10].[ext]',
-                            outputPath: 'imgs',
-                            esModule: false // 因为要配合html-loder的commenjs风格的转换，所以关闭esmodule风格
+                        },
+                        generator: {
+                            filename: 'imgs/[name]_[contenthash:10][ext]'
                         }
-                        // type: 'asset/inline'    webpack5,不再使用url-loader
                     },
                     {
                         test: /\.html$/,
                         loader: 'html-loader' // 将 HTML 导出为字符串。当编译器需要时，将压缩 HTML 字符串
                     },
                     {
-                        exclude: /\.(js|css|html|less|jpg|png|gif)$/,
-                        loader: 'file-loader',
-                        options: {
-                            outputPath: 'media'
+                        // webpack5 Asset Modules 替代 file-loader
+                        exclude: /\.(js|css|html|less|jpg|png|gif|jpeg|webp|svg)$/,
+                        type: 'asset/resource',
+                        generator: {
+                            filename: 'media/[name]_[contenthash:10][ext]'
                         }
-                        // type: 'asset/resource'    webpack5,不再使用file-loader
                     },
                     {
-                        test: /\.text$/i,
-                        use: 'raw-loader' // 将文件加载为 字符串文本
-                        // type: 'asset/source'    webpack5,不再使用raw-loader
+                        // webpack5 Asset Modules 替代 raw-loader
+                        test: /\.txt$/i,
+                        type: 'asset/source'
                     },
                 ]
             }
@@ -353,7 +370,7 @@ module.exports = {
             filename: '[path][base].br', // 输出文件名格式
         }),
         new MiniCssExtractPlugin({ // 将css打包成单文件
-            filename: 'css/built[contenthash:10].css'
+            filename: 'css/built_[contenthash:10].css'
         }),
         new HtmlWebpackPlugin({ //  自动引入各个打包文件
             template: './src/index.html', // 使用模板
@@ -370,37 +387,15 @@ module.exports = {
         new AddAssetHtmlWebpackPlugin({
             filepath: resolve(__dirname, 'dll/jquery.js')
         }),
-        // 缓存模块，提升打包速度
-        new hardSourceWebpackPlugin(
-            // {
-            //     //设置缓存目录的路径
-            //     //相对路径或者绝对路径
-            //     cacheDirectory: 'node_modules/.cache/hard-source/[confighash]',
-            //     //构建不同的缓存目录名称
-            //     //也就是cacheDirectory中的[confighash]值
-            //     configHash: function(webpackConfig) {
-            //         return require('node-object-hash')({sort: false}).hash(webpackConfig);
-            //     },
-            //     //环境hash
-            //     //当loader、plugin或者其他npm依赖改变时进行替换缓存
-            //     environmentHash: {
-            //         root: process.cwd(),
-            //         directories: [],
-            //         files: ['package-lock.json', 'yarn.lock'],
-            //     },
-            //     //自动清除缓存
-            //     cachePrune: {
-            //         //缓存最长时间（默认2天）
-            //         maxAge: 2 * 24 * 60 * 60 * 1000,
-            //         //所有的缓存大小超过size值将会被清除
-            //         //默认50MB
-            //         sizeThreshold: 50 * 1024 * 1024
-            //     },
-            // }
-        ),
-        // 将runtimechunk文件，以行内形式打包进index.html,减少文件请求
-        new ScriptExtHtmlWebpackPlugin({
-            inline: /runtime~.+\.js$/  //正则匹配runtime文件名
+        // 通过 cache 配置项实现，见文件底部 cache 配置
+        
+        // webpack5 eslint-webpack-plugin 替代 eslint-loader
+        new ESLintPlugin({
+            context: resolve(__dirname, 'src'),
+            extensions: ['js', 'jsx', 'ts', 'tsx'],
+            fix: true,
+            cache: true,
+            cacheLocation: resolve(__dirname, 'node_modules/.cache/eslint/')
         }),
         // webpack5
         // 定义引入的模块联邦插件设置
@@ -525,37 +520,41 @@ module.exports = {
         hot: true, // 打开HMR 热模块更新
         compress: true, // gzip
         open: true, // 自动打开浏览器
-        proxy: {
-            '/api':{
+        proxy: [
+            {
+                context: ['/api'],
                 target: 'https://localhost:8080', // 请求访问地址
                 changeOrigin: true, // 修改源访问
                 pathRewrite: {
                     '^/api': '/api' // 替换请求地址
                 }
             }
-        },
+        ],
         /*跨域问题：同源策略中不同的协议、端口号、域名就会产生跨域。正常的浏览器和服务器之间有跨域，但是服务器之间没有跨域。
-    代码通过代理服务器运行，所以浏览器和代理服务器之间没有跨域，浏览器吧请求发送到代理服务器上，代理服务器替你转发到另外一个服务器上
+    代码通过代理服务器运行，所以浏览器和代理服务器之间没有跨域，浏览器把请求发送到代理服务器上，代理服务器替你转发到另外一个服务器上
     服务器之间没有跨域，所以请求成功。代理服务器再把接收到的响应响应给浏览器。这样就解决开发环境下的跨域问题
-
     */
-        // 不要显示启动服务器日志信息
-        clientLogLevel: 'none',
-        // 除了一些基本信息外，其他内容都不要显示
-        quiet: true,
-        // 如果出错了，不要全屏提示
-        overlay: false,
-        // 运行代码所在的目录
-        contentBase: resolve(__dirname, 'build'),
-        // 监视contentBase目录下的所有文件，一旦文件变化就会reload
-        watchContentBase: true,
-        watchOptions: {
-            // 忽略文件
-            ignored: /node_modules/
+        // webpack5 devServer 配置更新
+        client: {
+            logging: 'none', // 替代 clientLogLevel
+            overlay: false, // 如果出错了，不要全屏提示
+            progress: true, // 显示编译进度
+        },
+        // webpack5: contentBase 改为 static
+        static: {
+            directory: resolve(__dirname, 'build'),
+            watch: true // 替代 watchContentBase
+        },
+        // webpack5: watchOptions 移到顶层或 static.watch 配置
+        watchFiles: {
+            paths: ['src/**/*'],
+            options: {
+                ignored: /node_modules/
+            }
         },
     },
     devtool: 'eval-source-map',
-    model: 'production', // development
+    mode: 'production', // development
     // 代码分割，会把node_modules中的文件打包到一起，如果是多入口则，
     // 会将公共引用打包到一个文件，共同引用。
     // externals防止将某些 import 的包(package)打包到 bundle 中，
@@ -636,38 +635,55 @@ module.exports = {
             name: entrypoint => `runtime~${entrypoint.name}`
         },
         // 默认为true，效果就是压缩js代码
-        // webpack4默认的压缩为uglifyjs-webpack-plugin
-        // webpack5默认TerserWebpackPlugin
+        // webpack5 默认使用 TerserWebpackPlugin
         minimizer: [
             // 配置生产环境的压缩方案：js/css
+            // webpack5 TerserWebpackPlugin 配置更新，移除了 cache 和 sourceMap 选项
             new TerserWebpackPlugin({
-                // 开启缓存
-                cache: true,
                 // 开启多进程打包
                 parallel: true,
-                // 启用sourceMap(否则会被压缩掉)
-                sourceMap: false
+                // webpack5 使用 terserOptions 配置压缩选项
+                terserOptions: {
+                    compress: {
+                        drop_console: true, // 移除 console
+                        drop_debugger: true // 移除 debugger
+                    },
+                    format: {
+                        comments: false // 移除注释
+                    }
+                },
+                extractComments: false // 不将注释提取到单独文件
             }),
-            // webpack 5 压缩css
-            new CssMinimizerPlugin(),
-            // webpack 5 压缩图片
+            // webpack5 压缩css
+            new CssMinimizerPlugin({
+                parallel: true // 开启多进程压缩
+            }),
+            // webpack5 压缩图片 (配置方式已更新)
             new ImageMinimizerWebpackPlugin({
-                minimizerOptions: {
-                    plugins: [
-                        ['gifsicle', { interlaced: true }],
-                        ['jpegtran', { progressive: true }],
-                        ['optipng', { optimizationLevel: 5 }],
-                        [
-                            'svgo',
-                            {
-                                plugins: [
-                                    {
-                                        removeViewBox: false,
-                                    },
-                                ],
-                            },
+                minimizer: {
+                    implementation: ImageMinimizerWebpackPlugin.imageminMinify,
+                    options: {
+                        plugins: [
+                            ['gifsicle', { interlaced: true }],
+                            ['jpegtran', { progressive: true }],
+                            ['optipng', { optimizationLevel: 5 }],
+                            [
+                                'svgo',
+                                {
+                                    plugins: [
+                                        {
+                                            name: 'preset-default',
+                                            params: {
+                                                overrides: {
+                                                    removeViewBox: false,
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
                         ],
-                    ],
+                    },
                 },
             }),
         ],
@@ -703,11 +719,12 @@ module.exports = {
 +   noParse：不需要解析某些模块的依赖
 +   第三方依赖外链script引入：vue、ui组件、JQuery等
 +   HotModuleReplacementPlugin：热更新增量构建
-+   babel-loader开启缓存cache
-+   splitChunks（老版本用CommonsChunkPlugin）：提取公共模块，将符合引用次数(minChunks)的模块打包到一起，利用浏览器缓存
-+   DllPlugin& DllReferencePlugin：动态链接库，提高打包效率，仅打包一次第三方模块，每次构建只重新打包业务代码。
-+   thread-loader,happypack：webpack4 多线程编译，加快编译速度. (webpack5 已经弃用)
-+   Tree Shaking 摇树：基于ES6提供的模块系统对代码进行静态分析, 并在压缩阶段将代码中的死代码（dead code)移除，减少代码体积。
++   babel-loader开启缓存 `cacheDirectory: true`
++   splitChunks：提取公共模块，将符合引用次数(minChunks)的模块打包到一起，利用浏览器缓存
++   DllPlugin& DllReferencePlugin：动态链接库，提高打包效率，仅打包一次第三方模块，每次构建只重新打包业务代码
++   thread-loader：多线程编译，加快编译速度（webpack5 中 happypack 已弃用，推荐使用 thread-loader）
++   **webpack5 持久化缓存**：通过 `cache: { type: 'filesystem' }` 配置，大幅提升二次构建速度
++   Tree Shaking 摇树：基于ES6提供的模块系统对代码进行静态分析，并在压缩阶段将代码中的死代码（dead code）移除，减少代码体积
 
 ### 7\. 打包体积 优化思路
 
@@ -718,21 +735,21 @@ module.exports = {
 +   按需加载资源文件 `improt()` `require.ensure()` 
 +   剥离`css`文件，单独打包
 +   去除不必要插件，开发环境与生产环境用不同配置文件
-+   SpritesmithPlugin雪碧图，将多个小图片打包成一张，用background-image，backgroud-pisition，width，height控制显示部分
-+   url-loader 文件大小小于设置的尺寸变成base-64编码文本，大与尺寸由file-loader拷贝到目标目录
++   SpritesmithPlugin雪碧图，将多个小图片打包成一张，用background-image，background-position，width，height控制显示部分
++   webpack5 Asset Modules：使用 `type: 'asset'` 替代 url-loader，小于阈值转 base64，大于阈值输出文件
 
 
 ### 8\. 常用插件简述
 
 +   webpack-dev-server
-+   clean-webpack-plugin：编译前清理输出目录
++   webpack5 使用 `output.clean: true` 替代 clean-webpack-plugin 清理输出目录
 +   CopyWebpackPlugin：复制文件
 +   HotModuleReplacementPlugin：热更新
 +   ProvidePlugin：全局变量设置
 +   DefinePlugin：定义全局常量
-+   splitChunks（老版本用CommonsChunkPlugin）：提取公共模块，将符合引用次数的模块打包到一起
-+   mini-css-extract-plugin（老版本用ExtractTextWebpackPlugin）：css单独打包
-+   TerserPlugin（老版本用UglifyJsPlugin）：压缩代码
++   splitChunks：提取公共模块，将符合引用次数的模块打包到一起
++   mini-css-extract-plugin：css单独打包
++   TerserPlugin：压缩代码（webpack5 内置）
 +   progress-bar-webpack-plugin：编译进度条
 +   CompressionWebpackPlugin：gzip / Brotli 压缩静态文件
 +   DllPlugin& DllReferencePlugin：提高打包效率，仅打包一次第三方模块
@@ -754,7 +771,7 @@ Tree Shaking 摇树 是借鉴了 rollup 的实现。
 
 +   所有import标记为/\* harmony import \*/
 +   被使用过的export标记为/harmony export(\[type\])/，其中\[type\]和webpack内部有关，可能是binding，immutable等；
-+   没有被使用的export标记为/\* unused harmony export \[FuncName\] \*/，其中\[FuncName\]为export的方法名，之后使用Uglifyjs（或者其他类似的工具）进行代码精简，把没用的都删除。
++   没有被使用的export标记为/\* unused harmony export \[FuncName\] \*/，其中\[FuncName\]为export的方法名，之后使用 TerserPlugin（webpack5 默认）进行代码精简，把没用的都删除。
 
 **为何基于es6模块实现（ES6 module 特点：）：**
 
@@ -793,7 +810,7 @@ tree-shaking并不是webpack中的某一个配置选项，是一组功能搭配�
 ```js
 // 在开发模式下，设置 usedExports: true ，打包时只会标记出哪些模块没有被使用，不会删除，因为可能会影响 source-map的标记位置的准确性。
 {
-    mode: 'develpoment',
+    mode: 'development',
     optimization: {
         // 优化导出的模块
         usedExports: true
@@ -803,14 +820,14 @@ tree-shaking并不是webpack中的某一个配置选项，是一组功能搭配�
 {
     mode: 'production',
     //  这个属性的作用就是集中配置webpack内部的优化功能
-    optimizition: {
+    optimization: {
         // 只导出外部使用的模块成员 负责标记枯树叶
         usedExports: true,
         minimize: true, // 自动压缩代码 负责摇掉枯树叶
         /**
-         * webpack打包默认会将一个模块单独打包到一个闭包中
-         * webpack3中新增的API 将所有模块都放在一个函数中 ，尽可能将所有模块合并在一起，
-         * 提升效率，减少体积  达到作用域提升的效果
+         * 作用域提升（Scope Hoisting）
+         * 将所有模块尽可能合并到一个函数中，减少闭包数量
+         * 提升运行效率，减少代码体积
          */
         concatenateModules: true,
     },
@@ -830,10 +847,10 @@ tree-shaking并不是webpack中的某一个配置选项，是一组功能搭配�
 +   treeshaking 使用的前提必须是ES module组织的代码，也就是说交给ESMOdule处理的代码必须是ESM。当我们使用babel-loader处理js代码之后就有可能将ESM 转换 成commonjs规范（preset-env插件工作的时候就会将esm => coommonjs）
 
 解决办法：  
-收到配置preset-env的modules： false,确保不会开启自动转换的插件(在最新版本的babel-loader中自动帮我们关闭了转换成commonjs规范的功能)
+手动配置 preset-env 的 modules: false，确保不会开启自动转换的插件（在最新版本的 babel-loader 中已自动关闭转换成 commonjs 规范的功能）
 
 ```js
 presets: [
-    ['@babel/preset-env', {module: 'commonjs'}]
+    ['@babel/preset-env', { modules: false }]
 ]
 ```
