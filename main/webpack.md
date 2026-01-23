@@ -19,151 +19,138 @@
 | **ESLint** | `eslint-loader` 废弃，使用 `eslint-webpack-plugin` |
 | **devServer 配置** | `contentBase` → `static`，`clientLogLevel` → `client.logging` 等 |
 
-### [2\. 核心打包原理实现](https://github.com/EngMJ/Webpack4/tree/master/webpackGenerate)
+### 2\. 核心打包原理实现
 
-    核心文件如下:
-+ [webpackGenerate/lib/index.js](https://github.com/EngMJ/Webpack4/blob/master/webpackGenerate/lib/index.js)
-+ [webpackGenerate/lib/compiler.js](https://github.com/EngMJ/Webpack4/blob/master/webpackGenerate/lib/compiler.js)
-+ [webpackGenerate/lib/parser.js](https://github.com/EngMJ/Webpack4/blob/master/webpackGenerate/lib/parser.js)
+#### 2.1 打包流程概述
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  初始化阶段  │ -> │  编译阶段    │ -> │  构建阶段    │ -> │  生成阶段    │ -> │  输出阶段    │
+│  (初始化参数  │    │ (创建编译器  │    │ (递归解析    │    │ (生成chunk  │    │ (写入文件   │
+│   合并配置)  │    │  注册插件)   │    │  构建模块)   │    │  生成代码)   │    │  系统)      │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+```
+
+**1. 初始化阶段**
+- 读取并合并配置参数：从 `webpack.config.js`、命令行参数、默认配置中合并得到最终配置
+- 创建 `Compiler` 对象：实例化编译器，初始化文件系统、缓存等基础设施
+- 加载所有插件：遍历 `plugins` 数组，调用每个插件的 `apply(compiler)` 方法注册钩子
+- 触发钩子：`environment` → `afterEnvironment` → `initialize`
+
+**2. 编译阶段**
+- 触发 `beforeRun` 和 `run` 钩子，正式启动编译流程
+- 创建 `Compilation` 对象：每次编译都会创建新的 Compilation，包含本次编译的所有信息
+- 触发 `compile` → `thisCompilation` → `compilation` 钩子
+- 确定入口：根据 `entry` 配置找到所有入口文件
+
+**3. 构建阶段（make）**
+- 从入口文件开始，调用 loader 对模块进行转换（如 babel-loader 转换 ES6+）
+- 使用 `@babel/parser` 将代码解析为 AST（抽象语法树）
+- 遍历 AST 找出该模块依赖的其他模块（`import`、`require`）
+- 递归处理所有依赖模块，构建完整的**模块依赖图（Module Graph）**
+- 触发钩子：`buildModule` → `succeedModule`（每个模块构建时）
+
+**4. 生成阶段（seal）**
+- 根据入口和模块依赖关系，将模块组装成 `Chunk`（代码块）
+- 应用代码分割规则（`splitChunks`），生成多个 Chunk
+- 对每个 Chunk 生成最终代码：添加 webpack runtime、模块包装函数
+- 执行优化：Tree Shaking 标记、Scope Hoisting、代码压缩等
+- 触发钩子：`seal` → `optimize` → `optimizeChunks` → `afterOptimizeChunks`
+
+**5. 输出阶段（emit）**
+- 触发 `emit` 钩子，此时可以最后修改输出内容
+- 根据 `output` 配置，确定输出路径和文件名
+- 将 Chunk 转换为文件，写入文件系统
+- 触发 `afterEmit` → `done` 钩子，编译完成
+
+#### 2.2 代码实现
+
+> 完整的 webpack5 核心打包原理代码实现请查看：**[webpack-core-implement.md](./webpack-core-implement.md)**
+>
+> 包含以下内容：
+> - 入口文件 (index.js) - webpack 函数实现
+> - 编译器核心 (compiler.js) - Compiler 类完整实现
+> - AST 解析器 (parser.js) - 依赖解析与代码转换
+> - 使用示例 - 如何运行 mini-webpack
+
+#### 2.3 核心概念总结
+
+| 概念 | 说明 |
+| --- | --- |
+| **Compiler** | 编译器，webpack 的核心引擎，负责整个编译生命周期 |
+| **Compilation** | 编译实例，每次文件变化都会创建新的 Compilation |
+| **Module** | 模块，对应一个源文件，包含代码和依赖信息 |
+| **Chunk** | 代码块，由多个模块组成，最终生成一个输出文件 |
+| **Asset** | 输出资源，最终写入文件系统的内容 |
+| **Tapable** | 钩子系统，实现插件机制的核心库 |
+| **Loader** | 模块转换器，将非 JS 文件转换为 webpack 可处理的模块 |
+| **Plugin** | 插件，通过钩子介入编译流程的各个阶段 |
 
 ### 3\. Loader
 
-+ 3.1 `loader`就是一个`node`模块，一个函数。当某种资源需要用这个`loader`转换时，这个函数会被调用。并且，这个函数可以通过提供给它的`this`上下文访问`Loader API`。
+**作用**：Loader 是模块转换器，用于将非 JavaScript 文件（如 CSS、图片、TypeScript 等）转换为 webpack 能够处理的有效模块。
 
-+ 3.2 解析顺序：`从下向上，从右向左`
+**特点**：
+- 本质是一个函数，接收源文件内容，返回转换后的内容
+- 执行顺序：`从右到左，从下到上`
+- 支持链式调用，多个 loader 可以串联使用
+- webpack5 使用 `this.getOptions()` 获取配置（替代 `loader-utils`）
 
-**编写一个babel-loader**:
+**简单示例**：
 
 ```js
-// 定义 (webpack5 写法)
-// webpack5 中 loader-utils 的 getOptions 已废弃，使用 this.getOptions() 替代
-const { validate } = require('schema-utils');
-const babel = require('@babel/core');
-const util = require('util');
+// 自定义 loader：将文件内容转为大写
+module.exports = function(source) {
+    return source.toUpperCase();
+};
 
-const babelSchema = require('./babelSchema.json');
-
-// babel.transform用来编译代码的方法
-// 是一个普通异步方法
-// util.promisify将普通异步方法转化成基于promise的异步方法
-const transform = util.promisify(babel.transform);
-
-module.exports = function (content, map, meta) {
-    // webpack5: 使用 this.getOptions() 获取 loader 的 options 配置
-    const options = this.getOptions() || {};
-    // 校验babel的options的配置
-    validate(babelSchema, options, {
-        name: 'Babel Loader'
-    });
-
-    // 创建异步
-    const callback = this.async();
-
-    // 使用babel编译代码
-    transform(content, options)
-        .then(({code, map}) => callback(null, code, map, meta))
-        .catch((e) => callback(e))
-
-}
-//使用
-{
-    test: /\.txt$/,
-    loader: 'my-babel-loader'
+// webpack.config.js 中使用
+module: {
+    rules: [
+        {
+            test: /\.txt$/,
+            use: ['./loaders/uppercase-loader.js']
+        }
+    ]
 }
 ```
 
-### 4\. plugins
-插件可以执行各种任务，从打包优化到代码压缩、从环境变量注入到静态资源管理.
+### 4\. Plugin
 
-**编写一个CopyWebpackPlugin:**
+**作用**：Plugin 用于扩展 webpack 功能，可以介入编译流程的各个阶段，执行更广泛的任务（打包优化、资源管理、环境变量注入等）。
+
+**特点**：
+- 本质是一个具有 `apply` 方法的类
+- 通过 Tapable 钩子系统注册到 webpack 生命周期
+- 可以访问 `compiler` 和 `compilation` 对象
+
+**简单示例**：
+
 ```js
-const path = require('path');
-const fs = require('fs');
-const {promisify} = require('util')
-
-const { validate } = require('schema-utils');
-const globby = require('globby');
-const webpack = require('webpack');
-
-const schema = require('./schema.json');
-
-const readFile = promisify(fs.readFile);
-const {RawSource} = webpack.sources
-
-class CopyWebpackPlugin {
-  constructor(options = {}) {
-    // 验证options是否符合规范
-    validate(schema, options, {
-      name: 'CopyWebpackPlugin'
-    })
-
-    this.options = options;
-  }
-
-  apply(compiler) {
-    // 初始化compilation
-    compiler.hooks.thisCompilation.tap('CopyWebpackPlugin', (compilation) => {
-      // 添加资源的hooks
-      compilation.hooks.additionalAssets.tapAsync('CopyWebpackPlugin', async (cb) => {
-        // 将from中的资源复制到to中，输出出去
-        const { from, ignore } = this.options;
-        const to = this.options.to ? this.options.to : '.';
-
-        // context就是webpack配置
-        // 运行指令的目录
-        const context = compiler.options.context; // process.cwd()
-        // 将输入路径变成绝对路径
-        const absoluteFrom = path.isAbsolute(from) ? from : path.resolve(context, from);
-
-        // 1. 过滤掉ignore的文件
-        // globby(要处理的文件夹，options)
-        const paths = await globby(absoluteFrom, { ignore });
-
-        console.log(paths); // 所有要加载的文件路径数组
-
-        // 2. 读取paths中所有资源
-        const files = await Promise.all(
-          paths.map(async (absolutePath) => {
-            // 读取文件
-            const data = await readFile(absolutePath);
-            // basename得到最后的文件名称
-            const relativePath = path.basename(absolutePath);
-            // 和to属性结合
-            // 没有to --> reset.css
-            // 有to --> css/reset.css
-            const filename = path.join(to, relativePath);
-
-            return {
-              // 文件数据
-              data,
-              // 文件名称
-              filename
+// 自定义 plugin：打包完成后输出文件列表
+class FileListPlugin {
+    apply(compiler) {
+        compiler.hooks.emit.tapAsync('FileListPlugin', (compilation, callback) => {
+            let fileList = '## 打包文件列表\n\n';
+            
+            for (let filename in compilation.assets) {
+                fileList += `- ${filename}\n`;
             }
-          })
-        )
-
-        // 3. 生成webpack格式的资源
-        const assets = files.map((file) => {
-          const source = new RawSource(file.data);
-          return {
-            source,
-            filename: file.filename
-          }
-        })
-
-        // 4. 添加compilation中，输出出去
-        assets.forEach((asset) => {
-          compilation.emitAsset(asset.filename, asset.source);
-        })
-
-        cb();
-      })
-    })
-  }
-
+            
+            compilation.assets['fileList.md'] = {
+                source: () => fileList,
+                size: () => fileList.length
+            };
+            
+            callback();
+        });
+    }
 }
 
-module.exports = CopyWebpackPlugin;
+// webpack.config.js 中使用
+plugins: [
+    new FileListPlugin()
+]
 ```
 
 ### 5\. 配置举例
