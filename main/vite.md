@@ -71,53 +71,424 @@ export default defineConfig({
 ## 配置示例
 
 ### defineConfig 函数参数
+
+> 基础常用配置选项,不需要深入就看这块就好
+
 ```js
+// ==================== 依赖导入 ====================
+import { defineConfig } from 'vite'; // Vite 配置定义函数
+import vue from '@vitejs/plugin-vue'; // Vue 3 单文件组件支持
+import tailwindcss from '@tailwindcss/vite'; // Tailwind CSS 原子化样式框架
+import UnpluggingAutoImport from 'unplugin-auto-import/vite'; // 自动导入 API，无需手动 import
+import Components from 'unplugin-vue-components/vite'; // Vue 组件自动注册
+import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'; // Ant Design Vue 组件解析器
+import { resolve } from 'path'; // 路径解析方法
+import { VantResolver } from '@vant/auto-import-resolver'; // Vant 移动端组件解析器
+import vueJsxPlugin from '@vitejs/plugin-vue-jsx'; // Vue JSX 语法支持
+import legacy from '@vitejs/plugin-legacy'; // 旧版浏览器兼容插件，生成 polyfill
+import { visualizer } from 'rollup-plugin-visualizer'; // 构建产物可视化分析工具
+import viteCompression from 'vite-plugin-compression'; // 文件压缩插件（gzip/brotli）
 
-import { defineConfig, loadEnv } from 'vite';
-import vue from '@vitejs/plugin-vue';
+// ==================== Vite 主配置 ====================
+export default defineConfig(async ({ command }) => {
+   // 判断是否为调试构建（保留 console、sourcemap 等）
+   const isDebugBuild = process.env.DEBUG_BUILD === 'true';
 
-// 使用defineConfig 不用 jsdoc 注解也可以获取ts类型提示
-export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
-  //  command参数 serve || build
-  //  isSsrBuild ssr环境
-  //  isPreview 预构建环境
-  //  mode 编译时传递的参数,如 vite build --mode staging, staging字符串就是当前的mode
-  if (command === 'serve') {
-    return {
-      // dev 独有配置
-    }
-  } else {
-    // command === 'build'
-    return {
-      // build 独有配置
-    }
-  }
-})
-// 异步函数
-export default defineConfig(async ({ command, mode }) => {
-  const data = await asyncFunction()
-  return {
-    // vite 配置
-  }
-})
+   // ==================== 服务器默认配置 ====================
+   /**
+    * 服务器构建的默认配置
+    * 包含 API 基础地址、WebSocket 地址和开发服务器配置
+    */
+   let serverConfig = {
+      baseUrl: 'http://pc.cc/', // http API 地址
+      marketWsUrl: 'wss://pc.cc', // WebSocket 地址
+      dev: {
+         port: 9966, // 开发服务器端口
+         host: true, // 允许外部访问（局域网调试）
+         open: true, // 启动时自动打开浏览器
+      },
+   };
 
-// .env文件加载
-export default defineConfig(({ command, mode }) => {
-  // 根据当前工作目录中的 `mode` 加载 .env 文件
-  // 设置第三个参数为 '' 来加载所有环境变量，而不管是否有 `VITE_` 前缀。
-  const env = loadEnv(mode, process.cwd(), '')
-  return {
-    // vite 配置
-    define: {
-      __APP_ENV__: JSON.stringify(env.APP_ENV),
-    },
-  }
-})
+   // 优先使用品牌配置，否则回退到服务器配置
+   const config = serverConfig;
+
+   // ==================== 插件配置 ====================
+   /**
+    * Vite 插件数组
+    * 插件按顺序执行，某些插件有执行顺序要求
+    */
+   const plugins = [
+      // Vue 3 单文件组件（.vue）编译支持
+      vue(),
+
+      // Vue JSX/TSX 语法支持
+      // 允许在 Vue 组件中使用 JSX 语法
+      vueJsxPlugin(),
+
+      // Tailwind CSS 插件
+      // 提供原子化 CSS 类名支持
+      tailwindcss(),
+
+      // 自动导入插件
+      // 自动导入 Vue、Vue Router 等 API，无需手动 import
+      UnpluggingAutoImport({
+         dts: true, // 生成 TypeScript 类型声明文件
+         imports: [
+            'vue', // Vue 3 组合式 API（ref, reactive, computed 等）
+            'vue-router', // 路由相关 API（useRouter, useRoute 等）
+            'vue-i18n', // 国际化 API（useI18n 等）
+            'pinia', // 状态管理 API（defineStore 等）
+            '@vueuse/core', // VueUse 工具函数库
+         ],
+         resolvers: [
+            AntDesignVueResolver(), // Ant Design Vue 组件 API
+            VantResolver(), // Vant 组件 API
+         ],
+         // 自动扫描并导入以下目录中的模块
+         dirs: [
+            './src/apis', // API 接口
+            './src/config', // 配置文件
+            './src/utils', // 工具函数
+            './src/store', // Pinia 状态仓库
+            './src/hooks', // 组合式函数
+            './src/i18n', // 国际化
+            './src/components', // 公共组件
+         ],
+      }),
+
+      // 组件自动注册插件
+      // 自动注册组件，无需手动 import 和注册
+      Components({
+         resolvers: [
+            // Ant Design Vue 组件解析器
+            AntDesignVueResolver({
+               importStyle: false, // 不自动导入样式（使用全局样式）
+            }),
+            // Vant 移动端组件解析器
+            VantResolver({
+               importStyle: true, // 自动导入组件样式
+            }),
+         ],
+      }),
+
+      /**
+       * Rollup 可视化分析插件
+       * 仅在设置环境变量 ENABLE_VISUALIZER=true 时启用
+       * 生成交互式的构建产物分析报告
+       */
+      visualizer({
+         open: true, // 构建完成后自动打开分析报告
+         gzipSize: true, // 显示 gzip 压缩后的大小
+         brotliSize: true, // 显示 brotli 压缩后的大小
+         filename: 'dist/stats.html', // 分析报告输出路径
+      }),
+   ];
+
+   // ==================== 压缩插件（服务器构建）====================
+   /**
+    * 文件压缩插件
+    * 生成 .gz 和 .br 压缩文件，配合 nginx 提升传输效率
+    */
+   if (command === 'build') {
+      plugins.push(
+              // Gzip 压缩（通用性好，所有浏览器支持）
+              viteCompression({
+                 algorithm: 'gzip', // 压缩算法
+                 ext: '.gz', // 压缩文件扩展名
+                 threshold: 1024, // 压缩阈值：只压缩大于 1KB 的文件
+                 deleteOriginFile: false, // 保留原文件（nginx 可以选择性提供）
+                 verbose: true, // 在控制台显示压缩信息
+              }),
+              // Brotli 压缩（压缩率更高，现代浏览器支持）
+              viteCompression({
+                 algorithm: 'brotliCompress', // Brotli 压缩算法
+                 ext: '.br', // 压缩文件扩展名
+                 threshold: 1024, // 压缩阈值：只压缩大于 1KB 的文件
+                 deleteOriginFile: false, // 保留原文件
+                 verbose: true, // 显示压缩信息
+              }),
+      );
+   }
+
+   // ==================== 旧版浏览器兼容插件（服务器构建）====================
+   /**
+    * Legacy 插件
+    * 仅在服务器构建时启用（Web 用户可能使用旧版浏览器）
+    * 注意：此插件会显著增加打包体积（生成 polyfill 和 legacy 代码块）
+    */
+   if (command === 'build') {
+      plugins.unshift(
+              // unshift: 添加到插件列表最前面
+              legacy({
+                 targets: ['chrome >= 64', 'safari >= 12'], // 目标浏览器版本
+                 modernPolyfills: true, // 为现代浏览器添加必要的 polyfill
+                 // 明确指定目标浏览器，避免覆盖 build.target 的警告
+                 renderLegacyChunks: true, // 生成旧版代码块
+              }),
+      );
+   }
+
+   // ==================== 返回 Vite 配置对象 ====================
+   return {
+      // ==================== 基础路径 ====================
+      /**
+       * 公共基础路径
+       * Web: 使用绝对路径 '/'，从服务器根目录加载
+       */
+      base: '/',
+
+      // ==================== 全局常量定义 ====================
+      /**
+       * 定义在编译时替换的全局常量
+       * 这些值会在构建时被静态替换
+       */
+      define: {
+         'import.meta.env.VITE_SKIN': JSON.stringify(process.env.VITE_SKIN), // 皮肤/主题
+         'import.meta.env.VITE_API_BASE_URL': JSON.stringify(config.baseUrl), // API 基础地址
+         'import.meta.env.VITE_MARKET_WS_URL': JSON.stringify(config.marketWsUrl), // WebSocket 地址
+         'process.env.DEBUG_BUILD': JSON.stringify(process.env.DEBUG_BUILD || 'false'), // 调试模式标识
+      },
+
+      // ==================== 开发服务器配置 ====================
+      /**
+       * 开发服务器配置
+       * 用于本地开发时的热更新、代理等
+       */
+      server: {
+         open: config.dev?.open ?? serverConfig.dev.open, // 启动时是否自动打开浏览器
+         host: config.dev?.host ?? serverConfig.dev.host, // 监听地址（true 表示监听所有地址）
+         port: config.dev?.port ?? serverConfig.dev.port, // 监听端口
+         // 代理配置：解决开发时的跨域问题
+         proxy: {
+            // API 请求代理
+            '/api': {
+               target: config.baseUrl, // 代理目标地址
+               changeOrigin: true, // 修改请求头中的 Origin
+            },
+            // WebSocket 代理
+            '/ws': {
+               target: config.marketWsUrl,
+               changeOrigin: true,
+               ws: true, // 启用 WebSocket 代理
+            },
+         },
+      },
+
+      // ==================== 构建优化配置 ====================
+      build: {
+         // 输出目录
+         outDir: 'dist',
+         // 静态资源目录（相对于 outDir）
+         assetsDir: 'assets',
+
+         /**
+          * 资源内联阈值（字节）
+          * 小于此阈值的资源会被内联为 base64
+          * 默认 4KB，可减少 HTTP 请求数
+          */
+         assetsInlineLimit: 4096,
+
+         /**
+          * Source Map 配置
+          * 调试模式：生成内联 sourcemap 便于调试
+          * 生产模式：关闭 sourcemap（之前的 sourcemap 文件很大）
+          */
+         sourcemap: isDebugBuild ? 'inline' : false,
+
+         /**
+          * 构建目标
+          * 指定最终代码需要兼容的浏览器/运行时版本
+          * 服务器构建：由 legacy 插件控制（需要兼容旧浏览器）
+          */
+         target: undefined,
+
+         /**
+          * 代码压缩配置
+          * 调试模式：不压缩，便于阅读调试
+          * 生产模式：使用 terser 压缩（比 esbuild 压缩率更高）
+          */
+         minify: isDebugBuild ? false : 'terser',
+
+         /**
+          * Terser 压缩选项
+          * 调试模式：不配置（不压缩）
+          * 生产模式：精细控制压缩行为
+          */
+         terserOptions: isDebugBuild
+                 ? undefined
+                 : {
+                    compress: {
+                       /**
+                        * Console 处理策略
+                        * 不直接 drop_console，而是通过 pure_funcs 选择性移除
+                        * 保留 console.error 和 console.warn 用于生产环境错误追踪
+                        */
+                       drop_console: false,
+                       drop_debugger: true, // 移除 debugger 语句
+                       passes: 2, // 压缩遍数（更多遍数=更好压缩，但更慢）
+                       /**
+                        * 纯函数列表
+                        * 这些函数调用会被视为无副作用而移除
+                        * 保留 error/warn 用于错误追踪
+                        */
+                       pure_funcs: [
+                          'console.log', // 移除调试日志
+                          'console.info', // 移除信息日志
+                          'console.debug', // 移除调试日志
+                          // 保留 console.error 和 console.warn 用于生产环境错误追踪
+                       ],
+                       dead_code: true, // 移除不可达代码
+                       unused: true, // 移除未使用的变量
+                    },
+                    mangle: {
+                       properties: false, // 不混淆属性名（避免破坏某些依赖属性名的库）
+                    },
+                    format: {
+                       comments: false, // 移除所有注释
+                    },
+                 },
+
+         /**
+          * CSS 代码分割
+          * true: 将 CSS 提取到单独的文件中
+          * 大型 CSS 会被分割为独立的 chunk
+          */
+         cssCodeSplit: true,
+
+         /**
+          * Rollup 打包配置
+          * 用于细粒度控制代码分割策略
+          */
+         rollupOptions: {
+            output: {
+               /**
+                * 手动代码分割
+                * 将第三方库按类型分割到不同的 chunk
+                * 好处：
+                * 1. 缓存优化：库代码变化少，可长期缓存
+                * 2. 按需加载：大型库可以懒加载
+                * 3. 并行加载：多个小 chunk 可并行下载
+                */
+               manualChunks(id) {
+                  // 警告: src 目录代码一拆就炸裂，慎改
+                  // 也不能拆 Vue 相关的库，交由 Vite 处理
+
+                  // 第三方库打包策略
+
+                  // 1. UI 框架（Ant Design Vue + Vant）
+                  // 这两个库体积较大，单独分包
+                  if (id.includes('ant-design-vue') || id.includes('vant')) {
+                     return 'ui';
+                  }
+
+                  // 2. 图表库（独立分包）
+                  // ECharts 体积很大，必须单独分包
+                  if (id.includes('echarts')) {
+                     return 'chart';
+                  }
+
+                  // 3. 工具类库
+                  // 这些是常用的工具函数库，合并打包
+                  if (
+                          id.includes('lodash-es') || // 工具函数
+                          id.includes('dayjs') || // 日期处理
+                          id.includes('crypto-js') || // 加密
+                          id.includes('qs') || // URL 参数序列化
+                          id.includes('@vueuse') // Vue 组合式工具函数
+                  ) {
+                     return 'utils';
+                  }
+
+                  // 4. 其他第三方库
+                  // 较小的第三方库合并打包
+                  if (
+                          id.includes('swiper') || // 轮播组件
+                          id.includes('aos') || // 滚动动画
+                          id.includes('axios') || // HTTP 客户端
+                          id.includes('mitt') || // 事件总线
+                          id.includes('currency.js') || // 货币格式化
+                          id.includes('qrcode') // 二维码生成
+                  ) {
+                     return 'others';
+                  }
+
+                  // 5. 默认 vendor（最终兜底）
+                  // 其他所有 node_modules 中的库
+                  if (id.includes('node_modules')) {
+                     return 'vendor';
+                  }
+               },
+               /**
+                * 实验性最小 chunk 大小
+                * 尝试合并小于 50KB 的业务代码 chunk
+                * 避免产生过多碎片文件，减少 HTTP 请求
+                * 注意：此选项不影响 manualChunks 中定义的第三方库
+                */
+               experimentalMinChunkSize: 50 * 1024,
+            },
+         },
+      },
+
+      // ==================== 开发依赖预构建优化 ====================
+      /**
+       * 依赖预构建配置
+       * 仅影响开发服务器，不影响生产构建
+       * Vite 会预先将 CommonJS/UMD 依赖转换为 ESM
+       */
+      optimizeDeps: {
+         /**
+          * 排除预构建的依赖
+          * 这些大型库不会在开发时预构建，而是按需加载
+          * 可以加快开发服务器启动速度
+          */
+         exclude: [
+            'echarts', // 图表库（体积大，按需加载）
+            'vant', // 移动端 UI 库（如果按需引入，可排除）
+         ],
+         /**
+          * 强制预构建的依赖
+          * 这些核心依赖会被预先构建，确保开发时快速加载
+          */
+         include: [
+            'vue', // Vue 核心
+            'vue-router', // 路由
+            'pinia', // 状态管理
+            '@vueuse/core', // 工具函数
+            'ant-design-vue',
+         ],
+         /**
+          * Rolldown 配置选项（Vite 8 使用 Rolldown 替代 esbuild）
+          * 用于控制预构建时的代码转换行为
+          */
+         rolldownOptions: {
+            // 确保 CommonJS 模块被正确转换为 ES 模块
+            format: 'esm',
+         },
+      },
+
+      // 插件列表
+      plugins,
+
+      // ==================== 路径解析配置 ====================
+      resolve: {
+         /**
+          * 路径别名配置
+          * 允许使用 @ 符号代替 src 目录
+          * 例如：import xxx from '@/components/xxx'
+          */
+         alias: {
+            '@': resolve(__dirname, 'src'), // @ 指向 src 目录
+         },
+      },
+   };
+});
 
 
 ```
 
 ### defineConfig 对象参数
+
+> 完整配置选项
 
 ```js
 import { createLogger, defineConfig, loadEnv } from 'vite';
@@ -348,7 +719,8 @@ export default defineConfig({
         ],
         include: ['vue', 'vue-router'], // 不在 node_modules 中的，链接的包不会被预构建,设置可强制预构建的依赖
         exclude: ['some-large-lib'], // 排除不需要优化的依赖
-        esbuildOptions: { // 开发环境传递给esbuild的选项,所有esbuild可以配置这里都可以配置
+        // Vite 8: esbuildOptions 已废弃，改用 rolldownOptions（Rolldown 替代 esbuild 进行依赖优化）
+        rolldownOptions: { // 开发环境传递给 Rolldown 的选项
             // 1. 指定编译的 JavaScript 目标版本为 ES2020
             // 这样可以确保依赖项被编译成 ES2020 兼容的代码，适用于现代浏览器。
             target: 'es2020',
@@ -359,29 +731,23 @@ export default defineConfig({
                 __DEV__: 'true',                       // 定义是否处于开发环境
                 __VERSION__: JSON.stringify('1.0.0')   // 定义当前应用版本号
             },
-            // 3. 自定义 esbuild 插件
-            // 通过 esbuild 插件，可以实现对模块的自定义解析行为，比如这里的例子替换了
-            // 'env' 模块路径为 'env.js'。
+            // 3. 自定义 Rolldown 插件
+            // 通过插件可以实现对模块的自定义解析行为
             plugins: [
                 {
                     name: 'custom-plugin', // 插件名称
-                    setup(build) {
+                    resolveId(source) {
                         // 自定义模块解析规则
                         // 当导入的模块是 'env' 时，将其路径重定向为 'env.js'
-                        build.onResolve({filter: /^env$/}, args => {
-                            return {path: path.resolve(__dirname, 'env.js')};
-                        });
+                        if (source === 'env') {
+                            return path.resolve(__dirname, 'env.js');
+                        }
                     }
                 }
             ],
             // 4. 启用源码映射
             // 在开发中启用 sourcemap，这样在浏览器调试时可以追踪到原始源码的位置。
             sourcemap: true,
-            // 5. 自定义 JSX 编译
-            // 如果使用 JSX，可以自定义 JSX 的工厂函数和片段。
-            // 例如，在使用 Preact 时可能需要这样配置。
-            jsxFactory: 'h',             // 将 JSX 编译为 'h' 函数 (如 Preact)
-            jsxFragment: 'Fragment'       // JSX 片段编译为 'Fragment'
         },
         force: true, // 强制预构建,忽略缓存
     },
@@ -406,13 +772,13 @@ export default defineConfig({
 
     // 配置生产构建的相关选项
     build: {
-        target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 构建兼容目标，支持 es2020 或更高，具体视浏览器支持情况而定
+        target: ['es2020', 'edge111', 'firefox114', 'chrome111', 'safari16.4'], // Vite 8 默认使用 Baseline Widely Available 目标
         modulePreload: {polyfill: true}, // 默认情况下，一个 模块预加载 polyfill 会被自动注入
         outDir: 'dist', // 打包后文件输出目录，默认为 'dist'
         assetsDir: 'assets', // 静态资源文件夹名，默认为 'assets'   图片等静态资源
         assetsInlineLimit: 4096, // 小于此大小的静态资源(png等图片)转为内联 base64，单位字节，默认为 4096 (4KB)
         cssCodeSplit: true, // 启用/禁用 CSS 代码拆分，默认为 true
-        cssTarget: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'], // 默认值与 build.target 一致
+        cssTarget: ['es2020', 'edge111', 'firefox114', 'chrome111', 'safari16.4'], // 默认值与 build.target 一致
         cssMinify: 'esbuild', // 默认值与 build.minify 一致, 参数: boolean | 'esbuild' | 'lightningcss'
         sourcemap: false, // 是否生成 sourcemap 文件，默认为 false，适合生产环境调试. 参数:boolean | 'inline' | 'hidden'
         rollupOptions: { // 自定义底层的 Rollup 打包配置
@@ -481,7 +847,7 @@ export default defineConfig({
     // JSON 相关配置
     json: {
       namedExports: true, // 支持从 JSON 文件中导出按名导入，默认 true
-      stringify: false, // 若设置为 true，导入的 JSON 会被转换为 export default JSON.parse("..."),并禁止namedExports
+      stringify: true, // Vite 8 默认为 true，导入的 JSON 会被转换为 export default JSON.parse("...")，如需按名导入设为 false
     },
       
     // 调整 Vite 的日志输出级别
@@ -913,6 +1279,7 @@ export default defineConfig({
 |--------|--------|--------|
 | Node.js 要求 | >= 18 | >= 20.19 或 >= 22 |
 | 默认打包器 | Rollup | Rolldown |
+| 依赖优化配置 | `optimizeDeps.esbuildOptions` | `optimizeDeps.rolldownOptions` |
 | `json.stringify` | 默认 false | 默认 true |
 | SSR API | `ssrLoadModule` | Module Runner API |
-| 浏览器目标 | 自定义默认值 | Baseline Widely Available |
+| 浏览器目标 | 自定义默认值 | Baseline Widely Available (Chrome 111+, Firefox 114+, Safari 16.4+) |
