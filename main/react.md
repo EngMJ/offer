@@ -823,6 +823,22 @@ class ErrorBoundary extends React.Component {
 
 3.  补充: 错误边界只能在类组件中实现了, 并不是指 `Error Boundary` 对 `Hooks` 不生效, 而是指 `Error Boundary` 无法以 `Hooks` 方式指定, 但是对功能是没有影响! 你依然可以使用错误边界组件包裹使用了 `hooks` 的组件
 
+4.  **React 19 错误处理改进**: `createRoot` 支持新的错误回调
+
+```js
+createRoot(container, {
+  onCaughtError: (error, errorInfo) => {
+    // Error Boundary 捕获错误时调用
+  },
+  onUncaughtError: (error, errorInfo) => {
+    // 错误未被捕获时调用
+  },
+  onRecoverableError: (error, errorInfo) => {
+    // 发生可恢复错误时调用
+  }
+}).render(<App />);
+```
+
 ## 十一、Redux
 
 ![image](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3669ee205c374e64a79e4e4d511707fe~tplv-k3u1fbpfcp-jj-mark:3024:0:0:0:q75.awebp#?w=995&h=512&s=32152&e=png&b=fefefe)
@@ -1072,7 +1088,17 @@ function App({ children }) {
   return (<div>{theme}</div>)
 }
 
+// React 19：Context 直接作为 Provider 使用
 function MyApp() {
+  return (
+    <ThemeContext value="dark">
+      <App />
+    </ThemeContext>
+  )
+}
+
+// React 18 及之前：需要使用 Context.Provider
+function MyAppLegacy() {
   return (
     <ThemeContext.Provider value="dark">
       <App />
@@ -1188,26 +1214,38 @@ const App = () => {
 
 2.  函数组件: `forwardRef` + `useImperativeHandle`
 
-```js
-import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
+> **React 19 更新**: 函数组件可以直接接收 `ref` 作为 prop，不再需要 `forwardRef`
 
-/*
-* props：组件的所有 props。
-* ref：传递给组件的 ref。
-* */
-const MyComponent = forwardRef((props, ref) => {
-    
+```js
+// React 19 写法（推荐）
+import React, { useState, useImperativeHandle, useRef } from 'react';
+
+function MyComponent({ ref }) {
     const [count, setCount] = useState(0);
 
-    // 使用 useImperativeHandle 自定义暴露给父组件的 ref 方法
     useImperativeHandle(ref, () => ({
-        increment: () => setCount(count + 1),
+        increment: () => setCount(c => c + 1),
+        reset: () => setCount(0),
+    }));
+
+    return <div>{count}</div>;
+}
+
+// React 18 及之前写法（仍兼容）
+import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
+
+const MyComponentLegacy = forwardRef((props, ref) => {
+    const [count, setCount] = useState(0);
+
+    useImperativeHandle(ref, () => ({
+        increment: () => setCount(c => c + 1),
         reset: () => setCount(0),
     }));
 
     return <div>{count}</div>;
 });
 
+// 使用方式（两种写法相同）
 const App = () => {
     const componentRef = useRef();
 
@@ -1226,7 +1264,24 @@ export default App;
 
 ### 4.4 转发 ref
 
-1.  可使用高阶组件 `React.forwardRef` 用于转发 ref 到子组件中的某个 DOM 元素或类组件实例上
+> **React 19 更新**: 函数组件可以直接接收 `ref` 作为 prop，不再强制需要 `forwardRef`
+
+1.  **React 19 推荐写法**：直接将 ref 作为 prop 接收
+
+```js
+// React 19：ref 直接作为 prop
+function Input({ ref, ...props }) {
+  return <input ref={ref} {...props} />;
+}
+
+// 使用
+function Form() {
+  const inputRef = useRef(null);
+  return <Input ref={inputRef} placeholder="输入..." />;
+}
+```
+
+2.  **React 18 及之前**：使用 `React.forwardRef` 转发 ref
 
 ```js
 import React, { Component, forwardRef } from 'react';
@@ -1250,7 +1305,7 @@ const ForwardedClassComponent = forwardRef((props, ref) => {
 export default ForwardedClassComponent;
 ```
 
-2.  使用传入props将 `ref` 进行转发(常见于类组件, 毕竟 `forwardRef` 不能用于类组件)
+3.  使用传入props将 `ref` 进行转发(常见于类组件, 毕竟 `forwardRef` 不能用于类组件)
 
 ```js
 class A extends Component {
@@ -1573,6 +1628,29 @@ export default function TodosApp() {
 }
 ```
 
+**React 19 新增 Hooks**（详见第二十章）：
+
++   `useActionState`: 管理表单 Action 状态，自动处理 pending 状态
++   `useFormStatus`: 在表单子组件中获取父级 form 的提交状态
++   `useOptimistic`: 实现乐观更新，在异步操作完成前先显示预期结果
++   `use`: 在渲染期间读取 Promise 或 Context（可在条件语句中使用）
+
+```js
+// useActionState 示例
+const [state, formAction, isPending] = useActionState(
+  async (prevState, formData) => {
+    const result = await submitForm(formData);
+    return result;
+  },
+  { message: '' }
+);
+
+// useOptimistic 示例
+const [optimisticState, addOptimistic] = useOptimistic(
+  state,
+  (currentState, optimisticValue) => [...currentState, optimisticValue]
+);
+```
 
 ### 7.3 useEffect、useLayoutEffect、useInsertionEffect 之间的区别
 
@@ -1653,6 +1731,8 @@ export default React.memo(MyComponent, areEqual);
 ```
 
 > 作用: 性能优化, 如果本组件中的数据没有发⽣变化, 阻⽌组件更新, 类似类组件中的 `PureComponent` 和 `shouldComponentUpdate`
+
+> **React 19 补充**: React Compiler（实验性）可以自动进行组件记忆化优化，减少手动使用 `React.memo`、`useMemo`、`useCallback` 的需要
 
 ### 7.5 使用时需要注意什么
 

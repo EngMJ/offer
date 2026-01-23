@@ -1,99 +1,59 @@
 ## 网络
 
-### 1\. 网络七层协议（OSI模型）
+### 1. OSI 七层模型
 
-OSI是一个定义良好的协议规范集，并有许多可选部分完成类似的任务。它定义了开放系统的层次结构、层次之间的相互关系以及各层所包括的可能的任务，作为一个框架来协调和组织各层所提供的服务。
+| 层级 | 名称 | 功能 | 协议/设备示例 |
+|------|------|------|--------------|
+| 7 | 应用层 | 为应用软件提供接口 | HTTP, HTTPS, FTP, SSH |
+| 6 | 表示层 | 数据格式转换、加密 | SSL, JPEG |
+| 5 | 会话层 | 建立/维护会话连接 | RPC, SQL |
+| 4 | 传输层 | 端到端传输控制 | TCP, UDP |
+| 3 | 网络层 | 路由选择、转发 | IP, ICMP |
+| 2 | 数据链路层 | 物理寻址、错误检测 | 以太网, Wi-Fi |
+| 1 | 物理层 | 比特流传输 | 网卡, 光纤 |
 
-OSI参考模型并没有提供一个可以实现的方法，而是描述了一些概念，用来协调进程间通信标准的制定。即OSI参考模型并不是一个标准，而是一个在制定标准时所使用的概念性框架。
+### 2. TCP 三次握手
 
-![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ae50a27269bb4ca9bbb8bc612c208e4d~tplv-k3u1fbpfcp-jj-mark:3024:0:0:0:q75.awebp)
+1. 客户端发送 `SYN`，状态 → `SYN_SENT`
+2. 服务端返回 `SYN+ACK`，状态 → `SYN_RECV`
+3. 客户端发送 `ACK`，双方状态 → `ESTABLISHED`
 
-+   第7层 **应用层** 应用层（Application Layer）提供为应用软件而设计的接口，以设置与另一应用软件之间的通信。例如：HTTP、HTTPS、FTP、Telnet、SSH、SMTP、POP3等。
+> **为什么是3次？** 避免历史连接，确认双方收发能力正常
 
-+   第6层 **表示层** 表示层（Presentation Layer）把数据转换为能与接收者的系统格式兼容并适合传输的格式。
+### 3. TCP 四次挥手
 
-+   第5层 **会话层** 会话层（Session Layer）负责在数据传输中设置和维护计算机网络中两台计算机之间的通信连接。
+1. 客户端发送 `FIN`，请求关闭
+2. 服务端返回 `ACK`，确认收到
+3. 服务端发送 `FIN`，请求关闭
+4. 客户端返回 `ACK`，确认关闭
 
-+   第4层 **传输层** 传输层（Transport Layer）把传输表头（TH）加至数据以形成数据包。传输表头包含了所使用的协议等发送信息。例如:传输控制协议（TCP）等。
+> **为什么是4次？** 服务端可能还有数据未发送完，需要分开确认
 
-+   第3层 **网络层** 网络层（Network Layer）决定数据的路径选择和转寄，将网络表头（NH）加至数据包，以形成分组。网络表头包含了网络资料。例如:互联网协议（IP）等。
+---
 
-+   第2层 **数据链路层** 数据链路层（Data Link Layer）负责网络寻址、错误侦测和改错。当表头和表尾被加至数据包时，会形成信息框（Data Frame）。数据链表头（DLH）是包含了物理地址和错误侦测及改错的方法。数据链表尾（DLT）是一串指示数据包末端的字符串。例如以太网、无线局域网（Wi-Fi）和通用分组无线服务（GPRS）等。
+## HTTP
 
+### 4. 报文结构
 
-分为两个子层：逻辑链路控制（logical link control，LLC）子层和介质访问控制（Media access control，MAC）子层。
+**请求报文**：请求行 + 请求头 + 空行 + 请求体
+```
+GET /api/user HTTP/1.1
+Host: example.com
+Content-Type: application/json
 
-+   第1层 **物理层** 物理层（Physical Layer）在局部局域网上发送数据帧（Data Frame），它负责管理电脑通信设备和网络媒体之间的互通。包括了针脚、电压、线缆规范、集线器、中继器、网卡、主机接口卡等。
-
-### 2\. TCP 协议三次握手
-
-+   客户端通过 `SYN` 报文段发送连接请求，确定服务端是否开启端口准备连接。状态设置为 `SYN_SEND`;
-+   服务器如果有开着的端口并且决定接受连接，就会返回一个 `SYN+ACK` 报文段给客户端，状态设置为 `SYN_RECV`；
-+   客户端收到服务器的 `SYN+ACK` 报文段，向服务器发送 `ACK` 报文段表示确认。此时客户端和服务器都设置为 `ESTABLISHED` 状态。连接建立，可以开始数据传输了。
-
-翻译成大白话就是： **客户端**：你能接收到我的消息吗？ **服务端**：可以的，那你能接收到我的回复吗？ **客户端**：可以，那我们开始聊正事吧。
-
-**为什么是3次？**：避免历史连接，确认客户端发来的请求是这次通信的人 **为什么不是4次？**：3次够了第四次浪费
-
-### 3\. TCP 协议四次挥手
-
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cd751c4c2c914db0b38e70e83714d3e6~tplv-k3u1fbpfcp-jj-mark:3024:0:0:0:q75.awebp)
-
-1.  为什么不是两次？
-    +   两次情况客户端说完结束就立马断开不再接收，无法确认服务端是否接收到断开消息，但且服务端可能还有消息未发送完。
-2.  为什么不是三次？
-    +   3次情况服务端接收到断开消息，向客户端发送确认接受消息，客户端未给最后确认断开的回复。
-
-## http
-
-### 1\. HTTP 请求报文结构
-
-1.  首行是**Request-Line**包括：**请求方法**，**请求URI**，**协议版本**，**CRLF**
-2.  首行之后是若干行**请求头**，包括**general-header**，**request-header**或者**entity-header**，每个一行以CRLF结束
-3.  请求头和消息实体之间有一个**CRLF分隔**
-4.  根据实际请求需要可能包含一个**消息实体** 一个请求报文例子如下：
-
-```sh
-GET /Protocols/rfc2616/rfc2616-sec5.html HTTP/1.1
-Host: www.w3.org
-Connection: keep-alive
-Cache-Control: max-age=0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36
-Referer: https://www.google.com.hk/
-Accept-Encoding: gzip,deflate,sdch
-Accept-Language: zh-CN,zh;q=0.8,en;q=0.6
-Cookie: authorstyle=yes
-If-None-Match: "2cc8-3e3073913b100"
-If-Modified-Since: Wed, 01 Sep 2004 13:24:52 GMT
-
-name=qiu&age=25
+{"name": "test"}
 ```
 
-### 2\. HTTP 响应报文结构
-
-+   首行是状态行包括：**HTTP版本，状态码，状态描述**，后面跟一个CRLF
-+   首行之后是**若干行响应头**，包括：**通用头部，响应头部，实体头部**
-+   响应头部和响应实体之间用**一个CRLF空行**分隔
-+   最后是一个可能的**消息实体** 响应报文例子如下：
-
-```sh
+**响应报文**：状态行 + 响应头 + 空行 + 响应体
+```
 HTTP/1.1 200 OK
-Date: Tue, 08 Jul 2014 05:28:43 GMT
-Server: Apache/2
-Last-Modified: Wed, 01 Sep 2004 13:24:52 GMT # 最后修改时间，用于协商缓存
-ETag: "40d7-3e3073913b100" # 文件hash，用于协商缓存
-Accept-Ranges: bytes
-Content-Length: 16599
-Cache-Control: max-age=21600 # 强缓存（浏览器端）最大过期时间
-Expires: Tue, 08 Jul 2014 11:28:43 GMT # 强缓存（浏览器端）过期时间
-P3P: policyref="http://www.w3.org/2001/05/P3P/p3p.xml"
-Content-Type: text/html; charset=iso-8859-1
+Content-Type: application/json
+Cache-Control: max-age=3600
 
-{"name": "qiu", "age": 25}
+{"code": 0}
 ```
 
-### 3\. HTTP常见状态码及其含义
+### 5. HTTP 常见状态码
 
 +   1XX：信息状态码
     +   100 Continue 继续，一般在发送post请求时，已发送了http header之后服务端将返回此信息，表示确认，之后发送具体参数信息
@@ -115,9 +75,9 @@ Content-Type: text/html; charset=iso-8859-1
     +   500 Internal Server Error 最常见的服务器端错误。
     +   503 Service Unavailable 服务器端暂时无法处理请求（可能是过载或维护）。
 
-### [4\. 常见web安全及防护](safe.md)
+### [6. 常见 Web 安全及防护](safe.md)
 
-### 5\. http1.0、http1.1、http2.0区别
+### 7. HTTP 版本区别
 
 + #### http1.0 vs http1.1
 
@@ -144,7 +104,7 @@ Content-Type: text/html; charset=iso-8859-1
 +   参考: [HTTP1.0、HTTP1.1 和 HTTP2.0 的区别](https://www.cnblogs.com/heluan/p/8620312.html "https://www.cnblogs.com/heluan/p/8620312.html")
 +   参考: [HTTP3.0](https://www.infoq.cn/article/lddlsa5f21sty04li3hp)
 
-### 6\. Cache-Control
+### 8. Cache-Control
 
 用于判断`强缓存`，也就是是否直接取在客户端缓存文件，不请求后端。
 
@@ -162,7 +122,7 @@ Content-Type: text/html; charset=iso-8859-1
 
 ---
 
-### 7\. GET 和 POST 的区别
+### 9. GET 和 POST 的区别
 
 | 特性 | GET | POST |
 |------|-----|------|
@@ -181,7 +141,7 @@ Content-Type: text/html; charset=iso-8859-1
 
 ---
 
-### 8\. HTTP 和 HTTPS 的区别
+### 10. HTTP 和 HTTPS 的区别
 
 | 特性 | HTTP | HTTPS |
 |------|------|-------|
@@ -201,7 +161,7 @@ Content-Type: text/html; charset=iso-8859-1
 
 ---
 
-### 9\. TCP 和 UDP 的区别
+### 11. TCP 和 UDP 的区别
 
 | 特性 | TCP | UDP |
 |------|-----|-----|
@@ -220,7 +180,7 @@ Content-Type: text/html; charset=iso-8859-1
 
 ---
 
-### 10\. CORS 跨域
+### 12. CORS 跨域
 
 **同源策略**：协议、域名、端口都相同才是同源
 
@@ -262,7 +222,7 @@ proxy: {
 
 ---
 
-### 11\. WebSocket
+### 13. WebSocket
 
 **特点**：
 - 全双工通信（服务器可主动推送）
@@ -301,7 +261,7 @@ ws.onerror = (error) => {
 
 ---
 
-### 12\. HTTP 请求方法
+### 14. HTTP 请求方法
 
 | 方法 | 描述 | 幂等 | 安全 |
 |------|------|------|------|
@@ -320,7 +280,7 @@ ws.onerror = (error) => {
 
 ---
 
-### 13\. CDN 原理
+### 15. CDN 原理
 
 **CDN（内容分发网络）**：将内容缓存到离用户最近的节点
 
