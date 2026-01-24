@@ -901,11 +901,46 @@ function myNew(context) {
 4.  Generator函数 优点：函数体内外的数据交换、错误处理机制 缺点：流程管理不方便
 
 5.  async函数 优点：内置执行器、更好的语义、更广的适用性、返回的是Promise、结构清晰。 缺点：错误处理机制
++ async/await 原理:
 
+**本质**：Generator + 自动执行器的语法糖
+
+```javascript
+// async 函数返回 Promise
+async function fn() {
+  return 1;
+}
+fn(); // Promise {fulfilled: 1}
+
+// await 等待 Promise 完成
+async function getData() {
+  try {
+    const res = await fetch('/api');
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// 并行执行
+async function parallel() {
+  const [res1, res2] = await Promise.all([fetch(url1), fetch(url2)]);
+}
+```
+
+**注意事项**：
+- await 只能在 async 函数中使用（ES2022 支持顶层 await）
+- await 后面的代码相当于放在 .then() 中执行
+- 多个无依赖的 await 应该用 Promise.all 并行
+
+---
 
 ## 事件循环 & 宏任务、微任务
 
-事件循环：event loop 宏任务：macrotask 也称为 task 微任务：microtask 也称为 jobs
++ 事件循环：event loop
++ 宏任务：macrotask 也称为 task 
++ 微任务：microtask 也称为 jobs
 
 **微任务**
 
@@ -1672,65 +1707,5 @@ const filtered = Object.fromEntries(
 
 ---
 
-## Promise 静态方法区别
 
-| 方法 | 说明 | 返回时机 |
-|------|------|----------|
-| `Promise.all` | 全部成功才成功 | 任一失败立即失败 |
-| `Promise.allSettled` | 等待全部完成 | 无论成功失败都返回结果 |
-| `Promise.race` | 返回最先完成的 | 第一个完成（无论成功失败） |
-| `Promise.any` | 返回最先成功的 | 第一个成功，全失败才失败 |
-
-```javascript
-// all：全部成功
-Promise.all([p1, p2, p3]).then(results => {});
-
-// allSettled：获取所有结果
-Promise.allSettled([p1, p2]).then(results => {
-  // [{status: 'fulfilled', value: ...}, {status: 'rejected', reason: ...}]
-});
-
-// race：竞速
-Promise.race([p1, p2]).then(first => {});
-
-// any：任一成功（ES2021）
-Promise.any([p1, p2]).then(first => {}).catch(errors => {});
-```
-
----
-
-## async/await 原理
-
-**本质**：Generator + 自动执行器的语法糖
-
-```javascript
-// async 函数返回 Promise
-async function fn() {
-  return 1;
-}
-fn(); // Promise {fulfilled: 1}
-
-// await 等待 Promise 完成
-async function getData() {
-  try {
-    const res = await fetch('/api');
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-// 并行执行
-async function parallel() {
-  const [res1, res2] = await Promise.all([fetch(url1), fetch(url2)]);
-}
-```
-
-**注意事项**：
-- await 只能在 async 函数中使用（ES2022 支持顶层 await）
-- await 后面的代码相当于放在 .then() 中执行
-- 多个无依赖的 await 应该用 Promise.all 并行
-
----
 
