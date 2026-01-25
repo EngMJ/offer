@@ -407,7 +407,7 @@ module.exports = {
                  *  可以访问到 APP2 通过 exposes 暴露给外部的资源
                  */
                 App2: 'app2@http://localhost:3001/App2RemoteEntry.js',
-                RemoteA: `RemoteA@${env.A_URL}/remoteEntry.js`,
+                RemoteA: `RemoteA@${process.env.A_URL}/remoteEntry.js`,
                 // 使用函数来动态定义远程模块的加载路径
                 remoteApp: () => {
                     if (process.env.NODE_ENV === 'production') {
@@ -419,13 +419,10 @@ module.exports = {
                 // 使用返回 Promise 的函数来异步加载远程模块，这对于需要进行异步加载和初始化的场景非常有用
                 remote_App: () => import('remote_app@http://example.com/remoteEntry.js'),
             },
-            // 控制远程模块的加载方式
-            // 选项的值可以是 'async'、'sync' 或 'prefetch'，分别代表异步加载、同步加载和预加载
-            remotesType: 'async',
             // 暴露给外部的模块/文件夹/动态加载
             // 键表示其他模块中引用的路径，值表示当前模块中实际的模块路径
             exposes: {
-                Button: './src/components/Button',
+                './Button': './src/components/Button',
                 './Header': './src/components/Header',
                 // 动态加载
                 './DynamicComponent': () => {
@@ -460,8 +457,8 @@ module.exports = {
              *         // 设置为true,共享模块将在所有使用它的模块中共享同一个实例. 如框架包 react
              *         singleton: true,
              *
-             *         // 设置为true,表示共享模块将在主应用程序启动时立即加载,
-             *         // 默认值false, 表示共享模块将会按需加载，即在模块被使用时才会被加载
+             *         // 设置为true,表示共享模块将在主应用程序启动时立即加载（eager loading）
+             *         // 默认值false, 表示共享模块将会按需加载（lazy loading），即在模块被使用时才会被加载
              *         eager: true,
              *
              *         // 加载共享模块的版本需要等于或大于定义的版本号要求,不符合则会警告报错，可以是一个字符串或对象，默认为 undefined
@@ -479,8 +476,6 @@ module.exports = {
              * }
              *
              * */
-            // 选项的值可以是 'eager' 或 'lazy'，分别代表主应用程序启动时立即加载和按需加载
-            sharedType: 'lazy',
         }),
         // 定义app2导出设置
         // new ModuleFederationPlugin({
@@ -569,17 +564,15 @@ module.exports = {
     },
     optimization: {
         splitChunks: {
-            // 代码分割时默认对异步代码生效，all：所有代码有效，inital：同步代码有效
+            // 代码分割时默认对异步代码生效，all：所有代码有效，initial：同步代码有效
             chunks: 'all',
             /* 以下都是默认值，可以不写
-            miniSize: 30 * 1024, // 分割的chunk最小为30kb（大于30kb的才分割）
+            minSize: 30 * 1024, // 分割的chunk最小为30kb（大于30kb的才分割）
             maxSize: 0, // 最大没有限制
             minChunks: 1, // 要提取的chunk最少被引用1次
             maxAsyncRequests: 5, // 按需加载时并行加载的文件的最大数量为5
             maxInitialRequests: 3, // 入口js文件最大并行请求数量
             automaticNameDelimiter: '~', // 名称连接符
-            name: true, // 可以使用命名规则
-            usedExports: true, // 打包时只包含应用中真正使用的模块,不打包使用的模块
             cacheGroups: { // 分割chunk的组
               vendors: {
                 // node_modules中的文件会被打包到vendors组的chunk中，--> vendors~xxx.js
@@ -719,7 +712,7 @@ module.exports = {
 +   提取第三方库或通过引用外部文件的方式引入第三方库
 +   压缩插件`TerserWebpackPlugin` `CssMinimizerPlugin` `ImageMinimizerWebpackPlugin`
 +   服务器启用gzip / brotli 压缩
-+   按需加载资源文件 `improt()` `require.ensure()` 
++   按需加载资源文件 `import()`
 +   剥离`css`文件，单独打包
 +   去除不必要插件，开发环境与生产环境用不同配置文件
 +   SpritesmithPlugin雪碧图，将多个小图片打包成一张，用background-image，background-position，width，height控制显示部分
@@ -782,7 +775,7 @@ Tree Shaking 摇树 是借鉴了 rollup 的实现。
     // 设置黑名单，用于防止误删代码
     "sideEffects": [
         // 数组里列出黑名单，禁止shaking下列代码
-        "@babel/polly-fill",
+        "@babel/polyfill",
         "*.less",
         // 其它有副作用的模块
         "./src/some-side-effectful-file.js"
