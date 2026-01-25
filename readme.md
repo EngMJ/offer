@@ -1,8 +1,6 @@
 <div align="center">
 
-# 📚 Frontend Interview Guide
-
-**高级前端 / 前端架构师面试题集合**
+# 前端面经
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
@@ -10,13 +8,11 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)](https://vitejs.dev/)
 
-[开始阅读](#-目录) · [贡献指南](#-贡献) 
-
 </div>
 
 ---
 
-## 📋 目录
+##  目录
 
 <table>
 <tr>
@@ -84,7 +80,7 @@
 
 ---
 
-## 🗂️ 项目结构
+## 项目结构
 
 ```
 offer/
@@ -120,7 +116,7 @@ offer/
 
 ---
 
-## 📈 学习路线
+## 学习路线
 
 ```
                            ┌─────────────┐
@@ -169,28 +165,6 @@ offer/
 
 ---
 
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request 来完善本项目！
-
-1. Fork 本仓库
-2. 创建分支 `git checkout -b feature/xxx`
-3. 提交更改 `git commit -m 'Add xxx'`
-4. 推送分支 `git push origin feature/xxx`
-5. 提交 Pull Request
-
----
-
-## 📄 许可证
+## 许可证
 
 本项目采用 [MIT](LICENSE) 许可证。
-
----
-
-<div align="center">
-
-**⭐ 如果对你有帮助，欢迎 Star！**
-
-Made with ❤️ for Frontend Developers
-
-</div>
