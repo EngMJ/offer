@@ -59,7 +59,7 @@ export default defineConfig({
 
 | 特性             | Vite 8                                      | Webpack               |
 |----------------|---------------------------------------------|-----------------------|
-| **开发启动速度**     | 极快，使用原生 ES 模块（ESM）和 `esbuild` 预构建依赖，按需编译 | 较慢，需要先打包整个项目再启动       |
+| **开发启动速度**     | 极快，使用原生 ES 模块（ESM）和 Rolldown 预构建依赖（Vite 8），按需编译 | 较慢，需要先打包整个项目再启动       |
 | **热更新速度**      | 极快，基于原生 ESM，按需更新实际变化的模块                    | 较慢，尤其在大型项目中，重新打包整个模块 |
 | **打包速度**       | 生产模式使用 Rolldown（Rust），速度极快                 | 灵活扩展性强，支持复杂场景，但较慢     |
 | **生态系统**       | 成熟，兼容 Rollup 插件生态                          | 成熟，插件丰富，支持复杂场景        |
@@ -305,7 +305,7 @@ export default defineConfig(async ({ command }) => {
          /**
           * 代码压缩配置
           * 调试模式：不压缩，便于阅读调试
-          * 生产模式：使用 terser 压缩（比 esbuild 压缩率更高）
+          * 生产模式：使用 terser 压缩（压缩率高）
           */
          minify: isDebugBuild ? false : 'terser',
 
@@ -356,75 +356,75 @@ export default defineConfig(async ({ command }) => {
          cssCodeSplit: true,
 
          /**
-          * Rollup 打包配置
+          * Rolldown 打包配置
           * 用于细粒度控制代码分割策略
           */
-         rollupOptions: {
+         rolldownOptions: {
             output: {
                /**
-                * 手动代码分割
+                * 代码分割配置
                 * 将第三方库按类型分割到不同的 chunk
                 * 好处：
                 * 1. 缓存优化：库代码变化少，可长期缓存
                 * 2. 按需加载：大型库可以懒加载
                 * 3. 并行加载：多个小 chunk 可并行下载
+                * 
+                * 配置说明：
+                * - name: chunk 名称
+                * - test: 正则匹配模块路径
+                * - priority: 优先级（数字越大优先级越高，匹配时优先使用高优先级规则）
+                * - minSize: 最小 chunk 大小（字节）
+                * - maxSize: 最大 chunk 大小（字节），超过会尝试拆分
+                * - minShareCount: 最少被多少个入口共享才会提取
                 */
-               manualChunks(id) {
-                  // 警告: src 目录代码一拆就炸裂，慎改
-                  // 也不能拆 Vue 相关的库，交由 Vite 处理
-
-                  // 第三方库打包策略
-
-                  // 1. UI 框架（Ant Design Vue + Vant）
-                  // 这两个库体积较大，单独分包
-                  if (id.includes('ant-design-vue') || id.includes('vant')) {
-                     return 'ui';
-                  }
-
-                  // 2. 图表库（独立分包）
-                  // ECharts 体积很大，必须单独分包
-                  if (id.includes('echarts')) {
-                     return 'chart';
-                  }
-
-                  // 3. 工具类库
-                  // 这些是常用的工具函数库，合并打包
-                  if (
-                          id.includes('lodash-es') || // 工具函数
-                          id.includes('dayjs') || // 日期处理
-                          id.includes('crypto-js') || // 加密
-                          id.includes('qs') || // URL 参数序列化
-                          id.includes('@vueuse') // Vue 组合式工具函数
-                  ) {
-                     return 'utils';
-                  }
-
-                  // 4. 其他第三方库
-                  // 较小的第三方库合并打包
-                  if (
-                          id.includes('swiper') || // 轮播组件
-                          id.includes('aos') || // 滚动动画
-                          id.includes('axios') || // HTTP 客户端
-                          id.includes('mitt') || // 事件总线
-                          id.includes('currency.js') || // 货币格式化
-                          id.includes('qrcode') // 二维码生成
-                  ) {
-                     return 'others';
-                  }
-
-                  // 5. 默认 vendor（最终兜底）
-                  // 其他所有 node_modules 中的库
-                  if (id.includes('node_modules')) {
-                     return 'vendor';
-                  }
+               codeSplitting: {
+                  // 全局最小 chunk 大小，避免产生过多碎片文件
+                  minSize: 50 * 1024, // 50KB
+                  groups: [
+                     // 1. 图表库（独立分包，优先级最高）
+                     // ECharts 体积很大，必须单独分包
+                     {
+                        name: 'chart',
+                        test: /node_modules[\\/]echarts/,
+                        priority: 30,
+                     },
+                     // 2. UI 框架（Ant Design Vue + Vant）
+                     // 这两个库体积较大，单独分包
+                     {
+                        name: 'ui',
+                        test: /node_modules[\\/](ant-design-vue|vant)/,
+                        priority: 25,
+                     },
+                     // 3. 工具类库
+                     // 常用的工具函数库，合并打包
+                     {
+                        name: 'utils',
+                        test: /node_modules[\\/](lodash-es|dayjs|crypto-js|qs|@vueuse)/,
+                        priority: 20,
+                     },
+                     // 4. 其他第三方库
+                     // 较小的第三方库合并打包
+                     {
+                        name: 'others',
+                        test: /node_modules[\\/](swiper|aos|axios|mitt|currency\.js|qrcode)/,
+                        priority: 15,
+                     },
+                     // 5. 公共模块（被多个入口共享的代码）
+                     {
+                        name: 'common',
+                        minShareCount: 2, // 至少被 2 个入口共享
+                        minSize: 10 * 1024, // 至少 10KB
+                        priority: 10,
+                     },
+                     // 6. 默认 vendor（最终兜底）
+                     // 其他所有 node_modules 中的库
+                     {
+                        name: 'vendor',
+                        test: /node_modules/,
+                        priority: 5,
+                     },
+                  ],
                },
-               /**
-                * 实验性最小 chunk 大小
-                * 尝试合并小于 50KB 的业务代码 chunk
-                * 避免产生过多碎片文件，减少 HTTP 请求
-                * 注意：此选项不影响 manualChunks 中定义的第三方库
-                */
-               experimentalMinChunkSize: 50 * 1024,
             },
          },
       },
@@ -457,7 +457,7 @@ export default defineConfig(async ({ command }) => {
             'ant-design-vue',
          ],
          /**
-          * Rolldown 配置选项（Vite 8 使用 Rolldown 替代 esbuild）
+          * Rolldown 配置选项
           * 用于控制预构建时的代码转换行为
           */
          rolldownOptions: {
@@ -693,20 +693,22 @@ export default defineConfig({
         }
     },
 
-    // esbuild配置 参数: 对象 | false
-    // 配置 esbuild 的行为，esbuild 在 Vite 中用于依赖预构建以及部分代码的快速转译
-    // 在开发和构建过程中，确保代码能快速转译并满足目标平台的要求，同时可以定制某些转换行为。
-    esbuild: {
-        jsxFactory: 'React.createElement',  // 对应 React 的 JSX 创建元素的方法
-        jsxFragment: 'React.Fragment',      // 对应 React 的 Fragment
+    // oxc 配置，参数: 对象 | false
+    // 配置 Oxc 的行为，用于 JavaScript 转换和压缩
+    // 在开发和构建过程中，确保代码能快速转译并满足目标平台的要求，同时可以定制某些转换行为
+    oxc: {
+        jsxInject: `import React from 'react'`, // 自动为每一个被转换的文件注入 JSX helper
         include: [/\.tsx/, /\.jsx/, /\.ts/], // 只编译这些内容
         exclude: [/\.js$/], // 排除这些内容
-        jsxInject: `import React from 'react'`, // 自动为每一个被 esbuild 转换的文件注入 JSX helper
-        target: 'es2015', // 配置目标为 ES2015，保证转换的代码能在大多数现代浏览器中运行
-        legalComments: 'none',  // 删除所有注释, eof将注释移至末尾
-        minify: true,          // 启用代码压缩
-        pure: ['console.log'], // 移除指定的函数调用，通常用于优化生产代码。比如去掉所有 console.log 调用
-        loader: 'ts',  // 将 TypeScript 直接编译为 JavaScript，速度更快
+        jsx: {
+            runtime: 'automatic', // 'automatic' | 'classic' | 'preserve'
+            importSource: 'react', // JSX 导入源（automatic 模式）
+            // pragma: 'React.createElement', // classic 模式下的 JSX 工厂函数
+            // pragmaFrag: 'React.Fragment', // classic 模式下的 Fragment
+            development: false, // 是否启用开发模式
+            pure: true, // 是否将 JSX 标记为纯函数
+        },
+        define: {}, // 全局变量替换
     },
 
     // 配置依赖预构建（pre-bundling）的选项,优化开发环境中依赖的加载和热更新效率，避免因为大量依赖导致启动变慢
@@ -719,7 +721,6 @@ export default defineConfig({
         ],
         include: ['vue', 'vue-router'], // 不在 node_modules 中的，链接的包不会被预构建,设置可强制预构建的依赖
         exclude: ['some-large-lib'], // 排除不需要优化的依赖
-        // Vite 8: esbuildOptions 已废弃，改用 rolldownOptions（Rolldown 替代 esbuild 进行依赖优化）
         rolldownOptions: { // 开发环境传递给 Rolldown 的选项
             // 1. 指定编译的 JavaScript 目标版本为 ES2020
             // 这样可以确保依赖项被编译成 ES2020 兼容的代码，适用于现代浏览器。
@@ -779,9 +780,9 @@ export default defineConfig({
         assetsInlineLimit: 4096, // 小于此大小的静态资源(png等图片)转为内联 base64，单位字节，默认为 4096 (4KB)
         cssCodeSplit: true, // 启用/禁用 CSS 代码拆分，默认为 true
         cssTarget: ['es2020', 'edge111', 'firefox114', 'chrome111', 'safari16.4'], // 默认值与 build.target 一致
-        cssMinify: 'esbuild', // 默认值与 build.minify 一致, 参数: boolean | 'esbuild' | 'lightningcss'
+        cssMinify: 'lightningcss', // 参数: boolean | 'lightningcss'
         sourcemap: false, // 是否生成 sourcemap 文件，默认为 false，适合生产环境调试. 参数:boolean | 'inline' | 'hidden'
-        rollupOptions: { // 自定义底层的 Rollup 打包配置
+        rolldownOptions: { // 自定义底层的 Rolldown 打包配置
             input: {
                 main: './index.html', // 构建入口文件
                 nested: './src/nested.html', // 可以有多个入口文件
@@ -792,10 +793,16 @@ export default defineConfig({
                 entryFileNames: '[name].[hash].js', // 入口文件名格式
                 chunkFileNames: '[name].[hash].js', // 非入口 chunk 的文件名格式
                 assetFileNames: '[name].[contenthash].[ext]', // 静态资源文件名格式
-                manualChunks(id) { // 此处进行代码分割,对 node_modules 中的模块进行分割
-                    if (id.includes('node_modules')) {
-                        return 'vendor'; // 手动将 node_modules 中的代码打包到 vendor 文件中
-                    }
+                // 代码分割配置
+                codeSplitting: {
+                    minSize: 20 * 1024, // 最小 chunk 大小 20KB
+                    groups: [
+                        {
+                            name: 'vendor',
+                            test: /node_modules/,
+                            priority: 10,
+                        },
+                    ],
                 },
             },
             // 摇树 默认true, 接受 true/false/对象 参数
@@ -804,15 +811,13 @@ export default defineConfig({
                 propertyReadSideEffects: false,
             }
         },
-        commonjsOptions: {}, // 传递给 @rollup/plugin-commonjs 插件的选项
-        dynamicImportVarsOptions: {}, // 传递给 @rollup/plugin-dynamic-import-vars 的选项
         lib: {}, // 构建为库的配置项,不为正常项目
         manifest: false, // 是否生成包含了没有被 hash 过的资源文件名和 hash 后版本的映射 manifest.json 文件
         ssrManifest: false, // 是否生成 SSR 的 manifest 文件，以确定生产中的样式链接与资产预加载指令,当该值为一个字符串时，它将作为 manifest 文件的名字
-        ssr: false, // 生成面向 SSR 的构建。此选项的值可以是字符串，用于直接定义 SSR 的入口，也可以为 true，但这需要通过设置 rollupOptions.input 来指定 SSR 的入口。
+        ssr: false, // 生成面向 SSR 的构建。此选项的值可以是字符串，用于直接定义 SSR 的入口，也可以为 true，但这需要通过设置 rolldownOptions.input 来指定 SSR 的入口。
         emitAssets: false, // 在非客户端的构建过程中，静态资源并不会被输出，因为我们默认它们会作为客户端构建的一部分被输出, 开启可强制输出这些资源。
         ssrEmitAssets: false, // 在 SSR 构建期间，静态资源不会被输出，因为它们通常被认为是客户端构建的一部分, 开启可强制输出这些资源。
-        minify: 'terser', // 压缩方式，可选 'esbuild' (默认) | 'terser' | true
+        minify: true, // 可选 true | 'terser' | false
         terserOptions: {
             // 例如：去除 console 和 debugger
             drop_console: true,
@@ -873,7 +878,7 @@ export default defineConfig({
     worker: {
       format: 'iife', // worker类型，默认为 'iife' (可选 'es')
       plugins: [], //  worker 打包使用的 Vite 插件
-      rollupOptions: {} // worker 打包使用的 Rollup 配置项
+      rolldownOptions: {} // worker 打包使用的 Rolldown 配置项
     },
 });
 
@@ -884,7 +889,7 @@ export default defineConfig({
 2. 图片转base64: build.assetsInlineLimit
 3. 配置路径别名: resolve.alias
 4. 配置环境变量: define
-5. 配置sourceMap: esbuild.sourcemap(开发环境) / build.sourcemap(生产环境)
+5. 配置sourceMap: build.sourcemap
 6. 配置插件: plugins
 7. gzip / brotli 压缩: vite-plugin-compression
 8. 模块可视化插件: rollup-plugin-visualizer
@@ -893,17 +898,17 @@ export default defineConfig({
 11. css单独打包: build.cssCodeSplit
 12. 配置服务器: server
 13. 配置热模块替换: server.hmr
-14. 配置 esbuild: esbuild
-15. 配置依赖预构建: optimizeDeps
+14. 配置 JS 转换: oxc
+15. 配置依赖预构建: optimizeDeps / optimizeDeps.rolldownOptions
 16. 配置构建项目: build
 17. js兼容编译: build.target
-18. 代码分割: build.rollupOptions.manualChunks
+18. 代码分割: build.rolldownOptions.output.codeSplitting
 19. 配置代码压缩: build.minify / build.terserOptions
-20. 配置摇树: build.rollupOptions.treeshake
-21. 配置输出文件名/缓存(contentHash): build.rollupOptions.output.entryFileNames
+20. 配置摇树: build.rolldownOptions.treeshake
+21. 配置输出文件名/缓存(contentHash): build.rolldownOptions.output.entryFileNames
 22. 配置缓存: cacheDir
 23. 配置 SSR: ssr
-24. 配置 Web Worker: worker
+24. 配置 Web Worker: worker / worker.rolldownOptions
 25. 配置日志: logLevel / customLogger / clearScreen
 
 ## 常用插件
@@ -1208,78 +1213,3 @@ export default defineConfig({
 ```
 
 ---
-
-## 从旧版本迁移到 Vite 8
-
-### 从 Vite 7 迁移
-
-1. **Node.js 版本升级**
-   ```bash
-   # 确保 Node.js 版本 >= 22.x 或 20.19+
-   node -v
-   ```
-
-2. **更新依赖**
-   ```bash
-   npm install vite@latest
-   ```
-
-3. **配置调整**
-   ```js
-   // vite.config.js
-   export default defineConfig({
-     // json.stringify 默认值已改为 true
-     // 如需保持旧行为，显式设置为 false
-     json: {
-       stringify: false,
-     },
-   })
-   ```
-
-4. **Rolldown 打包器**
-   - Vite 8 默认使用 Rolldown，大部分 Rollup 插件仍然兼容
-   - 如遇兼容性问题，检查插件是否支持 Rolldown
-
-### 从 Vite 5/6 迁移
-
-1. **Environment API 迁移**
-   ```js
-   // 旧版本
-   export default defineConfig({
-     ssr: {
-       target: 'node',
-     },
-   })
-   
-   // Vite 8 推荐
-   export default defineConfig({
-     environments: {
-       ssr: {
-         build: {
-           ssr: true,
-         },
-       },
-     },
-   })
-   ```
-
-2. **ssrLoadModule 迁移**
-   ```js
-   // 旧版本
-   const module = await vite.ssrLoadModule('/src/entry-server.js')
-   
-   // Vite 8 使用 Module Runner
-   const runner = createModuleRunner(environment)
-   const module = await runner.import('/src/entry-server.js')
-   ```
-
-### 破坏性变更清单
-
-| 变更项 | 旧行为 | 新行为 |
-|--------|--------|--------|
-| Node.js 要求 | >= 18 | >= 20.19 或 >= 22 |
-| 默认打包器 | Rollup | Rolldown |
-| 依赖优化配置 | `optimizeDeps.esbuildOptions` | `optimizeDeps.rolldownOptions` |
-| `json.stringify` | 默认 false | 默认 true |
-| SSR API | `ssrLoadModule` | Module Runner API |
-| 浏览器目标 | 自定义默认值 | Baseline Widely Available (Chrome 111+, Firefox 114+, Safari 16.4+) |
