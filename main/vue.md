@@ -203,10 +203,21 @@ beforeRouteEnter(to, from, next) {
 ```
 
 ```js
-// 使用 activated 钩子
+// 使用 activated 钩子（选项式 API）
 activated() {
   this.getData()
 }
+```
+
+```vue
+<!-- 使用 onActivated 钩子（组合式 API，推荐） -->
+<script setup>
+import { onActivated } from 'vue'
+
+onActivated(() => {
+  getData()
+})
+</script>
 ```
 
 ---
