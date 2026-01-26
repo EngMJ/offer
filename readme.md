@@ -34,7 +34,7 @@
 | # | 主题                           | 描述 |
 |---|------------------------------|------|
 | 07 | [Vue 3.5](main/vue.md)       | 组合式 API、响应式原理 |
-| 08 | [React 19](main/react.md)    | Hooks、Server Components |
+| 08 | [React 19](main/react19.md)   | Hooks、Server Components |
 | 09 | [Next.js 16](main/nextjs.md) | App Router、SSR/SSG |
 | 10 | [Webpack 5](main/webpack.md) | 模块打包、性能优化 |
 | 11 | [Vite 8](main/vite.md)       | ESM、HMR、Rolldown |
