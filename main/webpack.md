@@ -241,8 +241,6 @@ module.exports = {
             name: '[name]',
             type: 'window' // 替代 libraryTarget，可选值: 'var', 'module', 'assign', 'this', 'window', 'self', 'global', 'commonjs', 'umd' 等
         }
-        // libraryTarget: 'global' // 变量名添加到哪个变量上 node
-        // libraryTarget: 'commonjs' // 变量名添加到哪个变量上 commonjs模块 exports
     },
     module: {
         // 防止 webpack 解析那些任何与给定正则表达式相匹配的文件。
@@ -365,10 +363,6 @@ module.exports = {
                 collapseWhitespace: true, // 移除空格
                 removeComments: true // 移除注释
             }
-        }),
-        // 告诉webpack哪些库不参与打包，同时使用时的名称也得变
-        new webpack.DllReferencePlugin({
-            manifest: resolve(__dirname, 'dll/manifest.json')
         }),
         // 将某个文件打包输出到build目录下，并在html中自动引入该资源
         new AddAssetHtmlWebpackPlugin({
@@ -698,10 +692,8 @@ module.exports = {
 +   开发环境不做无意义的操作：代码压缩、目录内容清理、计算文件hash、提取CSS文件等
 +   noParse：不需要解析某些模块的依赖
 +   第三方依赖外链script引入：vue、ui组件、JQuery等
-+   HotModuleReplacementPlugin：热更新增量构建
 +   babel-loader开启缓存 `cacheDirectory: true`
 +   splitChunks：提取公共模块，将符合引用次数(minChunks)的模块打包到一起，利用浏览器缓存
-+   DllPlugin& DllReferencePlugin：动态链接库，提高打包效率，仅打包一次第三方模块，每次构建只重新打包业务代码
 +   thread-loader：多线程编译，加快编译速度（webpack5 中 happypack 已弃用，推荐使用 thread-loader）
 +   **webpack5 持久化缓存**：通过 `cache: { type: 'filesystem' }` 配置，大幅提升二次构建速度
 +   Tree Shaking 摇树：基于ES6提供的模块系统对代码进行静态分析，并在压缩阶段将代码中的死代码（dead code）移除，减少代码体积
@@ -721,21 +713,14 @@ module.exports = {
 
 ### 8\. 常用插件简述
 
-+   webpack-dev-server
-+   webpack5 使用 `output.clean: true` 替代 clean-webpack-plugin 清理输出目录
++   HtmlWebpackPlugin：生成html文件，并自动引入打包输出的资源
 +   CopyWebpackPlugin：复制文件
-+   HotModuleReplacementPlugin：热更新
 +   ProvidePlugin：全局变量设置
 +   DefinePlugin：定义全局常量
-+   splitChunks：提取公共模块，将符合引用次数的模块打包到一起
 +   mini-css-extract-plugin：css单独打包
 +   TerserPlugin：压缩代码（webpack5 内置）
-+   progress-bar-webpack-plugin：编译进度条
 +   CompressionWebpackPlugin：gzip / Brotli 压缩静态文件
-+   DllPlugin& DllReferencePlugin：提高打包效率，仅打包一次第三方模块
 +   webpack-bundle-analyzer：可视化的查看webpack打包出来的各个文件体积大小
-
-+   WorkboxWebpackPlugin (PWA应用)用于在 webpack 构建过程中自动生成或注入 Service Worker，从而帮助实现 PWA（渐进式 Web 应用）的离线缓存、预缓存以及运行时缓存策略
 
 ### 9\. Tree Shaking 摇树
 
