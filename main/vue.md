@@ -828,30 +828,64 @@ nextTick(() => {
 
 ---
 
-## 32. 你知道哪些 Vue 3 新特性及优化
+## 32. Vue 3 常用 Hooks 有哪些？如何自定义 Hook？
 
-### 新特性
+### 什么是 Vue Hooks（Composables）
 
-1. **Composition API**：更灵活的逻辑组织方式，支持逻辑复用
-2. **新的响应式系统**：基于 Proxy，支持深层响应式，动态添加属性无需额外处理
-3. **Teleport**：内容可以渲染到 DOM 的任意位置
-4. **Fragments**：支持组件返回多个根节点
-5. **Suspense**：异步组件渲染时提供加载占位内容的能力
-6. **新的全局 API**：将全局配置迁移到 app 实例，增强模块化
-7. **Composition API Hooks**：提供 onMounted、onUpdated 等更灵活的生命周期管理
-8. **Emits 和 Props 验证**：显式定义事件和灵活的 props 验证
-9. **增强单文件组件**：`<script setup>` 提供简洁语法，`<style>` 新增 v-bind() 等
+Vue 3 中的 Hooks 通常称为 **Composables**（组合式函数），是利用 Composition API 封装的可复用逻辑函数，以 `use` 开头命名。
 
-### 优化
+### 内置 Hooks
 
-1. 编译器优化：静态提升、静态节点合并
-2. 按需加载功能，增加 Tree-shaking 支持
-3. SSR 优化，支持流式渲染
-4. 核心库更小的运行时/打包体积
-5. 增强 TypeScript 支持
-6. API 易用/扩展性提升
+| Hook | 作用 |
+|------|------|
+| `ref` / `reactive` | 创建响应式数据 |
+| `computed` | 创建计算属性 |
+| `watch` / `watchEffect` | 监听数据变化 |
+| `onMounted` / `onUnmounted` | 生命周期钩子 |
+| `provide` / `inject` | 依赖注入 |
+| `toRef` / `toRefs` | 响应式转换 |
+| `shallowRef` / `shallowReactive` | 浅层响应式 |
+| `useTemplateRef` | 模板引用（3.5+） |
+| `useId` | 生成唯一 ID（3.5+） |
+
+### 自定义 Hook 示例
+
+**useFetch - 数据请求**
+
+```js
+import { ref, watchEffect, toValue } from 'vue'
+
+export function useFetch(url) {
+  const data = ref(null)
+  const error = ref(null)
+  const loading = ref(false)
+
+  async function fetchData() {
+    loading.value = true
+    try {
+      const res = await fetch(toValue(url))
+      data.value = await res.json()
+    } catch (e) {
+      error.value = e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  watchEffect(() => fetchData())
+  return { data, error, loading, refetch: fetchData }
+}
+```
+
+### 自定义 Hook 最佳实践
+
+1. **命名规范**：以 `use` 开头
+2. **单一职责**：每个 Hook 只负责一个功能
+3. **返回响应式数据**：返回 ref 或 reactive 对象
+4. **清理副作用**：在 `onUnmounted` 中清理事件监听、定时器等
 
 ---
+
 
 ## 33. 你是怎么处理 Vue 项目中的错误的？
 
@@ -929,125 +963,77 @@ export default instance;
 
 ---
 
-## 35. SPA、SSR 的区别是什么
 
-| 特性 | SPA（单页应用） | SSR（服务端渲染） |
-|------|----------------|------------------|
-| 定义 | 一个 HTML 页面，内容通过 JavaScript 动态加载 | 服务端生成完整的 HTML 页面 |
-| 页面渲染 | 前端渲染 | 服务端渲染 |
-| 首屏加载速度 | 较慢 | 较快 |
-| SEO 支持 | 较差 | 良好 |
-| 用户体验 | 页面切换流畅 | 可能需要重新加载 |
-| 服务器压力 | 低 | 高 |
-| 适用场景 | 后台管理 | 电商、新闻、博客 |
 
-**替代方案**：
-- 混合模式（SSR + SPA）：使用 Nuxt.js，首屏采用 SSR，其他页面使用 SPA
-- 预渲染：打包时直接渲染静态内容
 
----
 
-## 36. Vue 项目部署后报 404 是什么原因？
+## 35. 你知道哪些 Vue 3 新特性及优化
 
-**原因**：单页面应用只有一个 HTML，在页面切换时 nginx 会去访问对应 HTML，这些 HTML 不存在所以 404。
+### 新特性
 
-**SPA nginx 正确配置**：
+1. **Composition API**：更灵活的逻辑组织方式，支持逻辑复用
+2. **新的响应式系统**：基于 Proxy，支持深层响应式，动态添加属性无需额外处理
+3. **Teleport**：内容可以渲染到 DOM 的任意位置
+4. **Fragments**：支持组件返回多个根节点
+5. **Suspense**：异步组件渲染时提供加载占位内容的能力
+6. **新的全局 API**：将全局配置迁移到 app 实例，增强模块化
+7. **Composition API Hooks**：提供 onMounted、onUpdated 等更灵活的生命周期管理
+8. **Emits 和 Props 验证**：显式定义事件和灵活的 props 验证
+9. **增强单文件组件**：`<script setup>` 提供简洁语法，`<style>` 新增 v-bind() 等
 
-```nginx
-server {
-  listen 80;
-  server_name www.xxx.com;
+### 优化
 
-  location / {
-    index /data/dist/index.html;
-    try_files $uri $uri/ /index.html;
-  }
-}
-```
-
-**注意**：当路由为 Hash 模式时即使不进行配置，依然能够正确访问，因为 Hash 改变页面并不会去访问新的 HTML。
+1. 编译器优化：静态提升、静态节点合并
+2. 按需加载功能，增加 Tree-shaking 支持
+3. SSR 优化，支持流式渲染
+4. 核心库更小的运行时/打包体积
+5. 增强 TypeScript 支持
+6. API 易用/扩展性提升
 
 ---
 
-## 37. vue-loader 是什么？它有什么作用？
 
-`vue-loader` 是 Webpack 的一个加载器，专门用于处理 `.vue` 文件，将 Vue 单文件组件转换成标准的 JavaScript 模块。
+## 36. Vue 3.5 有哪些新特性？
 
-### 工作流程
-
-1. **解析 `.vue` 文件**：将文件分为 `<template>`、`<script>` 和 `<style>` 等块
-2. **分块处理**：每个块通过不同的 Loader 处理
-3. **生成模块**：将处理后的模板、脚本、样式合并为一个 JavaScript 模块
-
-| 功能 | 作用 |
+| 特性 | 说明 |
 |------|------|
-| 处理 .vue 文件 | 将 Vue 单文件组件拆分并转换为 JavaScript 模块 |
-| 模板编译 | 将 template 模板转为渲染函数 |
-| 支持 CSS 预处理器 | 允许使用 SCSS、LESS 等 |
-| 样式作用域 | 通过 scoped 属性确保组件样式隔离 |
-| 热模块替换 | 实现开发环境下的热更新 |
+| 响应式 Props 解构 | `defineProps` 解构的变量自动具有响应式，无需 `toRefs` |
+| `useTemplateRef()` | 通过字符串 key 获取模板引用，支持动态 key，类型推断更好 |
+| `useId()` | 生成 SSR/CSR 一致的唯一 ID，用于表单 label 关联、ARIA 属性等 |
+| `onWatcherCleanup()` | 在 watcher 回调中注册清理函数，下次执行前或组件卸载时调用 |
+| watch pause/resume | `watch()` 返回 `{ pause, resume, stop }`，可暂停/恢复监听 |
+| Deferred Teleport | `<Teleport defer>` 延迟到目标元素存在后再传送内容 |
+| Lazy Hydration | 懒惰水合，按需激活 SSR 渲染的静态 HTML |
+| 性能优化 | 响应式内存减少 56%，computed 依赖追踪更精确，数组操作更快 |
 
----
-
-## 38. Vue 3 常用 Hooks 有哪些？如何自定义 Hook？
-
-### 什么是 Vue Hooks（Composables）
-
-Vue 3 中的 Hooks 通常称为 **Composables**（组合式函数），是利用 Composition API 封装的可复用逻辑函数，以 `use` 开头命名。
-
-### 内置 Hooks
-
-| Hook | 作用 |
-|------|------|
-| `ref` / `reactive` | 创建响应式数据 |
-| `computed` | 创建计算属性 |
-| `watch` / `watchEffect` | 监听数据变化 |
-| `onMounted` / `onUnmounted` | 生命周期钩子 |
-| `provide` / `inject` | 依赖注入 |
-| `toRef` / `toRefs` | 响应式转换 |
-| `shallowRef` / `shallowReactive` | 浅层响应式 |
-| `useTemplateRef` | 模板引用（3.5+） |
-| `useId` | 生成唯一 ID（3.5+） |
-
-### 自定义 Hook 示例
-
-**useFetch - 数据请求**
+### 代码示例
 
 ```js
-import { ref, watchEffect, toValue } from 'vue'
+// 响应式 Props 解构（3.5 之前需要 toRefs）
+const { count = 0, msg = 'hi' } = defineProps(['count', 'msg'])
 
-export function useFetch(url) {
-  const data = ref(null)
-  const error = ref(null)
-  const loading = ref(false)
+// useTemplateRef - 比 ref() 更清晰
+const inputRef = useTemplateRef('input')
+onMounted(() => inputRef.value?.focus())
 
-  async function fetchData() {
-    loading.value = true
-    try {
-      const res = await fetch(toValue(url))
-      data.value = await res.json()
-    } catch (e) {
-      error.value = e
-    } finally {
-      loading.value = false
-    }
-  }
+// useId - SSR 安全
+const id = useId()  // 如 "v-0", "v-1"
 
-  watchEffect(() => fetchData())
-  return { data, error, loading, refetch: fetchData }
-}
+// onWatcherCleanup - 自动取消请求
+watch(query, (q) => {
+  const ctrl = new AbortController()
+  fetch(`/api?q=${q}`, { signal: ctrl.signal })
+  onWatcherCleanup(() => ctrl.abort())
+})
+
+// watch pause/resume
+const { pause, resume } = watch(data, handler)
+pause()   // 暂停
+resume()  // 恢复
 ```
 
-### 自定义 Hook 最佳实践
 
-1. **命名规范**：以 `use` 开头
-2. **单一职责**：每个 Hook 只负责一个功能
-3. **返回响应式数据**：返回 ref 或 reactive 对象
-4. **清理副作用**：在 `onUnmounted` 中清理事件监听、定时器等
-
----
-
-## 39. VueUse 库有哪些常用函数？
+## 37. VueUse 库有哪些常用函数？
 
 VueUse 是基于 Composition API 的实用函数集合库，提供 200+ 个开箱即用的 Hooks。
 
@@ -1096,7 +1082,7 @@ const search = useDebounceFn(() => fetchData(), 500)
 
 ---
 
-## 40. Vue 3 生态常用库有哪些？
+## 38. Vue 3 生态常用库有哪些？
 
 ### 核心库
 
@@ -1148,106 +1134,52 @@ SSR 应用: Nuxt 3 + Pinia
 
 ---
 
-## 41. Vue 3.5 有哪些新特性？
+## 39. SPA、SSR 的区别是什么
 
-| 特性 | 说明 |
-|------|------|
-| 响应式 Props 解构 | `defineProps` 解构的变量自动具有响应式，无需 `toRefs` |
-| `useTemplateRef()` | 通过字符串 key 获取模板引用，支持动态 key，类型推断更好 |
-| `useId()` | 生成 SSR/CSR 一致的唯一 ID，用于表单 label 关联、ARIA 属性等 |
-| `onWatcherCleanup()` | 在 watcher 回调中注册清理函数，下次执行前或组件卸载时调用 |
-| watch pause/resume | `watch()` 返回 `{ pause, resume, stop }`，可暂停/恢复监听 |
-| Deferred Teleport | `<Teleport defer>` 延迟到目标元素存在后再传送内容 |
-| Lazy Hydration | 懒惰水合，按需激活 SSR 渲染的静态 HTML |
-| 性能优化 | 响应式内存减少 56%，computed 依赖追踪更精确，数组操作更快 |
+| 特性 | SPA（单页应用） | SSR（服务端渲染） |
+|------|----------------|------------------|
+| 定义 | 一个 HTML 页面，内容通过 JavaScript 动态加载 | 服务端生成完整的 HTML 页面 |
+| 页面渲染 | 前端渲染 | 服务端渲染 |
+| 首屏加载速度 | 较慢 | 较快 |
+| SEO 支持 | 较差 | 良好 |
+| 用户体验 | 页面切换流畅 | 可能需要重新加载 |
+| 服务器压力 | 低 | 高 |
+| 适用场景 | 后台管理 | 电商、新闻、博客 |
 
-### 什么是水合（Hydration）？
-
-**水合**是 SSR（服务端渲染）中的关键概念：
-
-1. **服务端**：Vue 在服务器上渲染组件，生成静态 HTML 字符串发送给浏览器
-2. **客户端**：浏览器收到 HTML 后立即显示（用户可以看到内容）
-3. **水合过程**：Vue 在客户端"激活"这些静态 HTML，将其与 Vue 组件实例关联，添加事件监听器，使页面变得可交互
-
-**Lazy Hydration（懒惰水合）** 允许延迟水合时机，减少首屏 JavaScript 执行量：
-
-```js
-import { defineAsyncComponent, hydrateOnVisible, hydrateOnIdle } from 'vue'
-
-// 元素进入视口时才水合（适合折叠内容）
-const LazyComp = defineAsyncComponent({
-  loader: () => import('./Heavy.vue'),
-  hydrate: hydrateOnVisible()
-})
-
-// 浏览器空闲时水合（适合非关键组件）
-const IdleComp = defineAsyncComponent({
-  loader: () => import('./NonCritical.vue'),
-  hydrate: hydrateOnIdle()
-})
-
-// 用户交互时水合（适合需要点击才用的组件）
-const InteractiveComp = defineAsyncComponent({
-  loader: () => import('./Modal.vue'),
-  hydrate: hydrateOnInteraction(['click', 'focus'])
-})
-```
-
-### 代码示例
-
-```js
-// 响应式 Props 解构（3.5 之前需要 toRefs）
-const { count = 0, msg = 'hi' } = defineProps(['count', 'msg'])
-
-// useTemplateRef - 比 ref() 更清晰
-const inputRef = useTemplateRef('input')
-onMounted(() => inputRef.value?.focus())
-
-// useId - SSR 安全
-const id = useId()  // 如 "v-0", "v-1"
-
-// onWatcherCleanup - 自动取消请求
-watch(query, (q) => {
-  const ctrl = new AbortController()
-  fetch(`/api?q=${q}`, { signal: ctrl.signal })
-  onWatcherCleanup(() => ctrl.abort())
-})
-
-// watch pause/resume
-const { pause, resume } = watch(data, handler)
-pause()   // 暂停
-resume()  // 恢复
-```
+**替代方案**：
+- 混合模式（SSR + SPA）：使用 Nuxt.js，首屏采用 SSR，其他页面使用 SPA
+- 预渲染：打包时直接渲染静态内容
 
 ---
 
-## 42. 图片懒加载指令实现
+## 40. Vue 项目部署后报 404 是什么原因？
 
-```js
-const lazyLoad = {
-  mounted(el, binding) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          el.setAttribute('src', binding.value)
-          observer.unobserve(el)
-        }
-      })
-    }, { threshold: 0.1 })
-    observer.observe(el)
+**原因**：单页面应用只有一个 HTML，在页面切换时 nginx 会去访问对应 HTML，这些 HTML 不存在所以 404。
+
+**SPA nginx 正确配置**：
+
+```nginx
+server {
+  listen 80;
+  server_name www.xxx.com;
+
+  location / {
+    index /data/dist/index.html;
+    try_files $uri $uri/ /index.html;
   }
 }
-
-app.directive('lazy', lazyLoad)
-
-// 使用: <img v-lazy="imageUrl" />
 ```
+
+**注意**：当路由为 Hash 模式时即使不进行配置，依然能够正确访问，因为 Hash 改变页面并不会去访问新的 HTML。
+
+---
+
 
 ---
 
 # Vue Router
 
-## 43. History 模式和 Hash 模式有何区别？
+## 41. History 模式和 Hash 模式有何区别？
 
 | 模式 | API | URL 格式 | 刷新页面支持 | SEO 支持 | 适用场景 |
 |------|-----|----------|------------|---------|---------|
@@ -1266,7 +1198,7 @@ const router = createRouter({
 
 ---
 
-## 44. 怎么定义动态路由？怎么获取传过来的动态参数？
+## 42. 怎么定义动态路由？怎么获取传过来的动态参数？
 
 ### 配置
 
@@ -1290,7 +1222,7 @@ console.log(route.params.id);
 
 ---
 
-## 45. 如果让你从零开始写一个 Vue 路由，说说你的思路
+## 43. 如果让你从零开始写一个 Vue 路由，说说你的思路
 
 - 模块化路由配置：按功能模块划分路由
 - 路由懒加载：优化性能，只加载用户访问的模块
@@ -1301,7 +1233,7 @@ console.log(route.params.id);
 
 ---
 
-## 46. 怎么实现路由懒加载呢？
+## 44. 怎么实现路由懒加载呢？
 
 ```javascript
 const router = createRouter({
@@ -1318,7 +1250,7 @@ const router = createRouter({
 
 ---
 
-## 47. router-link 和 router-view 是如何起作用的？
+## 45. router-link 和 router-view 是如何起作用的？
 
 ### router-link 常用属性
 
@@ -1367,7 +1299,7 @@ const router = createRouter({
 
 ---
 
-## 48. Vue-router 除了 router-link 怎么实现跳转
+## 46. Vue-router 除了 router-link 怎么实现跳转
 
 ### 编程导航
 
@@ -1386,7 +1318,7 @@ router.go(-1)
 
 ---
 
-## 49. 在什么场景下会用到嵌套路由？
+## 47. 在什么场景下会用到嵌套路由？
 
 需要公用的页面布局，如顶部导航栏/左侧菜单栏/主内容区等，部分内容跟随路由切换，而公用部分不变。
 
@@ -1407,7 +1339,7 @@ const routes = [
 
 ---
 
-## 50. vue-router 中如何保护路由？
+## 48. vue-router 中如何保护路由？
 
 ### 路由守卫流程
 
@@ -1442,7 +1374,7 @@ onBeforeRouteLeave((to, from) => {
 
 # Pinia
 
-## 51. 对 Pinia 的理解？
+## 49. 对 Pinia 的理解？
 
 Vue 3 官方推荐的状态管理库，用来替代 Vuex，提供更轻量、更灵活的状态管理方案。
 
@@ -1468,7 +1400,7 @@ Vue 3 官方推荐的状态管理库，用来替代 Vuex，提供更轻量、更
 
 ---
 
-## 52. Pinia 的使用
+## 50. Pinia 的使用
 
 ### 定义 Store（组合式 API，推荐）
 
@@ -1551,7 +1483,7 @@ counter.$subscribe((mutation, state) => {
 
 ---
 
-## 53. 怎么监听 Pinia 数据的变化？
+## 51. 怎么监听 Pinia 数据的变化？
 
 ### 使用 Vue 的 watch 函数
 
@@ -1579,7 +1511,7 @@ store.$subscribe((mutation, state) => {
 
 ---
 
-## 54. 页面刷新后 Pinia 数据丢失怎么解决？
+## 52. 页面刷新后 Pinia 数据丢失怎么解决？
 
 可以通过将数据保存在浏览器的本地存储中来实现。
 
