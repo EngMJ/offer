@@ -124,6 +124,99 @@ React Diff 算法基于三个核心假设，将 O(n³) 的树比对复杂度降�
 - 避免使用 index（除非列表是静态且不会重排序）
 - 避免使用随机数（每次渲染都会强制重建）
 
+**key 使用 index 会带来哪些具体问题？**
+
+**答案：**
+
+**问题 1：列表项状态错乱**
+
+```javascript
+function TodoList() {
+  const [todos, setTodos] = useState([
+    { id: 1, text: 'Learn React' },
+    { id: 2, text: 'Build App' },
+  ]);
+  
+  const addFirst = () => {
+    setTodos([{ id: 3, text: 'New Todo' }, ...todos]);
+  };
+  
+  return (
+    <>
+      <button onClick={addFirst}>Add to top</button>
+      {todos.map((todo, index) => (
+        // 使用 index 作为 key
+        <TodoItem key={index} todo={todo} />
+      ))}
+    </>
+  );
+}
+
+function TodoItem({ todo }) {
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // 问题：点击 "Add to top" 后
+  // 原来 index=0 的 "Learn React" 变成了 index=1
+  // 但 React 认为 key=0 的还是同一个组件
+  // 导致新添加的 todo 继承了原来第一项的编辑状态！
+  
+  return <div>{isEditing ? <input /> : todo.text}</div>;
+}
+```
+
+**问题 2：输入框内容错乱**
+
+```javascript
+function List({ items }) {
+  return items.map((item, index) => (
+    <div key={index}>
+      {item.name}
+      <input defaultValue={item.value} />
+    </div>
+  ));
+}
+
+// 当列表重排序时：
+// 原来: [{name: 'A', value: '1'}, {name: 'B', value: '2'}]
+// 删除 A: [{name: 'B', value: '2'}]
+// 
+// React 看到 key=0 还在，认为是同一个元素
+// 但数据已经是 B 了，而 input 还保持着 A 的值 '1'
+```
+
+**问题 3：动画异常**
+
+```javascript
+// 使用 index 作为 key 时
+// 删除中间项会导致后面所有项的 key 变化
+// 动画库可能无法正确识别哪个元素被删除
+
+// 原来: [0, 1, 2] -> 删除 index=1 -> [0, 1]
+// React 认为 key=2 被删除了，而不是原来 key=1 的元素
+```
+
+**问题 4：性能下降**
+
+```javascript
+// 在列表开头插入元素时
+// 所有元素的 index 都变了，React 认为所有元素都"改变"了
+// 导致整个列表重新渲染，无法复用任何 DOM 节点
+
+// 使用稳定的 id 作为 key 时
+// React 知道只是插入了一个新元素，其他元素可以复用
+```
+
+**什么时候可以用 index：**
+
+1. 列表是静态的，不会重排序、增删
+2. 列表项没有内部状态（如输入框、展开/折叠）
+3. 列表项没有依赖位置的动画
+
+```javascript
+// 可以用 index 的场景
+const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+weekdays.map((day, index) => <span key={index}>{day}</span>);
+```
 ---
 
 ### 4. React Fiber 是什么？它解决了旧架构的什么根本问题？
@@ -488,7 +581,333 @@ function BadComponent({ condition }) {
 
 ---
 
-### 11. useState 的更新是同步还是异步？为什么你"感觉"它是异步的？
+### 11. 常用 Hooks 有哪些？各自的使用场景是什么？
+
++   `useState`: 用于定义组件状态, 需要注意的是该方法在更新状态时会使用 `Object.is` 进行比较, 如果待更新状态值和当前状态值相同, 则不会进行更新, 不会引起组件的重新渲染
+
+```js
+const [state, setState] = useState(0);
+setState(0); // 不会引起组件重新渲染
+
+// 注意：对象/数组是引用比较
+const [obj, setObj] = useState({ a: 1 });
+setObj({ a: 1 }); // 会重新渲染（不同引用）
+setObj(obj);      // 不会重新渲染（同一引用）
+```
+
++   `useRef`: 获取 `DOM` 元素对象、记录非状态数据、获取子组件实例对象
++   `useImperativeHandle` 用于控制暴露给父组件的属性
++   `useEffect`: 让函数型组件拥有处理 `副作⽤` 的能⼒, 每次依赖项改变, 都会触发回调函数的执行, 通过它可模拟类似 `类组件` 中的部分⽣命周期, 如 `componentDidMount`、`componentDidUpdate`、`componentWillUnmount`
+
+```js
+// 触发时机：组件挂载后（即首次渲染完成后）
+// componentDidMount模拟：传递一个空依赖数组 [] 给 useEffect, 这样就只会在组件挂载后执行一次
+useEffect(() => {
+    console.log('componentDidMount');
+    // 这里可以执行一次性的初始化任务
+}, []);
+
+// 触发时机：组件更新时（即组件的 state 或 props 改变后）
+// componentDidUpdate模拟：在 useEffect 中传递一个依赖数组，只有依赖项变化时，useEffect 才会触发
+useEffect(() => {
+    console.log('componentDidUpdate');
+    // 这里可以执行依赖项变化后的任务
+}, [dependency]);  // 只有当 dependency 改变时才会触发
+
+// 触发时机：组件卸载时
+// componentWillUnmount模拟：在 useEffect 中返回一个函数，这个函数会在组件卸载时执行
+useEffect(() => {
+    console.log('componentDidMount');
+    // 执行一些操作
+
+    return () => {
+        console.log('componentWillUnmount');
+        // 这里可以清理副作用，比如取消订阅或清除定时器
+    };
+}, []);
+
+// useInsertionEffect(()=>{}, dependencies?)
+// useLayoutEffect(()=>{}, dependencies?)
+```
++   `useLayoutEffect`: 与 `useEffect` 相同, 但它会在所有的 `DOM` 变更之后同步调用
++   `useInsertionEffect`: 在任何 `DOM` 突变之前触发, 主要是解决 `CSS-in-JS` 在渲染中注入样式的性能问题
+
+
+> **useEffect、useLayoutEffect、useInsertionEffect 之间的区别:**
+>
+> 三者执行顺序: `useInsertionEffect(DOM 变更前)` → `useLayoutEffect(DOM 变更后, 绘制前, 同步)` → `useEffect(绘制后, 异步)`
+
++   `useMemo`: 缓存计算结果, 适用于计算量较大的场景, 只有依赖项发生变化时才会重新计算
++   `useCallback`: 缓存函数,在依赖项不变的情况下, 不会重新创建函数, 适用于函数作为 `props` 传递给子组件时, 避免不必要的重新渲染
+
+```js
+// useMemo
+useMemo(() => '返回缓存的值', [todos, tab])
+
+// useCallback
+  const handleSubmit = useCallback((orderDetails) => {
+    post('/product/' + productId + '/buy', {
+      referrer,
+      orderDetails,
+    });
+  }, [productId, referrer]);
+```
+
++   `useReducer`: 使用简易版 `Redux`
+
+```js
+import { useReducer } from 'react';
+
+function reducer(state, action) {
+  // ...
+}
+
+function MyComponent() {
+    const [state, dispatch] = useReducer(reducer, {age: 42});
+    // ...
+}
+```
+
++   `useContext`: 获取 `context` 的值
++   `useDeferredValue`: 用于推迟更新部分 `UI`
++   `useTransition`: 允许在不阻塞 `UI` 的情况下更新状态
+
+```js
+// useDeferredValue
+function SearchPage() {
+  const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
+  // ...
+}
+
+// useTransition
+import { useTransition } from 'react';
+
+function TabContainer() {
+    const [isPending, startTransition] = useTransition();
+    startTransition(()=>{
+        // 延迟更新的逻辑
+        // ...
+    })
+}
+```
+
++   `useId`: 生成唯一 `ID`, 是 `hook` 所以只能在组件的顶层或您自己的 `Hook` 中调用它, 您不能在循环或条件内调用它、不应该用于生成列表中的键
++   `useDebugValue`: 可以在 `React DevTools` 中向自定义 `Hook` 添加一个标签, 方便追踪数据
+```js
+useDebugValue('dev工具显示的value');
+```
++   `useSyncExternalStore`: 用于同步外部状态, 适用于 `Redux`、`Mobx` 等状态管理工具
+
+```js
+import { useSyncExternalStore } from 'react';
+import { todosStore } from './todoStore.js';
+
+export default function TodosApp() {
+  const todos = useSyncExternalStore(todosStore.subscribe, todosStore.getSnapshot);
+  return (
+    <>
+      <button onClick={() => todosStore.addTodo()}>Add todo</button>
+      <hr />
+      <ul>
+        {todos.map(todo => (
+          <li key={todo.id}>{todo.text}</li>
+        ))}
+      </ul>
+    </>
+  );
+}
+```
+
+**React 19 新增 Hooks**：
+
++   `useActionState`: 管理表单 Action 状态，自动处理 pending 状态, 用于简单的表单提交等场景
++   `useFormStatus`: 在表单子组件中获取父级 form 的提交状态,
++   `useOptimistic`: 实现乐观更新，在异步操作完成前先显示预期结果, 用于点赞/收藏等场景
++   `use`: 在渲染期间读取 Promise 或 Context（可在条件语句中使用）,可替代 useContext
+
+```js
+// useActionState 示例
+const [state, formAction, isPending] = useActionState(
+  async (prevState, formData) => {
+    const result = await submitForm(formData);
+    return result;
+  },
+  { message: '' }
+);
+
+// useOptimistic 示例
+const [optimisticState, addOptimistic] = useOptimistic(
+  state,
+  (currentState, optimisticValue) => [...currentState, optimisticValue]
+);
+```
+
+---
+
+---
+
+### 12. Ref 的原理及使用场景有哪些？
+
+#### 作用
+
+1.  在函数组件中, 当我们希望组件能够 `记住` 或者说 `存储` 某些信息, 但呢又不希望该信息触发新的渲染时, 就可以使用 ref 来存储
+2.  用于访问真实 `DOM` 元素
+3.  当父组件需要获取子组件实例对象时, 也可通过 `ref` 来实现
+
+#### 获取真实 DOM: 三种创建方式
+
+1.  推荐使用 `API`: `useRef`
+
+```js
+const ref = React.useRef();
+<div ref={ref}></div>
+```
+
+2.  `ref` 回调函数方式
+
+```js
+
+const bindRef = useCallback((ele) => {
+  // ele 就是当前的 DOM 元素
+}, []);
+<div ref={bindRef}></div>
+```
+
+3.  字符串(仅限类组件中使用)
+
+```js
+// 会自动在 this 上绑定 bodyRef, 等于当前元素
+<div ref="bodyRef"></div>
+```
+
+#### 获取子组件实例
+
+1.  子组件为类组件, 直接绑定 `ref`, 就能够拿到整个子组件的实例对象
+
+```js
+class A extends Component {}
+
+const App = () => {
+  const ref = useRef()
+  return (<A ref={ref}/>)
+}
+```
+
+2.  函数组件: `forwardRef` + `useImperativeHandle`
+
+> **React 19 更新**: 函数组件可以直接接收 `ref` 作为 prop，不再需要 `forwardRef`
+
+```js
+// React 19 写法（推荐）
+import React, { useState, useImperativeHandle, useRef } from 'react';
+
+function MyComponent({ ref }) {
+    const [count, setCount] = useState(0);
+
+    useImperativeHandle(ref, () => ({
+        increment: () => setCount(c => c + 1),
+        reset: () => setCount(0),
+    }));
+
+    return <div>{count}</div>;
+}
+
+// React 18 及之前写法（仍兼容）
+import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
+
+const MyComponentLegacy = forwardRef((props, ref) => {
+    const [count, setCount] = useState(0);
+
+    useImperativeHandle(ref, () => ({
+        increment: () => setCount(c => c + 1),
+        reset: () => setCount(0),
+    }));
+
+    return <div>{count}</div>;
+});
+
+// 使用方式（两种写法相同）
+const App = () => {
+    const componentRef = useRef();
+
+    return (
+        <div>
+            <MyComponent ref={componentRef} />
+            <button onClick={() => componentRef.current.increment()}>Increment</button>
+            <button onClick={() => componentRef.current.reset()}>Reset</button>
+        </div>
+    );
+};
+
+export default App;
+
+```
+
+#### 转发 ref
+
+> **React 19 更新**: 函数组件可以直接接收 `ref` 作为 prop，不再强制需要 `forwardRef`
+
+1.  **React 19 推荐写法**：直接将 ref 作为 prop 接收
+
+```js
+// React 19：ref 直接作为 prop
+function Input({ ref, ...props }) {
+  return <input ref={ref} {...props} />;
+}
+
+// 使用
+function Form() {
+  const inputRef = useRef(null);
+  return <Input ref={inputRef} placeholder="输入..." />;
+}
+```
+
+2.  **React 18 及之前**：使用 `React.forwardRef` 转发 ref
+
+```js
+import React, { Component, forwardRef } from 'react';
+
+// 类组件
+class MyClassComponent extends Component {
+    focus() {
+        this.props.inputRef.focus();
+    }
+
+    render() {
+        return <input ref={(ref) => (this.props.inputRef = ref)} />;
+    }
+}
+
+// 使用 forwardRef 来转发 ref
+const ForwardedClassComponent = forwardRef((props, ref) => {
+    return <MyClassComponent inputRef={ref} />;
+});
+
+export default ForwardedClassComponent;
+```
+
+3.  使用传入props将 `ref` 进行转发(常见于类组件, 毕竟 `forwardRef` 不能用于类组件)
+
+```js
+class Cmp extends Component {
+  render () {
+    return (
+      <div ref={this.props.innerRef}>
+        1
+      </div>
+    );
+  }
+}
+
+const bodyRef = useRef()
+
+export default <Cmp innerRef={bodyRef} />;
+```
+
+---
+
+### 13. useState 的更新是同步还是异步？为什么你"感觉"它是异步的？
 
 **答案：**
 
@@ -546,7 +965,7 @@ useEffect(() => {
 
 ---
 
-### 12. useEffect、useLayoutEffect 的本质区别和使用边界
+### 14. useEffect、useLayoutEffect 的本质区别和使用边界
 
 **答案：**
 
@@ -606,7 +1025,7 @@ useLayoutEffect(() => {
 
 ---
 
-### 13. useEffect 的依赖数组是如何工作的？漏依赖会带来什么问题？
+### 15. useEffect 的依赖数组是如何工作的？漏依赖会带来什么问题？
 
 **答案：**
 
@@ -686,7 +1105,7 @@ useEffect(() => {
 
 ---
 
-### 14. React 18+ 中 useEffect 在 StrictMode 下为什么会执行两次？
+### 16. React 18+ 中 useEffect 在 StrictMode 下为什么会执行两次？
 
 **答案：**
 
@@ -752,7 +1171,7 @@ useEffect(() => {
 
 ---
 
-### 15. useMemo 和 useCallback 的真实价值是什么？滥用会发生什么？
+### 17. useMemo 和 useCallback 的真实价值是什么？滥用会发生什么？
 
 **答案：**
 
@@ -806,7 +1225,7 @@ const result = useMemo(() => compute(a, b, c, d, e), [a, b, c, d, e]);
 
 ---
 
-### 16. 为什么说「useMemo 不是性能银弹」？
+### 18. 为什么说「useMemo 不是性能银弹」？
 
 **答案：**
 
@@ -870,7 +1289,7 @@ function App() {
 
 ---
 
-### 17. 自定义 Hook 的设计原则是什么？哪些逻辑不适合做成 Hook？
+### 19. 自定义 Hook 的设计原则是什么？哪些逻辑不适合做成 Hook？
 
 **答案：**
 
@@ -951,7 +1370,7 @@ function useConstants() {
 
 ---
 
-### 18. 如何在 Hook 中正确处理「可取消的异步请求」？
+### 20. 如何在 Hook 中正确处理「可取消的异步请求」？
 
 **答案：**
 
@@ -1046,7 +1465,7 @@ function UserProfile({ userId }) {
 
 ---
 
-### 19. Hooks 闭包陷阱产生的原因？如何系统性规避？
+### 21. Hooks 闭包陷阱产生的原因？如何系统性规避？
 
 **答案：**
 
@@ -1143,9 +1562,10 @@ useEffect(() => {
 
 ---
 
+
 ## 三、Concurrent Rendering & React 18+ / 19 新特性
 
-### 20. 什么是 Concurrent Rendering？它和多线程有什么本质区别？
+### 22. 什么是 Concurrent Rendering？它和多线程有什么本质区别？
 
 **答案：**
 
@@ -1184,7 +1604,7 @@ Concurrent Rendering（并发渲染）是 React 18 引入的核心能力，允�
 
 ---
 
-### 21. startTransition / useTransition 的真实使用场景
+### 23. startTransition / useTransition 的真实使用场景
 
 **答案：**
 
@@ -1268,7 +1688,7 @@ function TabContainer() {
 
 ---
 
-### 22. useDeferredValue 解决的是什么问题？和 debounce 有何不同？
+### 24. useDeferredValue 解决的是什么问题？和 debounce 有何不同？
 
 **答案：**
 
@@ -1326,7 +1746,7 @@ function SearchResults({ query }) {
 
 ---
 
-### 23. Suspense 的工作原理是什么？它解决的不是"loading"问题？
+### 25. Suspense 的工作原理是什么？它解决的不是"loading"问题？
 
 **答案：**
 
@@ -1384,9 +1804,11 @@ function Page() {
 3. **避免瀑布流**：配合并发数据获取，避免串行请求
 4. **流式渲染支持**：SSR 中支持 streaming
 
+**注意:** 未提供 `fallback` 时渲染为空（不再向上传递）。
+
 ---
 
-### 24. Suspense 在数据请求和代码拆分中的差异用法
+### 26. Suspense 在数据请求和代码拆分中的差异用法
 
 **答案：**
 
@@ -1464,7 +1886,7 @@ const Dashboard = React.lazy(() => import('./Dashboard'));
 
 ---
 
-### 25. React 18 自动批处理（Automatic Batching）改变了什么？
+### 27. React 18 自动批处理（Automatic Batching）改变了什么？
 
 **答案：**
 
@@ -1526,7 +1948,7 @@ function handleClick() {
 
 ---
 
-### 26. React 19 中 `use()` 是做什么的？适合用在哪？
+### 28. React 19 中 `use()` 是做什么的？适合用在哪？
 
 **答案：**
 
@@ -1597,7 +2019,7 @@ function ClientComponent({ dataPromise }) {
 
 ---
 
-### 27. React 19 的 Actions / useActionState 解决了什么长期痛点？
+### 29. React 19 的 Actions / useActionState 解决了什么长期痛点？
 
 **答案：**
 
@@ -1674,7 +2096,7 @@ function NewForm() {
 
 ---
 
-### 28. React 19 表单处理相比旧方案（Formik / 手写）的优势
+### 30. React 19 表单处理相比旧方案（Formik / 手写）的优势
 
 **答案：**
 
@@ -1741,7 +2163,7 @@ async function createPost(formData) {
 
 ---
 
-### 29. React 19 中 optimistic UI 的实现思路
+### 31. React 19 中 optimistic UI 的实现思路
 
 **答案：**
 
@@ -1829,7 +2251,7 @@ async function handleAction() {
 
 ## 四、组件设计 & 架构能力
 
-### 30. 如何设计一个「高可复用、低耦合」的 React 组件？
+### 32. 如何设计一个「高可复用、低耦合」的 React 组件？
 
 **答案：**
 
@@ -1947,7 +2369,7 @@ function SearchPage() {
 
 ---
 
-### 31. 组合（Composition）相比继承的优势体现在哪里？
+### 33. 组合（Composition）相比继承的优势体现在哪里？
 
 **答案：**
 
@@ -2056,7 +2478,7 @@ function ConfirmDialog({ title, message, onConfirm, onCancel }) {
 
 ---
 
-### 32. HOC、Render Props、Hooks 各自的适用边界
+### 34. HOC、Render Props、Hooks 各自的适用边界
 
 **答案：**
 
@@ -2149,7 +2571,7 @@ function MyComponent() {
 
 ---
 
-### 33. Context API 的工作原理？为什么容易引发性能问题？
+### 35. Context API 的工作原理？为什么容易引发性能问题？
 
 **答案：**
 
@@ -2214,7 +2636,7 @@ function ThemeButton() {
 
 ---
 
-### 34. 如何设计 Context 才不会导致大面积重渲染？
+### 36. 如何设计 Context 才不会导致大面积重渲染？
 
 **答案：**
 
@@ -2305,7 +2727,7 @@ function ThemeButton() {
 
 ---
 
-### 35. 受控组件 vs 非受控组件的取舍原则
+### 37. 受控组件 vs 非受控组件的取舍原则
 
 **答案：**
 
@@ -2435,279 +2857,6 @@ function SimpleSearch() {
 | 文件上传 | 非受控 |
 | 第三方库集成 | 非受控 |
 | 性能敏感（大量输入框） | 非受控 |
-
----
-
-### 36. 如何设计一个复杂表单组件体系？
-
-**答案：**
-
-**1. 分层架构**
-
-```
-表单体系分层：
-┌─────────────────────────────────────┐
-│  应用层：业务表单（UserForm, OrderForm） │
-├─────────────────────────────────────┤
-│  组合层：表单布局（FormSection, FormRow）│
-├─────────────────────────────────────┤
-│  原子层：输入组件（Input, Select, ...） │
-├─────────────────────────────────────┤
-│  核心层：表单状态管理（FormContext）    │
-└─────────────────────────────────────┘
-```
-
-**2. 核心层：统一状态管理**
-
-```javascript
-// FormContext.tsx
-const FormContext = createContext(null);
-
-function FormProvider({ initialValues, onSubmit, children }) {
-  const [values, setValues] = useState(initialValues);
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
-  
-  const setValue = useCallback((name, value) => {
-    setValues(prev => ({ ...prev, [name]: value }));
-  }, []);
-  
-  const setError = useCallback((name, error) => {
-    setErrors(prev => ({ ...prev, [name]: error }));
-  }, []);
-  
-  const handleSubmit = useCallback((e) => {
-    e.preventDefault();
-    if (validate(values)) {
-      onSubmit(values);
-    }
-  }, [values, onSubmit]);
-  
-  return (
-    <FormContext.Provider value={{ values, errors, touched, setValue, setError }}>
-      <form onSubmit={handleSubmit}>{children}</form>
-    </FormContext.Provider>
-  );
-}
-```
-
-**3. 原子层：可复用的输入组件**
-
-```javascript
-// 通用字段包装器
-function Field({ name, label, validate, children }) {
-  const { values, errors, touched, setValue, setError } = useFormContext();
-  
-  const handleChange = (value) => {
-    setValue(name, value);
-    if (validate) {
-      const error = validate(value);
-      setError(name, error);
-    }
-  };
-  
-  return (
-    <div className="field">
-      <label>{label}</label>
-      {React.cloneElement(children, {
-        value: values[name],
-        onChange: handleChange,
-        error: touched[name] && errors[name],
-      })}
-      {touched[name] && errors[name] && (
-        <span className="error">{errors[name]}</span>
-      )}
-    </div>
-  );
-}
-
-// 具体输入组件
-function TextInput({ value, onChange, error, ...props }) {
-  return (
-    <input
-      type="text"
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      className={error ? 'error' : ''}
-      {...props}
-    />
-  );
-}
-```
-
-**4. 组合层：布局组件**
-
-```javascript
-function FormSection({ title, children }) {
-  return (
-    <fieldset>
-      <legend>{title}</legend>
-      {children}
-    </fieldset>
-  );
-}
-
-function FormRow({ children }) {
-  return <div className="form-row">{children}</div>;
-}
-```
-
-**5. 应用层：业务表单**
-
-```javascript
-function UserRegistrationForm() {
-  return (
-    <FormProvider 
-      initialValues={{ name: '', email: '', password: '' }}
-      onSubmit={handleRegister}
-    >
-      <FormSection title="Basic Info">
-        <Field name="name" label="Name" validate={required}>
-          <TextInput placeholder="Enter your name" />
-        </Field>
-        <Field name="email" label="Email" validate={composeValidators(required, email)}>
-          <TextInput type="email" />
-        </Field>
-      </FormSection>
-      
-      <FormSection title="Security">
-        <Field name="password" label="Password" validate={minLength(8)}>
-          <PasswordInput />
-        </Field>
-      </FormSection>
-      
-      <SubmitButton>Register</SubmitButton>
-    </FormProvider>
-  );
-}
-```
-
----
-
-### 37. UI 组件和业务组件的合理边界划分方式
-
-**答案：**
-
-**定义区分：**
-
-| 特性 | UI 组件 | 业务组件 |
-|------|---------|----------|
-| 职责 | 纯展示，无业务逻辑 | 包含业务逻辑 |
-| 数据 | 通过 props 接收 | 自己获取/管理 |
-| 复用性 | 跨项目可复用 | 项目内复用 |
-| 示例 | Button, Modal, Table | UserCard, OrderForm |
-
-**UI 组件设计原则：**
-
-```javascript
-// UI 组件：不关心数据来源，只关心如何展示
-function DataTable({ columns, data, onSort, onRowClick, loading }) {
-  if (loading) return <TableSkeleton columns={columns.length} />;
-  
-  return (
-    <table>
-      <thead>
-        <tr>
-          {columns.map(col => (
-            <th key={col.key} onClick={() => onSort?.(col.key)}>
-              {col.title}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map(row => (
-          <tr key={row.id} onClick={() => onRowClick?.(row)}>
-            {columns.map(col => (
-              <td key={col.key}>{row[col.key]}</td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-// 使用：UI 组件对业务一无所知
-<DataTable
-  columns={[
-    { key: 'name', title: 'Name' },
-    { key: 'email', title: 'Email' },
-  ]}
-  data={users}
-  onRowClick={handleUserClick}
-/>
-```
-
-**业务组件设计原则：**
-
-```javascript
-// 业务组件：封装业务逻辑，使用 UI 组件
-function UserManagementTable() {
-  const { users, loading, error } = useUsers();
-  const [sortKey, setSortKey] = useState('name');
-  const navigate = useNavigate();
-  
-  const sortedUsers = useMemo(() => 
-    [...users].sort((a, b) => a[sortKey].localeCompare(b[sortKey])),
-    [users, sortKey]
-  );
-  
-  const handleRowClick = (user) => {
-    navigate(`/users/${user.id}`);
-  };
-  
-  if (error) return <ErrorMessage error={error} />;
-  
-  return (
-    <DataTable
-      columns={USER_COLUMNS}
-      data={sortedUsers}
-      loading={loading}
-      onSort={setSortKey}
-      onRowClick={handleRowClick}
-    />
-  );
-}
-```
-
-**边界划分策略：**
-
-```
-项目结构：
-src/
-├── components/          # UI 组件库
-│   ├── Button/
-│   ├── Modal/
-│   ├── DataTable/
-│   └── Form/
-│
-├── features/            # 业务模块
-│   ├── users/
-│   │   ├── components/  # 用户相关业务组件
-│   │   ├── hooks/
-│   │   └── api/
-│   ├── orders/
-│   └── products/
-│
-└── pages/              # 页面组件
-    ├── HomePage.tsx
-    └── UserPage.tsx
-```
-
-**判断标准：**
-
-1. **问自己**：这个组件换个项目还能用吗？
-   - 能 → UI 组件
-   - 不能 → 业务组件
-
-2. **看依赖**：组件依赖什么？
-   - 只依赖 props 和通用库 → UI 组件
-   - 依赖业务 API、路由、状态管理 → 业务组件
-
-3. **看命名**：名字包含业务术语吗？
-   - `Table`, `Modal`, `Button` → UI 组件
-   - `UserTable`, `OrderModal`, `CheckoutButton` → 业务组件
 
 ---
 
@@ -2955,34 +3104,30 @@ function Parent({ children }) {
 
 **答案：**
 
-**对比逻辑：**
++   `React.memo` 这个 `HOC(高阶组件)`, 专门为函数组件设计, 用于性能优化
 
-React.memo 默认使用 **浅比较（shallow compare）**：
+> React.memo 使用说明
+>
+> +   默认浅比较: 会对组件 `props` 进行 `浅比较`, 只有 `props` 变更才会触发 `render`
+> +   允许传入第二参数, 该参数是个函数, 该函数接收 `2` 个参数, 两个参数分别是新旧 `props`,
+> +   `arePropsEqual` 返回 `true` 时, 不会触发 `render`, 如果返回 `false` 则会, 和 `shouldComponentUpdate` 刚好与其相反
 
-```javascript
-// 简化的浅比较实现
-function shallowEqual(prevProps, nextProps) {
-  const prevKeys = Object.keys(prevProps);
-  const nextKeys = Object.keys(nextProps);
-  
-  if (prevKeys.length !== nextKeys.length) return false;
-  
-  for (let key of prevKeys) {
-    if (!Object.is(prevProps[key], nextProps[key])) {
-      return false;
-    }
+```js
+// 组件
+function MyComponent(props) {}
+
+// 比较方法
+function areEqual(prevProps, nextProps) {
+  if (prevProps !== nextProps) {
+    // 会进行渲染
+    return false
   }
-  return true;
+
+  // 不会进行渲染
+  return true
 }
 
-// Object.is 的比较规则：
-Object.is(1, 1)           // true
-Object.is('a', 'a')       // true
-Object.is(obj, obj)       // true（同一引用）
-Object.is({}, {})         // false（不同引用）
-Object.is([], [])         // false
-Object.is(fn, fn)         // true（同一引用）
-Object.is(() => {}, () => {}) // false（不同引用）
+export default React.memo(MyComponent, areEqual);
 ```
 
 **失效场景：**
@@ -3050,103 +3195,7 @@ const MemoChild = React.memo(function Child() {
 
 ---
 
-### 41. key 使用 index 会带来哪些具体问题？
-
-**答案：**
-
-**问题 1：列表项状态错乱**
-
-```javascript
-function TodoList() {
-  const [todos, setTodos] = useState([
-    { id: 1, text: 'Learn React' },
-    { id: 2, text: 'Build App' },
-  ]);
-  
-  const addFirst = () => {
-    setTodos([{ id: 3, text: 'New Todo' }, ...todos]);
-  };
-  
-  return (
-    <>
-      <button onClick={addFirst}>Add to top</button>
-      {todos.map((todo, index) => (
-        // 使用 index 作为 key
-        <TodoItem key={index} todo={todo} />
-      ))}
-    </>
-  );
-}
-
-function TodoItem({ todo }) {
-  const [isEditing, setIsEditing] = useState(false);
-  
-  // 问题：点击 "Add to top" 后
-  // 原来 index=0 的 "Learn React" 变成了 index=1
-  // 但 React 认为 key=0 的还是同一个组件
-  // 导致新添加的 todo 继承了原来第一项的编辑状态！
-  
-  return <div>{isEditing ? <input /> : todo.text}</div>;
-}
-```
-
-**问题 2：输入框内容错乱**
-
-```javascript
-function List({ items }) {
-  return items.map((item, index) => (
-    <div key={index}>
-      {item.name}
-      <input defaultValue={item.value} />
-    </div>
-  ));
-}
-
-// 当列表重排序时：
-// 原来: [{name: 'A', value: '1'}, {name: 'B', value: '2'}]
-// 删除 A: [{name: 'B', value: '2'}]
-// 
-// React 看到 key=0 还在，认为是同一个元素
-// 但数据已经是 B 了，而 input 还保持着 A 的值 '1'
-```
-
-**问题 3：动画异常**
-
-```javascript
-// 使用 index 作为 key 时
-// 删除中间项会导致后面所有项的 key 变化
-// 动画库可能无法正确识别哪个元素被删除
-
-// 原来: [0, 1, 2] -> 删除 index=1 -> [0, 1]
-// React 认为 key=2 被删除了，而不是原来 key=1 的元素
-```
-
-**问题 4：性能下降**
-
-```javascript
-// 在列表开头插入元素时
-// 所有元素的 index 都变了，React 认为所有元素都"改变"了
-// 导致整个列表重新渲染，无法复用任何 DOM 节点
-
-// 使用稳定的 id 作为 key 时
-// React 知道只是插入了一个新元素，其他元素可以复用
-```
-
-**什么时候可以用 index：**
-
-1. 列表是静态的，不会重排序、增删
-2. 列表项没有内部状态（如输入框、展开/折叠）
-3. 列表项没有依赖位置的动画
-
-```javascript
-// 可以用 index 的场景
-const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-weekdays.map((day, index) => <span key={index}>{day}</span>);
-```
-
----
-
-### 42. 大列表渲染的优化方案有哪些？各自的 trade-off？
+### 41. 大列表渲染的优化方案有哪些？各自的 trade-off？
 
 **答案：**
 
@@ -3280,7 +3329,7 @@ function TimeSlicedList({ items }) {
 
 ---
 
-### 43. 如何避免「无意义的重渲染」？
+### 42. 如何避免「无意义的重渲染」？
 
 **答案：**
 
@@ -3397,7 +3446,7 @@ const NotificationContext = createContext([]); // 经常变
 
 ---
 
-### 44. React Profiler 的使用思路和分析流程
+### 43. React Profiler 的使用思路和分析流程
 
 **答案：**
 
@@ -3484,7 +3533,7 @@ function onRenderCallback(
 
 ---
 
-### 45. CPU 卡顿 vs 内存泄漏在 React 中的典型表现
+### 44. CPU 卡顿 vs 内存泄漏在 React 中的典型表现
 
 **答案：**
 
@@ -3623,7 +3672,7 @@ useEffect(() => {
 
 ## 六、状态管理
 
-### 46. Redux 的核心思想是什么？它解决的根本问题是什么？
+### 45. Redux 的核心思想是什么？它解决的根本问题是什么？
 
 **答案：**
 
@@ -3693,7 +3742,7 @@ dispatch({ type: 'UPDATE_USER_NAME', payload: 'New Name' });
 
 ---
 
-### 47. Redux 为什么强调不可变数据？
+### 46. Redux 为什么强调不可变数据？
 
 **答案：**
 
@@ -3788,7 +3837,7 @@ const counterSlice = createSlice({
 
 ---
 
-### 48. Redux Toolkit 相比传统 Redux 改进了什么？
+### 47. Redux Toolkit 相比传统 Redux 改进了什么？
 
 **答案：**
 
@@ -3905,7 +3954,7 @@ const userSlice = createSlice({
 
 ---
 
-### 49. Context + Hooks 能否完全替代 Redux？为什么？
+### 48. Context + Hooks 能否完全替代 Redux？为什么？
 
 **答案：**
 
@@ -3992,7 +4041,7 @@ setCart([...cart, item]);
 
 ---
 
-### 50. Zustand / Jotai / Recoil 的设计思路对比
+### 49. Zustand / Jotai / Recoil 的设计思路对比
 
 **答案：**
 
@@ -4099,7 +4148,7 @@ function TodoList() {
 
 ---
 
-### 51. 如何避免「状态爆炸」？
+### 50. 如何避免「状态爆炸」？
 
 **答案：**
 
@@ -4231,7 +4280,7 @@ const expensiveResult = useMemo(() =>
 
 ---
 
-### 52. 哪些状态 **不应该** 放进全局状态管理？
+### 51. 哪些状态 **不应该** 放进全局状态管理？
 
 **答案：**
 
@@ -4326,5 +4375,128 @@ function Child({ value, onChange }) {
 | 应用配置 | 主题、语言、功能开关 |
 | 跨页面共享的业务数据 | 购物车、通知列表 |
 | 需要时间旅行调试的状态 | 复杂业务流程状态 |
+
+---
+
+## 七、React 常用库速查
+
+| 分类 | 推荐库 | 说明 |
+|------|--------|------|
+| 状态管理 | Zustand、Redux Toolkit | Zustand 轻量，RTK 适合大型应用 |
+| 数据请求 | TanStack Query、SWR | 自动缓存、重试、失效管理 |
+| 路由 | React Router v6+ | 声明式路由 |
+| UI 组件 | Ant Design、MUI、Shadcn UI | 企业级 / Material / 可定制 |
+| 样式 | Tailwind CSS | 原子化 CSS |
+| 虚拟列表 | react-window | 大列表性能优化 |
+| 表单 | react-hook-form | 高性能、非受控表单 |
+| 动画 | Framer Motion | 声明式动画 |
+| 工程化 | Vite + pnpm | 快速构建 + 高效包管理 |
+
+---
+
+### Zustand 极简示例
+
+```javascript
+import { create } from 'zustand';
+
+// 1. 创建 store
+const useStore = create((set) => ({
+  count: 0,                                      // 定义状态
+  inc: () => set((s) => ({ count: s.count + 1 })), // 定义修改状态的 action
+}));
+
+// 2. 在组件中使用
+function Counter() {
+  const count = useStore((s) => s.count);  // 选择器：只订阅 count，其他状态变化不触发重渲染
+  const inc = useStore((s) => s.inc);      // 获取 action（引用稳定，不会导致重渲染）
+  return <button onClick={inc}>{count}</button>;
+}
+```
+
+---
+
+### React Query 极简示例
+
+```javascript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// 1. 查询数据（自动处理 loading/error/缓存/重试）
+const { data, isLoading } = useQuery({
+  queryKey: ['todos'],           // 缓存键：相同 key 的请求共享缓存
+  queryFn: () => fetch('/api/todos').then(r => r.json()),  // 实际请求函数
+});
+
+// 2. 修改数据
+const queryClient = useQueryClient();  // 获取 queryClient 实例
+const mutation = useMutation({
+  mutationFn: (newTodo) => fetch('/api/todos', {  // 发送 POST 请求
+    method: 'POST', 
+    body: JSON.stringify(newTodo) 
+  }),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['todos'] });  // 成功后使缓存失效 → 自动重新请求
+  },
+});
+
+// 3. 触发修改：mutation.mutate({ title: 'New Todo' })
+```
+
+---
+
+### react-window 极简示例
+
+```javascript
+import { FixedSizeList } from 'react-window';
+
+// 模拟大数据：10000 条
+const items = Array.from({ length: 10000 }, (_, i) => `Item ${i}`);
+
+function VirtualList() {
+  return (
+    <FixedSizeList
+      height={400}              // 可视区域高度
+      itemCount={items.length}  // 数据总条数
+      itemSize={35}             // 每行固定高度
+      width="100%"              // 容器宽度
+    >
+      {({ index, style }) => (
+        // style 包含 position/top/height，必须传给子元素实现虚拟定位
+        <div style={style}>{items[index]}</div>
+      )}
+    </FixedSizeList>
+  );
+}
+// 原理：只渲染可视区域内的 DOM 节点（约 10-20 个），滚动时动态替换内容
+```
+
+---
+
+### react-hook-form 极简示例
+
+```javascript
+import { useForm } from 'react-hook-form';
+
+function Form() {
+  const { 
+    register,      // 注册表单字段
+    handleSubmit,  // 包装提交函数（验证通过才调用）
+    formState: { errors }  // 验证错误信息
+  } = useForm();
+
+  return (
+    <form onSubmit={handleSubmit((data) => console.log(data))}>
+      {/* register 返回 { name, ref, onChange, onBlur }，展开后绑定到 input */}
+      <input {...register('email', { required: '邮箱必填' })} />
+      {errors.email && <span>{errors.email.message}</span>}
+      
+      <input {...register('password', { minLength: { value: 6, message: '至少6位' } })} />
+      {errors.password && <span>{errors.password.message}</span>}
+      
+      <button type="submit">提交</button>
+    </form>
+  );
+}
+// 特点：非受控表单，输入时不触发重渲染，性能优于受控表单
+```
 
 ---
