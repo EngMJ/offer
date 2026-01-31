@@ -4380,170 +4380,410 @@ function Child({ value, onChange }) {
 
 ## 七、路由管理
 
-###  52. 什么是 React Router？它解决什么问题？
+### 52. React Router 的核心设计理念是什么？它解决了 SPA 的哪些根本问题？
 
-**答：**
-React Router 是 React 的路由库，用来在单页应用中同步 URL 和 UI，实现浏览器前端的导航。它管理路径匹配、组件渲染和导航历史。
+**答案：**
 
----
+React Router 是 React 生态中 **声明式路由** 的实现，其核心理念是 **"路由即组件"**——将 URL 与 UI 的映射关系通过组件树来表达。
 
-### 53. React Router 的基本核心组件有哪些？
+**SPA 面临的根本问题：**
 
-**答：**
+| 问题 | SPA 困境 | React Router 解决方案 |
+|------|----------|----------------------|
+| URL 与视图同步 | 手动管理 | 声明式路由匹配 |
+| 浏览器历史记录 | 无法后退/前进 | History API 封装 |
+| 页面状态保持 | 刷新后 404 | 服务端配合 + 状态恢复 |
+| 代码分割 | 全量加载 | lazy + Suspense |
 
-* `BrowserRouter`：HTML5 History 模式路由容器。
-* `Routes`：包裹所有 Route。
-* `Route`：定义路径和对应组件。
-* `Link` / `NavLink`：导航链接。
-
----
-
-### 54. React Router v6 和 v5 最大区别是什么？
-
-**答：**
-
-* `Switch` 被 `Routes` 取代
-* v6 默认精确匹配
-* 路由写法变成 `element={<Comp />}`
-* 嵌套路由要用 `Outlet`
-* 用 `useNavigate` 代替 `useHistory`
-  （更现代和可组合）
-  👉 这是升级 v6 的核心设计理念。
+**技术要点：**
+- 路由匹配本质是：`f(location, routes) => Component`
+- v6 采用相对路由设计，更贴近文件系统的思维模型
+- 与 React 18+ Concurrent Features 深度整合
 
 ---
 
-### 55. `Link` 和 `NavLink` 有什么区别？
+### 53. React Router 的核心组件架构是怎样的？
 
-**答：**
+**答案：**
 
-* `Link`：基础导航。
-* `NavLink`：带*激活状态样式*，匹配当前路由时可自动加 className 或 style。
+**组件层次与职责：**
 
----
+```
+BrowserRouter / HashRouter / MemoryRouter（路由上下文提供者）
+    └── Routes（路由匹配引擎）
+          └── Route（路由规则定义）
+                └── Outlet（子路由渲染出口）
 
-### 56. 如何在 React Router 中定义 路由参数？
-
-**答：**
-
-```jsx
-<Route path="/users/:id" element={<UserProfile />} />
+Link / NavLink（导航触发器）
+Navigate（声明式重定向）
 ```
 
-在组件里用：
+**基本用法：**
 
-```js
-const { id } = useParams();
-```
-
-即可获取路由参数。
-
----
-
-### 57. 什么是嵌套路由？在 v6 如何写？
-
-**答：**
-
-嵌套路由是在父路由的组件内部再渲染子路由。
-在 v6 用 `Outlet` 占位子路由出口：
-
-```jsx
-<Route path="/dashboard" element={<Layout />}>
-  <Route path="stats" element={<Stats />} />
-</Route>
-```
-
-`Layout` 内要有 `<Outlet />`。
-
----
-
-### 58. 如何进行 程序化导航？什么时候用？
-
-**答：**
-
-用 `useNavigate`：
-
-```js
-const navigate = useNavigate()
-navigate('/login', { replace: true })
-```
-
-用于事件处理、表单提交后跳转等命令式导航。
-
----
-
-### 59. 如何处理 *404 页面*（找不到路由）？
-
-**答：**
-
-在最末尾加一个没有 path 的 Route：
-
-```jsx
+```javascript
 <Routes>
-  {/* 正常路由 */}
+  <Route path="/" element={<Home />} />
+  <Route path="/users/:id" element={<User />} />
   <Route path="*" element={<NotFound />} />
 </Routes>
-```
 
-匹配所有未命中的页面。
-
----
-
-### 60. 在 React Router 里如何 **共享数据** 或传递额外状态？
-
-**答：**
-
-方法包括：
-
-* path 参数 / query 参数
-* 组件状态（state）和 Context
-* Redux / 全局状态仓库
-  React Router 也支持通过 `state` 传输数据：
-
-```js
-navigate('/page', { state: { from: 'home' } })
-```
-
-在目标路由可通过 `useLocation()` 读。
-
----
-
-### 61. React Router 如何实现页面切换时不刷新的？底层原理是什么？
-
-**答：**
-
-核心原理三点：
-
-+ 使用 History API（pushState / replaceState）
-
-+ URL 改变但 不触发浏览器刷新
-
-+ Router 监听 location 变化 → 重新渲染组件树
-
-### 62. 如何在 React Router 中做路由权限控制？
-
-**答：**
-
-高阶路由组件（Route Guard）
-
-```jsx
-function AuthRoute({ children }) {
-   const isLogin = useAuth()
-
-   return isLogin ? children : <Navigate to="/login" replace />
+// Layout 中使用 Outlet 渲染子路由
+function Layout() {
+  return (
+    <div>
+      <Header />
+      <Outlet /> {/* 子路由渲染位置 */}
+    </div>
+  );
 }
 ```
 
-```jsx
+**Router 类型选择：**
+
+| Router 类型 | URL 形式 | 使用场景 |
+|-------------|----------|----------|
+| BrowserRouter | `/path` | 生产环境（需服务端配合） |
+| HashRouter | `/#/path` | 静态托管 |
+| MemoryRouter | 内存中 | 测试、React Native |
+
+---
+
+### 54. React Router v6 相比 v5 有哪些核心改进？
+
+**答案：**
+
+| 维度 | v5 | v6 |
+|------|----|----|
+| 路由匹配 | 按顺序，需 `exact` | 智能排序，自动精确匹配 |
+| 嵌套路由 | 分散在各组件 | 集中声明 + Outlet |
+| 组件渲染 | `component` / `render` | `element={<Comp />}` |
+| 导航 Hook | `useHistory` | `useNavigate` |
+| 包体积 | ~20KB | ~12KB（减少 40%） |
+
+**代码对比：**
+
+```javascript
+// v5：分散式
+<Switch>
+  <Route exact path="/" component={Home} />
+  <Route path="/users" component={Users} />
+</Switch>
+
+// v6：集中式 + 嵌套
+<Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="/users" element={<Users />}>
+    <Route index element={<UserList />} />
+    <Route path=":id" element={<UserDetail />} />
+  </Route>
+</Routes>
+```
+
+---
+
+### 55. Link 和 NavLink 的实现原理是什么？
+
+**答案：**
+
+`Link` 和 `NavLink` 本质是 **增强版的 `<a>` 标签**，通过拦截默认行为实现 SPA 导航。
+
+**为什么不能直接用 `<a>` 标签：**
+- 原生 `<a>` 会触发页面刷新，导致 React 状态丢失
+- `Link` 通过 `e.preventDefault()` + `history.pushState` 实现无刷新导航
+
+**Link 简化实现：**
+
+```javascript
+function Link({ to, children, replace, state }) {
+  const navigate = useNavigate();
+  
+  const handleClick = (e) => {
+    if (e.metaKey || e.ctrlKey) return; // 允许新标签打开
+    e.preventDefault();
+    navigate(to, { replace, state });
+  };
+
+  return <a href={to} onClick={handleClick}>{children}</a>;
+}
+```
+
+**NavLink 激活状态：**
+
+```javascript
+<NavLink
+  to="/dashboard"
+  className={({ isActive }) => isActive ? 'active' : ''}
+>
+  Dashboard
+</NavLink>
+```
+
+---
+
+### 56. 路由参数的类型与最佳实践
+
+**答案：**
+
+**路由参数语法：**
+
+```javascript
+// 动态参数
+<Route path="/users/:userId" element={<User />} />
+
+// 通配符
+<Route path="/files/*" element={<FileBrowser />} />
+// 匹配: /files/a/b/c → params['*'] = 'a/b/c'
+
+// 多段参数
+<Route path="/repos/:owner/:repo" element={<Repo />} />
+```
+
+**参数获取：**
+
+```javascript
+function UserProfile() {
+  const { userId } = useParams();               // 路径参数
+  const [searchParams] = useSearchParams();     // 查询参数
+  const tab = searchParams.get('tab');          // ?tab=settings
+}
+```
+
+**v6 自动排序规则：** 静态段 > 动态段 > 通配符
+
+---
+
+### 57. 嵌套路由如何设计？
+
+**答案：**
+
+**JSX 嵌套写法（推荐）：**
+
+```javascript
+<Routes>
+  <Route path="/" element={<RootLayout />}>
+    <Route index element={<Home />} />
+    <Route path="dashboard" element={<DashboardLayout />}>
+      <Route index element={<Overview />} />
+      <Route path="settings" element={<Settings />} />
+    </Route>
+  </Route>
+</Routes>
+```
+
+**配置对象写法（适合动态路由）：**
+
+```javascript
+const routes = [
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: 'dashboard', element: <Dashboard /> },
+    ],
+  },
+];
+
+const element = useRoutes(routes);
+```
+
+**Outlet 上下文传递：**
+
+```javascript
+// 父组件传递
+<Outlet context={{ data }} />
+
+// 子组件获取
+const { data } = useOutletContext();
+```
+
+---
+
+### 58. useNavigate 编程式导航
+
+**答案：**
+
+```javascript
+const navigate = useNavigate();
+
+// 基础导航
+navigate('/users/123');
+
+// 替换历史记录
+navigate('/', { replace: true });
+
+// 携带状态
+navigate('/checkout', { state: { from: '/cart' } });
+
+// 相对导航（当前: /users/123/profile）
+navigate('../settings');  // → /users/123/settings
+navigate(-1);             // 后退
+
+// 目标页获取状态
+const location = useLocation();
+const { from } = location.state || {};
+```
+
+**导航守卫（v6.4+）：**
+
+```javascript
+const blocker = useBlocker(isDirty);
+
+useEffect(() => {
+  if (blocker.state === 'blocked') {
+    if (confirm('有未保存的更改，确定离开？')) {
+      blocker.proceed();
+    } else {
+      blocker.reset();
+    }
+  }
+}, [blocker]);
+```
+
+---
+
+### 59. 404 与错误处理
+
+**答案：**
+
+**404 处理：**
+
+```javascript
+<Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="*" element={<NotFound />} /> {/* 通配符放最后 */}
+</Routes>
+```
+
+**Data Router 错误边界（v6.4+）：**
+
+```javascript
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    errorElement: <ErrorBoundary />,
+    children: [
+      {
+        path: 'users/:id',
+        element: <User />,
+        loader: async ({ params }) => {
+          const user = await fetchUser(params.id);
+          if (!user) throw new Response('Not found', { status: 404 });
+          return user;
+        },
+      },
+    ],
+  },
+]);
+
+function ErrorBoundary() {
+  const error = useRouteError();
+  return <div>{isRouteErrorResponse(error) ? error.status : '出错了'}</div>;
+}
+```
+
+---
+
+### 60. 路由间数据传递方案
+
+**答案：**
+
+| 方案 | 生命周期 | 适用场景 |
+|------|----------|----------|
+| URL 参数 | 持久化 | ID、分页 |
+| 查询参数 | 持久化 | 筛选、排序 |
+| location.state | 会话级 | 临时数据（刷新丢失） |
+| Context / Redux | 应用级 | 全局共享状态 |
+| Loader | 路由级 | 页面数据预加载 |
+
+```javascript
+// location.state
+navigate('/checkout', { state: { items } });
+const { items } = useLocation().state || {};
+
+// Data Router Loader
+loader: ({ params }) => fetchUser(params.id)
+const user = useLoaderData();
+```
+
+---
+
+### 61. React Router 底层原理
+
+**答案：**
+
+**核心机制：**
+1. 使用 `history.pushState` / `replaceState` 更新 URL（不刷新页面）
+2. 监听 `popstate` 事件捕获浏览器前进/后退
+3. 将 `location` 作为 React 状态，变化时触发重新渲染
+
+```javascript
+// 简化原理
+function BrowserRouter({ children }) {
+  const [location, setLocation] = useState(window.location);
+
+  useEffect(() => {
+    const handler = () => setLocation(window.location);
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
+  }, []);
+
+  const navigate = (to, { replace } = {}) => {
+    replace ? history.replaceState(null, '', to) : history.pushState(null, '', to);
+    setLocation(window.location);
+  };
+
+  return <RouterContext.Provider value={{ location, navigate }}>{children}</RouterContext.Provider>;
+}
+```
+
+**关键点：** `pushState` 不触发 `popstate`，需手动更新 React 状态
+
+---
+
+### 62. 路由权限控制方案
+
+**答案：**
+
+**基础 Auth Guard：**
+
+```javascript
+function RequireAuth({ children }) {
+  const { user } = useAuth();
+  const location = useLocation();
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  return children;
+}
+
+<Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+```
+
+**RBAC 权限控制：**
+
+```javascript
+function RequirePermission({ children, roles }) {
+  const { user } = useAuth();
+  
+  if (!user) return <Navigate to="/login" replace />;
+  if (roles && !roles.some(r => user.roles.includes(r))) {
+    return <Forbidden />;
+  }
+  return children;
+}
+
 <Route
   path="/admin"
-  element={
-    <AuthRoute>
-      <Admin />
-    </AuthRoute>
-  }
+  element={<RequirePermission roles={['admin']}><Admin /></RequirePermission>}
 />
-
 ```
+
+**技术要点：**
+- 前端权限仅用于 UX，真正安全依赖后端验证
+- 可结合 `React.lazy` 实现未授权模块不下载
 
 
 ---
