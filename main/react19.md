@@ -3108,7 +3108,7 @@ function Parent({ children }) {
 
 > React.memo 使用说明
 >
-> +   默认浅比较: 会对组件 `props` 进行 `浅比较`, 只有 `props` 变更才会触发 `render`
+> +   默认浅比较: 会对组件 `props` 进行 Obejct.is 比较, 只有 `props` 变更才会触发 `render`
 > +   允许传入第二参数, 该参数是个函数, 该函数接收 `2` 个参数, 两个参数分别是新旧 `props`,
 > +   `arePropsEqual` 返回 `true` 时, 不会触发 `render`, 如果返回 `false` 则会, 和 `shouldComponentUpdate` 刚好与其相反
 
