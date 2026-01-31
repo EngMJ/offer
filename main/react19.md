@@ -4378,7 +4378,177 @@ function Child({ value, onChange }) {
 
 ---
 
-## 七、React 常用库速查
+## 七、路由管理
+
+###  52. 什么是 React Router？它解决什么问题？
+
+**答：**
+React Router 是 React 的路由库，用来在单页应用中同步 URL 和 UI，实现浏览器前端的导航。它管理路径匹配、组件渲染和导航历史。
+
+---
+
+### 53. React Router 的基本核心组件有哪些？
+
+**答：**
+
+* `BrowserRouter`：HTML5 History 模式路由容器。
+* `Routes`：包裹所有 Route。
+* `Route`：定义路径和对应组件。
+* `Link` / `NavLink`：导航链接。
+
+---
+
+### 54. React Router v6 和 v5 最大区别是什么？
+
+**答：**
+
+* `Switch` 被 `Routes` 取代
+* v6 默认精确匹配
+* 路由写法变成 `element={<Comp />}`
+* 嵌套路由要用 `Outlet`
+* 用 `useNavigate` 代替 `useHistory`
+  （更现代和可组合）
+  👉 这是升级 v6 的核心设计理念。
+
+---
+
+### 55. `Link` 和 `NavLink` 有什么区别？
+
+**答：**
+
+* `Link`：基础导航。
+* `NavLink`：带*激活状态样式*，匹配当前路由时可自动加 className 或 style。
+
+---
+
+### 56. 如何在 React Router 中定义 路由参数？
+
+**答：**
+
+```jsx
+<Route path="/users/:id" element={<UserProfile />} />
+```
+
+在组件里用：
+
+```js
+const { id } = useParams();
+```
+
+即可获取路由参数。
+
+---
+
+### 57. 什么是嵌套路由？在 v6 如何写？
+
+**答：**
+
+嵌套路由是在父路由的组件内部再渲染子路由。
+在 v6 用 `Outlet` 占位子路由出口：
+
+```jsx
+<Route path="/dashboard" element={<Layout />}>
+  <Route path="stats" element={<Stats />} />
+</Route>
+```
+
+`Layout` 内要有 `<Outlet />`。
+
+---
+
+### 58. 如何进行 程序化导航？什么时候用？
+
+**答：**
+
+用 `useNavigate`：
+
+```js
+const navigate = useNavigate()
+navigate('/login', { replace: true })
+```
+
+用于事件处理、表单提交后跳转等命令式导航。
+
+---
+
+### 59. 如何处理 *404 页面*（找不到路由）？
+
+**答：**
+
+在最末尾加一个没有 path 的 Route：
+
+```jsx
+<Routes>
+  {/* 正常路由 */}
+  <Route path="*" element={<NotFound />} />
+</Routes>
+```
+
+匹配所有未命中的页面。
+
+---
+
+### 60. 在 React Router 里如何 **共享数据** 或传递额外状态？
+
+**答：**
+
+方法包括：
+
+* path 参数 / query 参数
+* 组件状态（state）和 Context
+* Redux / 全局状态仓库
+  React Router 也支持通过 `state` 传输数据：
+
+```js
+navigate('/page', { state: { from: 'home' } })
+```
+
+在目标路由可通过 `useLocation()` 读。
+
+---
+
+### 61. React Router 如何实现页面切换时不刷新的？底层原理是什么？
+
+**答：**
+
+核心原理三点：
+
++ 使用 History API（pushState / replaceState）
+
++ URL 改变但 不触发浏览器刷新
+
++ Router 监听 location 变化 → 重新渲染组件树
+
+### 62. 如何在 React Router 中做路由权限控制？
+
+**答：**
+
+高阶路由组件（Route Guard）
+
+```jsx
+function AuthRoute({ children }) {
+   const isLogin = useAuth()
+
+   return isLogin ? children : <Navigate to="/login" replace />
+}
+```
+
+```jsx
+<Route
+  path="/admin"
+  element={
+    <AuthRoute>
+      <Admin />
+    </AuthRoute>
+  }
+/>
+
+```
+
+
+---
+
+## 八、React 常用库速查
 
 | 分类 | 推荐库 | 说明 |
 |------|--------|------|
